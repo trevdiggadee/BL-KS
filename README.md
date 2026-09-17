@@ -28,32 +28,29 @@ just serving static files.
 
 ## Project structure
 
-Every file lives in one directory — no subfolders — so it's simple to
-host anywhere and easy to see everything at a glance:
-
 ```
 index.html            All screens (start, game, stats, settings, how-to-play)
 style.css             Design tokens, themes, layout, every screen's styling
 manifest.json         PWA manifest (icons, standalone display, theme color)
 service-worker.js     Offline caching (cache-first, versioned cache name)
-gen_icons.py           Regenerates the icon-*.png files (needs Pillow: pip install pillow)
-storage.js             Save system: versioned schema, safe defaults, migration
-pieces.js               Tetromino shapes, rotations, wall kicks, 7-bag randomizer
-board.js                Grid state, line-clear detection, locking
-collision.js            Movement/rotation/ghost-piece checks (Board + Pieces)
-scoring.js              Points, level curve, gravity speed
-audio.js                All sound synthesized live via Web Audio (no asset files)
-particles.js            Line-clear particle bursts
-effects.js               Screen shake, flash, toast banners
-achievements.js         Achievement definitions + unlock checks
-input.js                Keyboard (DAS/ARR), touch buttons, swipe gestures
-ui.js                   Canvas rendering, screen switching, HUD
-stats.js                Renders the Stats screen from save data
-settings.js             Wires the Settings screen; theme/audio/data actions
-game.js                 The game loop and state machine — ties everything together
-main.js                 Bootstraps the app, nav wiring, service worker registration
-icon-192.png, icon-512.png, icon-maskable-192.png, icon-maskable-512.png,
-apple-touch-icon.png   App icons
+gen_icons.py          Regenerates assets/icons/* (needs Pillow: pip install pillow)
+js/
+  storage.js          Save system: versioned schema, safe defaults, migration
+  pieces.js            Tetromino shapes, rotations, wall kicks, 7-bag randomizer
+  board.js             Grid state, line-clear detection, locking
+  collision.js         Movement/rotation/ghost-piece checks (Board + Pieces)
+  scoring.js           Points, level curve, gravity speed
+  audio.js              All sound synthesized live via Web Audio (no asset files)
+  particles.js         Line-clear particle bursts
+  effects.js            Screen shake, flash, toast banners
+  achievements.js      Achievement definitions + unlock checks
+  input.js             Keyboard (DAS/ARR), touch buttons, swipe gestures
+  ui.js                Canvas rendering, screen switching, HUD
+  stats.js             Renders the Stats screen from save data
+  settings.js          Wires the Settings screen; theme/audio/data actions
+  game.js              The game loop and state machine — ties everything together
+  main.js              Bootstraps the app, nav wiring, service worker registration
+assets/icons/          App icons (192/512, maskable variants, apple-touch-icon)
 ```
 
 ## Continuing development

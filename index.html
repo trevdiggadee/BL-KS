@@ -60,7 +60,17 @@
       </div>
     </div>
 
-    <div class="combo-banner" id="combo-banner">&nbsp;</div>
+    <div class="sub-hud">
+      <div class="mini-chip mini-chip--hold">
+        <div class="mini-chip__label">HOLD</div>
+        <canvas id="hold-canvas" width="64" height="64"></canvas>
+      </div>
+      <div class="combo-banner" id="combo-banner">&nbsp;</div>
+      <div class="mini-chip mini-chip--next">
+        <div class="mini-chip__label">NEXT</div>
+        <canvas id="next-canvas" width="64" height="64"></canvas>
+      </div>
+    </div>
 
     <div class="board-wrap">
       <div class="board-frame" id="board-frame">
@@ -102,42 +112,30 @@
       <div id="toast-layer"></div>
     </div>
 
-    <div class="side-row">
-      <div class="side-panel">
-        <div class="side-panel__label">HOLD</div>
-        <canvas id="hold-canvas" width="120" height="70"></canvas>
-      </div>
-      <div class="side-panel">
-        <div class="side-panel__label">NEXT</div>
-        <canvas id="next-canvas" width="120" height="70"></canvas>
-      </div>
-    </div>
-
     <div class="controls">
-      <div class="dpad">
-        <button class="ctrl-btn" id="btn-left" aria-label="Move left">
-          <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7z"/></svg>
+      <div class="controls-bar">
+        <button class="ctrl-btn ctrl-btn--hold" id="btn-hold" aria-label="Hold piece">
+          <svg viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 012 2v1H3V6a2 2 0 012-2zm-2 5h18v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" opacity="0.85"/></svg>
         </button>
-        <button class="ctrl-btn" id="btn-right" aria-label="Move right">
-          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7z"/></svg>
-        </button>
-        <button class="ctrl-btn" id="btn-softdrop" aria-label="Soft drop" style="grid-column: 1 / span 2;">
-          <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
-        </button>
-      </div>
 
-      <div class="harddrop-col">
+        <div class="ctrl-group">
+          <button class="ctrl-btn" id="btn-left" aria-label="Move left">
+            <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7z"/></svg>
+          </button>
+          <button class="ctrl-btn" id="btn-softdrop" aria-label="Soft drop">
+            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+          </button>
+          <button class="ctrl-btn" id="btn-right" aria-label="Move right">
+            <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7z"/></svg>
+          </button>
+        </div>
+
+        <button class="ctrl-btn ctrl-btn--rotate" id="btn-rotate" aria-label="Rotate">
+          <svg viewBox="0 0 24 24"><path d="M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 13c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 8.74A7.93 7.93 0 004 13c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+        </button>
+
         <button class="ctrl-btn ctrl-btn--harddrop" id="btn-harddrop" aria-label="Hard drop">
-          <svg viewBox="0 0 24 24" width="30" height="30"><path d="M7 5l5 5 5-5H7zm0 8l5 5 5-5H7z"/></svg>
-        </button>
-      </div>
-
-      <div class="side-actions">
-        <button class="ctrl-btn ctrl-btn--small ctrl-btn--rotate" id="btn-rotate" aria-label="Rotate">
-          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 13c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 8.74A7.93 7.93 0 004 13c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
-        </button>
-        <button class="ctrl-btn ctrl-btn--small ctrl-btn--hold" id="btn-hold" aria-label="Hold piece">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 4h14a2 2 0 012 2v1H3V6a2 2 0 012-2zm-2 5h18v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" opacity="0.85"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M7 5l5 5 5-5H7zm0 8l5 5 5-5H7z"/></svg>
         </button>
       </div>
     </div>
