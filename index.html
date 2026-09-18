@@ -29,6 +29,25 @@
       <g id="orbit-pieces"></g>
     </svg>
 
+    <div class="quick-customize" aria-label="Visual customization">
+      <div class="quick-customize__title">STYLE LAB</div>
+      <div class="quick-customize__row" id="block-style-choices">
+        <button class="style-chip is-selected" data-block-style="neon"><span class="style-chip__preview style-preview--neon"></span><span>NEON</span></button>
+        <button class="style-chip" data-block-style="glass"><span class="style-chip__preview style-preview--glass"></span><span>GLASS</span></button>
+        <button class="style-chip" data-block-style="voxel"><span class="style-chip__preview style-preview--voxel"></span><span>VOXEL</span></button>
+        <button class="style-chip" data-block-style="chrome"><span class="style-chip__preview style-preview--chrome"></span><span>CHROME</span></button>
+        <button class="style-chip" data-block-style="holo"><span class="style-chip__preview style-preview--holo"></span><span>HOLO</span></button>
+      </div>
+      <div class="quick-customize__label">THEME</div>
+      <div class="theme-pills" id="quick-theme-choices">
+        <button class="theme-pill is-selected" data-theme-choice="neon">NEON</button>
+        <button class="theme-pill" data-theme-choice="classic">CLASSIC</button>
+        <button class="theme-pill" data-theme-choice="cyber">CYBER</button>
+        <button class="theme-pill" data-theme-choice="arcade">ARCADE</button>
+        <button class="theme-pill" data-theme-choice="midnight">NIGHT</button>
+      </div>
+    </div>
+
     <div class="start-stats-row" id="start-stats-row">
       <div class="mini-stat"><div class="mini-stat__value" id="stat-highscore">0</div><div class="mini-stat__label">HIGH SCORE</div></div>
       <div class="mini-stat"><div class="mini-stat__value" id="stat-highlevel">1</div><div class="mini-stat__label">BEST LEVEL</div></div>
@@ -74,6 +93,7 @@
     <div class="combo-banner" id="combo-banner" hidden>&nbsp;</div>
 
     <div class="board-wrap">
+      <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
       <div class="board-frame" id="board-frame">
         <canvas id="board-canvas"></canvas>
         <canvas id="fx-canvas"></canvas>

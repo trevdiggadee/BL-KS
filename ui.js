@@ -8,14 +8,16 @@
 
 const UI = (() => {
   const el = {};
-  let boardCtx, fxCtx, holdCtx, nextCtx;
+  let boardCtx, fxCtx, holdCtx, nextCtx, ambientCtx;
+  let ambientRaf = 0;
+  let ambientStars = [];
   let cellSize = 24;
   let dpr = 1;
 
   function cacheEls() {
     [
       'screen-start', 'screen-game', 'screen-stats', 'screen-settings', 'screen-howto',
-      'board-canvas', 'fx-canvas', 'hold-canvas', 'next-canvas', 'board-frame',
+      'board-canvas', 'fx-canvas', 'ambient-canvas', 'hold-canvas', 'next-canvas', 'board-frame',
       'hud-score', 'hud-level', 'combo-banner',
       'overlay-pause', 'overlay-gameover', 'overlay-countdown', 'countdown-num',
       'go-score', 'go-level', 'go-lines', 'go-combo', 'gameover-title',
@@ -29,6 +31,7 @@ const UI = (() => {
 
     boardCtx = el['board-canvas'].getContext('2d');
     fxCtx = el['fx-canvas'].getContext('2d');
+    ambientCtx = el['ambient-canvas'].getContext('2d');
     holdCtx = el['hold-canvas'].getContext('2d');
     nextCtx = el['next-canvas'].getContext('2d');
     Effects.initToasts(el['toast-layer']);
@@ -56,6 +59,14 @@ const UI = (() => {
     const height = size * rows;
     dpr = window.devicePixelRatio || 1;
 
+    const wrap = parent;
+    const ambient = el['ambient-canvas'];
+    ambient.style.width = `${wrap.clientWidth}px`;
+    ambient.style.height = `${wrap.clientHeight}px`;
+    ambient.width = Math.round(wrap.clientWidth * dpr);
+    ambient.height = Math.round(wrap.clientHeight * dpr);
+    ambientCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     [el['board-canvas'], el['fx-canvas']].forEach((c) => {
       c.style.width = `${width}px`;
       c.style.height = `${height}px`;
@@ -64,6 +75,7 @@ const UI = (() => {
     });
     frame.style.width = `${width}px`;
     frame.style.height = `${height}px`;
+    startAmbientBackground();
 
     boardCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -113,10 +125,51 @@ const UI = (() => {
     const pad = Math.max(1, cellSize * 0.055);
     const size = cellSize - pad * 2;
     const r = cellSize * 0.19;
+    const style = document.documentElement.dataset.blockStyle || 'neon';
 
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.translate(x + pad, y + pad);
+
+    if (style === 'voxel') {
+      ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = glow ? size * .18 : 0;
+      ctx.fillStyle = color; ctx.fillRect(1, 1, size - 2, size - 2);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(2, 2, size - 4, Math.max(2, size * .16));
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(2, size * .78, size - 4, Math.max(2, size * .18));
+      ctx.strokeStyle = 'rgba(0,0,0,.42)'; ctx.lineWidth = Math.max(1, size*.055); ctx.strokeRect(1,1,size-2,size-2);
+      ctx.restore(); return;
+    }
+
+    if (style === 'glass') {
+      ctx.shadowColor = color; ctx.shadowBlur = glow ? size * .25 : 0;
+      const glass = ctx.createLinearGradient(0,0,size,size);
+      glass.addColorStop(0, 'rgba(255,255,255,.58)'); glass.addColorStop(.18, shade(color,.25)); glass.addColorStop(.55, 'rgba(255,255,255,.13)'); glass.addColorStop(1, shade(color,-.28));
+      ctx.fillStyle = glass; roundRect(ctx,0,0,size,size,r); ctx.fill(); ctx.shadowBlur=0;
+      ctx.globalAlpha=alpha*.72; ctx.strokeStyle='rgba(255,255,255,.78)'; ctx.lineWidth=Math.max(1,size*.035); roundRect(ctx,1,1,size-2,size-2,r); ctx.stroke();
+      ctx.globalAlpha=alpha*.35; ctx.fillStyle='rgba(255,255,255,.45)'; roundRect(ctx,size*.08,size*.08,size*.84,size*.12,r*.45); ctx.fill();
+      ctx.globalAlpha=alpha*.18; ctx.strokeStyle=color; ctx.lineWidth=Math.max(1,size*.04); roundRect(ctx,size*.13,size*.13,size*.74,size*.74,r*.72); ctx.stroke();
+      ctx.restore(); return;
+    }
+
+    if (style === 'chrome') {
+      ctx.shadowColor=color; ctx.shadowBlur=glow?size*.18:0;
+      const chrome=ctx.createLinearGradient(0,0,0,size);
+      chrome.addColorStop(0,'#ffffff'); chrome.addColorStop(.14,shade(color,.45)); chrome.addColorStop(.34,'#ffffff'); chrome.addColorStop(.49,shade(color,-.2)); chrome.addColorStop(.62,shade(color,.35)); chrome.addColorStop(.82,shade(color,-.4)); chrome.addColorStop(1,'#ffffff');
+      ctx.fillStyle=chrome; roundRect(ctx,0,0,size,size,r); ctx.fill(); ctx.shadowBlur=0;
+      ctx.globalAlpha=alpha*.7; ctx.strokeStyle=shade(color,.6); ctx.lineWidth=Math.max(1,size*.045); roundRect(ctx,1,1,size-2,size-2,r); ctx.stroke();
+      ctx.restore(); return;
+    }
+
+    if (style === 'holo') {
+      ctx.shadowColor=color; ctx.shadowBlur=glow?size*.48:0;
+      const holo=ctx.createLinearGradient(0,0,size,size);
+      holo.addColorStop(0,shade(color,.4)); holo.addColorStop(.32,'rgba(255,255,255,.48)'); holo.addColorStop(.5,shade(color,-.05)); holo.addColorStop(.68,'rgba(255,80,220,.48)'); holo.addColorStop(1,shade(color,-.3));
+      ctx.fillStyle=holo; roundRect(ctx,0,0,size,size,r); ctx.fill(); ctx.shadowBlur=0;
+      ctx.globalAlpha=alpha*.45; ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=Math.max(1,size*.04); roundRect(ctx,1,1,size-2,size-2,r); ctx.stroke();
+      ctx.globalAlpha=alpha*.2; ctx.strokeStyle='rgba(0,240,255,.9)'; ctx.lineWidth=Math.max(1,size*.025); roundRect(ctx,size*.08,size*.08,size*.84,size*.84,r*.75); ctx.stroke();
+      ctx.restore(); return;
+    }
 
     // Outer energy aura — kept tighter for a crisp, premium block silhouette.
     if (glow) {
@@ -434,8 +487,23 @@ const UI = (() => {
     }
   }
 
+  function startAmbientBackground() {
+    const c = el['ambient-canvas']; if (!c || ambientRaf) return;
+    const count = 34; ambientStars = Array.from({length: count}, () => ({ x: Math.random(), y: Math.random(), r: .4+Math.random()*1.8, s:.0007+Math.random()*.002, p:Math.random()*Math.PI*2 }));
+    const tick = (t) => {
+      const w=c.width/dpr,h=c.height/dpr; ambientCtx.clearRect(0,0,w,h);
+      const grad=ambientCtx.createRadialGradient(w*.5,h*.4,0,w*.5,h*.5,Math.max(w,h)*.7); grad.addColorStop(0,'rgba(80,180,255,.09)'); grad.addColorStop(1,'rgba(0,0,0,0)'); ambientCtx.fillStyle=grad; ambientCtx.fillRect(0,0,w,h);
+      ambientStars.forEach(st => { st.y=(st.y+st.s)%1; const a=.12+.16*(.5+.5*Math.sin(t*.002+st.p)); ambientCtx.globalAlpha=a; ambientCtx.fillStyle='white'; ambientCtx.beginPath(); ambientCtx.arc(st.x*w,st.y*h,st.r,0,Math.PI*2); ambientCtx.fill(); });
+      ambientCtx.globalAlpha=.12; ambientCtx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); ambientCtx.lineWidth=1;
+      for(let i=-h;i<w;i+=55){ ambientCtx.beginPath(); ambientCtx.moveTo(i,0); ambientCtx.lineTo(i+h,h); ambientCtx.stroke(); }
+      ambientCtx.globalAlpha=1; ambientRaf=requestAnimationFrame(tick);
+    };
+    ambientRaf=requestAnimationFrame(tick);
+  }
+  function stopAmbientBackground() { if (ambientRaf) cancelAnimationFrame(ambientRaf); ambientRaf=0; }
+
   return {
-    cacheEls, showScreen, resizeBoardCanvas, renderBoard, renderFx, applyShake,
+    cacheEls, startAmbientBackground, stopAmbientBackground, showScreen, resizeBoardCanvas, renderBoard, renderFx, applyShake,
     drawMiniPiece, updateHud, setCombo, setOverlay, setCountdown,
     showGameOver, updateStartStats, showAchievementPopup, initOrbit,
     clearColorCache, recordTrail, resetTrail, resolveColor: colorFor,

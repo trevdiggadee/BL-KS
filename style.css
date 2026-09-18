@@ -1008,3 +1008,36 @@ body::after{
   body::before,.wordmark--hero,.hud-chip::after{animation:none}
   .btn,.ctrl-btn{transition:none}
 }
+
+/* ==========================================================================
+   STYLE LAB — visual choices live on the main menu, not Settings.
+   ========================================================================== */
+.quick-customize { width:min(94vw,430px); margin:0 auto 8px; padding:12px; border:1px solid var(--border-strong); border-radius:18px; background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018)); box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 35px rgba(0,0,0,.28); backdrop-filter:blur(16px); }
+.quick-customize__title,.quick-customize__label { font:700 .58rem var(--font-mono); letter-spacing:.16em; color:var(--text-dim); text-align:left; margin-bottom:7px; }
+.quick-customize__label { margin-top:10px; }
+.quick-customize__row { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+.style-chip,.theme-pill { border:1px solid var(--border); background:rgba(0,0,0,.18); color:var(--text-dim); border-radius:12px; min-width:0; padding:7px 3px; font:700 .53rem var(--font-mono); letter-spacing:.05em; transition:.18s ease; }
+.style-chip { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.style-chip:active,.theme-pill:active { transform:scale(.94); }
+.style-chip.is-selected,.theme-pill.is-selected { color:var(--text); border-color:color-mix(in srgb,var(--accent) 70%,transparent); background:color-mix(in srgb,var(--accent) 12%,transparent); box-shadow:0 0 16px color-mix(in srgb,var(--accent) 22%,transparent), inset 0 0 12px color-mix(in srgb,var(--accent) 8%,transparent); }
+.style-chip__preview { width:29px; height:22px; border-radius:6px; display:block; position:relative; overflow:hidden; }
+.style-preview--neon { background:linear-gradient(135deg,#fff 0%,var(--cyan) 28%,var(--magenta) 100%); box-shadow:0 0 10px var(--cyan); }
+.style-preview--glass { background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(70,210,255,.16)); border:1px solid rgba(255,255,255,.7); box-shadow:inset 0 2px 4px rgba(255,255,255,.4); }
+.style-preview--voxel { background:var(--amber); border:2px solid rgba(0,0,0,.35); border-radius:2px; box-shadow:inset 0 4px rgba(255,255,255,.3),inset 0 -4px rgba(0,0,0,.22); }
+.style-preview--chrome { background:linear-gradient(#fff 5%,#8ea0b4 22%,#fff 40%,#53677d 58%,#fff 78%,#697b8f); border:1px solid #fff; }
+.style-preview--holo { background:linear-gradient(135deg,#5ff,#f6f,#8ff,#f5a); box-shadow:0 0 11px #8ff; }
+.theme-pills { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+.theme-pill { padding:8px 2px; }
+
+/* Animated gameplay atmosphere */
+.game-screen::before { content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--accent) 7%,transparent),transparent 42%),radial-gradient(circle at 20% 80%,color-mix(in srgb,var(--accent-2) 5%,transparent),transparent 38%); animation:game-breathe 6s ease-in-out infinite alternate; }
+@keyframes game-breathe { from{opacity:.55;transform:scale(1)} to{opacity:1;transform:scale(1.08)} }
+.ambient-canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; opacity:.9; mix-blend-mode:screen; }
+.board-frame { z-index:2; }
+#fx-canvas { z-index:3; }
+
+/* More personality for the five block materials */
+html[data-block-style="voxel"] .board-frame { border-radius:8px; }
+html[data-block-style="voxel"] .board-frame canvas { image-rendering:pixelated; }
+html[data-block-style="glass"] .board-frame { box-shadow:0 0 35px color-mix(in srgb,var(--accent) 14%,transparent), inset 0 0 35px rgba(255,255,255,.025); }
+html[data-block-style="holo"] .board-frame { box-shadow:0 0 38px color-mix(in srgb,var(--accent) 20%,transparent),0 0 90px color-mix(in srgb,var(--accent-2) 10%,transparent); }

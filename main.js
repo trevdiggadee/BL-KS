@@ -9,6 +9,32 @@
 (function bootstrap() {
   let saveData = null;
 
+  const VISUAL_KEY = 'neonblock-visuals-v2';
+  const DEFAULT_VISUALS = { blockStyle: 'neon', theme: 'neon' };
+
+  function loadVisuals() {
+    try { return { ...DEFAULT_VISUALS, ...(JSON.parse(localStorage.getItem(VISUAL_KEY) || '{}')) }; }
+    catch (_) { return { ...DEFAULT_VISUALS }; }
+  }
+  function saveVisuals(v) { try { localStorage.setItem(VISUAL_KEY, JSON.stringify(v)); } catch (_) {} }
+  function applyVisuals(v) {
+    document.documentElement.dataset.theme = v.theme;
+    document.documentElement.dataset.blockStyle = v.blockStyle;
+    UI.clearColorCache();
+    document.querySelectorAll('[data-block-style]').forEach(b => b.classList.toggle('is-selected', b.dataset.blockStyle === v.blockStyle));
+    document.querySelectorAll('[data-theme-choice]').forEach(b => b.classList.toggle('is-selected', b.dataset.themeChoice === v.theme));
+  }
+  function bindVisualLab() {
+    let visuals = loadVisuals();
+    applyVisuals(visuals);
+    document.querySelectorAll('[data-block-style]').forEach(btn => btn.addEventListener('click', () => {
+      visuals.blockStyle = btn.dataset.blockStyle; saveVisuals(visuals); applyVisuals(visuals); Audio_.sfx.uiTap();
+    }));
+    document.querySelectorAll('[data-theme-choice]').forEach(btn => btn.addEventListener('click', () => {
+      visuals.theme = btn.dataset.themeChoice; saveVisuals(visuals); applyVisuals(visuals); Audio_.sfx.uiTap();
+    }));
+  }
+
   function applyControlLayout(layout) {
     document.body.classList.toggle('layout-left', layout === 'left');
   }
@@ -106,6 +132,7 @@
 
   function init() {
     UI.cacheEls();
+    bindVisualLab();
     UI.initOrbit();
     Effects.initToasts(UI.el['toast-layer']);
 
