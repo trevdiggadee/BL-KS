@@ -1,71 +1,106 @@
 /**
  * effects.js
- * Handles visual effects, particle rendering, and pseudo-3D block drawing.
+ * Single responsibility: juicy feedback that isn't particles or audio —
+ * screen shake, board flash, and floating combo/tetris/level-up toasts.
  */
 
 const Effects = (() => {
+  let shakeMagnitude = 0;
+  let shakeDecay = 0.85;
+  let flashAlpha = 0;
+  let flashColor = '255,255,255';
   let animationsEnabled = true;
 
-  function setAnimationsEnabled(enabled) {
-    animationsEnabled = enabled;
+  function setAnimationsEnabled(v) { animationsEnabled = v; }
+
+  function shake(magnitude = 6) {
+    if (!animationsEnabled) return;
+    shakeMagnitude = Math.max(shakeMagnitude, magnitude);
   }
 
-  function draw3DBlock(ctx, x, y, width, height, colorHex, isGhost = false) {
-    const depth = width * 0.18; // 3D depth extrusion
+  function flash(color = '255,255,255', alpha = 0.35) {
+    if (!animationsEnabled) return;
+    flashColor = color;
+    flashAlpha = Math.max(flashAlpha, alpha);
+  }
 
-    if (isGhost) {
-      ctx.strokeStyle = colorHex;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x + 2, y + 2, width - 4, height - 4);
-      return;
-    }
+  function getShakeOffset() {
+    if (shakeMagnitude < 0.1) { shakeMagnitude = 0; return { x: 0, y: 0 }; }
+    const x = (Math.random() - 0.5) * shakeMagnitude;
+    const y = (Math.random() - 0.5) * shakeMagnitude;
+    shakeMagnitude *= shakeDecay;
+    return { x, y };
+  }
 
-    // --- 1. Drop Shadow ---
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-    ctx.fillRect(x + depth, y + depth, width, height);
+  function getFlashOverlayStyle() {
+    if (flashAlpha < 0.01) { flashAlpha = 0; return null; }
+    const style = `rgba(${flashColor}, ${flashAlpha.toFixed(3)})`;
+    flashAlpha *= 0.88;
+    return style;
+  }
 
-    // --- 2. Main Face ---
-    ctx.fillStyle = colorHex;
-    ctx.fillRect(x, y, width - depth, height - depth);
+  // --- Toasts (combo / tetris / level up / high score banners) ---
+  let toastContainer = null;
+  let streakTimer = null;
+  let ambientEnabled = true;
 
-    // --- 3. Top Highlight Bevel ---
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + width - depth, y);
-    ctx.lineTo(x + width - depth - depth * 0.5, y + depth * 0.5);
-    ctx.lineTo(x + depth * 0.5, y + depth * 0.5);
-    ctx.closePath();
-    ctx.fill();
+  function initToasts(containerEl) {
+    toastContainer = containerEl;
+    if (!streakTimer) startAmbientStreaks();
+  }
 
-    // --- 4. Right Side 3D Extrusion (Darker) ---
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    ctx.beginPath();
-    ctx.moveTo(x + width - depth, y);
-    ctx.lineTo(x + width, y + depth);
-    ctx.lineTo(x + width, y + height);
-    ctx.lineTo(x + width - depth, y + height - depth);
-    ctx.closePath();
-    ctx.fill();
+  function startAmbientStreaks() {
+    if (!ambientEnabled || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    streakTimer = setInterval(() => {
+      if (document.hidden || !document.body.contains(document.body)) return;
+      const el = document.createElement('i');
+      el.className = 'fx-streak';
+      el.style.left = `${Math.random() * 100}vw`;
+      el.style.top = `${65 + Math.random() * 30}vh`;
+      el.style.transform = `rotate(${18 + Math.random() * 25}deg) scaleY(${0.65 + Math.random() * .8})`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    }, 2600);
+  }
 
-    // --- 5. Bottom Side 3D Extrusion ---
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.beginPath();
-    ctx.moveTo(x, y + height - depth);
-    ctx.lineTo(x + depth, y + height);
-    ctx.lineTo(x + width, y + height);
-    ctx.lineTo(x + width - depth, y + height - depth);
-    ctx.closePath();
-    ctx.fill();
+  function pulse(selector) {
+    const target = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (!target) return;
+    target.classList.remove('ui-pulse');
+    void target.offsetWidth;
+    target.classList.add('ui-pulse');
+  }
 
-    // --- 6. Inner Neon Glow Edge ---
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x + 1, y + 1, width - depth - 2, height - depth - 2);
+  function rippleFromEvent(event) {
+    const target = event?.currentTarget || event?.target;
+    if (!target || !target.getBoundingClientRect) return;
+    const r = target.getBoundingClientRect();
+    const dot = document.createElement('i');
+    dot.className = 'ui-ripple';
+    dot.style.left = `${(event?.clientX ?? (r.left + r.width / 2)) - r.left}px`;
+    dot.style.top = `${(event?.clientY ?? (r.top + r.height / 2)) - r.top}px`;
+    target.style.position = target.style.position || 'relative';
+    target.appendChild(dot);
+    setTimeout(() => dot.remove(), 650);
+  }
+
+  function toast(text, variant = 'default', duration = 1100) {
+    if (!toastContainer) return;
+    const el = document.createElement('div');
+    el.className = `toast toast--${variant}`;
+    el.textContent = text;
+    el.setAttribute('aria-live', 'polite');
+    toastContainer.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('toast--in'));
+    setTimeout(() => {
+      el.classList.remove('toast--in');
+      el.classList.add('toast--out');
+      setTimeout(() => el.remove(), 320);
+    }, duration);
   }
 
   return {
-    setAnimationsEnabled,
-    draw3DBlock
+    setAnimationsEnabled, shake, flash, getShakeOffset, getFlashOverlayStyle,
+    initToasts, toast, pulse, rippleFromEvent
   };
 })();
