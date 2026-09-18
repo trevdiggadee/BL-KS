@@ -27,6 +27,13 @@
     const mode = typeof Modes !== 'undefined' ? Modes.get(v.gameMode) : null;
     const desc = document.getElementById('mode-description');
     if (desc && mode) desc.textContent = mode.desc;
+    const readout = document.getElementById('menu-selection-readout');
+    if (readout) {
+      const styleName = (v.blockStyle || 'neon').toUpperCase();
+      const modeName = (mode?.name || v.gameMode || 'standard').toUpperCase();
+      readout.textContent = `${styleName} · ${modeName}`;
+    }
+    document.documentElement.dataset.gameMode = v.gameMode || 'standard';
   }
   function bindVisualLab() {
     let visuals = loadVisuals();

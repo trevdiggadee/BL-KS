@@ -20,17 +20,27 @@
 
   <!-- ============ START SCREEN ============ -->
   <section class="screen screen--active start-screen" id="screen-start">
+    <div class="menu-ambient" aria-hidden="true">
+      <div class="menu-grid"></div>
+      <div class="menu-vignette"></div>
+      <div class="menu-scanlines"></div>
+      <span class="menu-orb orb-a"></span><span class="menu-orb orb-b"></span><span class="menu-orb orb-c"></span>
+      <div class="menu-rings"><i></i><i></i><i></i></div>
+    </div>
     <div class="start-top">
       <div class="wordmark wordmark--hero">NEON<span class="wm-accent">BLOCK</span></div>
       <div class="start-tagline">STACK · CLEAR · CHAIN</div>
+      <div class="menu-status"><span class="status-dot"></span> ONLINE ARCADE <b>•</b> SEASON 01</div>
     </div>
 
     <svg class="piece-orbit" viewBox="0 0 100 100" id="orbit-svg" aria-hidden="true">
       <g id="orbit-pieces"></g>
     </svg>
 
+    <div class="menu-hero-badge"><span>✦</span> ULTIMATE BLOCK ARENA <span>✦</span></div>
+
     <div class="quick-customize" aria-label="Visual customization">
-      <div class="quick-customize__title">STYLE LAB</div>
+      <div class="quick-customize__title"><span>STYLE LAB</span><small>PERSONALIZE YOUR RUN</small></div>
       <div class="quick-customize__row" id="block-style-choices">
         <button class="style-chip is-selected" data-block-style="neon"><span class="style-chip__preview style-preview--neon"></span><span>NEON</span></button>
         <button class="style-chip" data-block-style="glass"><span class="style-chip__preview style-preview--glass"></span><span>GLASS</span></button>
@@ -58,6 +68,7 @@
         <button class="mode-pill" data-game-mode="boss"><span>☠</span> BOSS</button>
       </div>
       <div class="mode-description" id="mode-description">Classic endless NEONBLOCK.</div>
+      <div class="selection-readout"><span>LOADOUT</span><b id="menu-selection-readout">NEON · STANDARD</b><i></i></div>
     </div>
 
     <div class="start-stats-row" id="start-stats-row">
@@ -68,11 +79,14 @@
     </div>
 
     <nav class="start-menu">
-      <button class="btn btn--primary" id="btn-play">PLAY</button>
-      <button class="btn" id="btn-howto">HOW TO PLAY</button>
-      <button class="btn" id="btn-stats">STATS</button>
-      <button class="btn" id="btn-settings">SETTINGS</button>
+      <button class="btn btn--primary btn--play-hero" id="btn-play"><span class="play-icon">▶</span><span><strong>PLAY NOW</strong><small>ENTER THE ARENA</small></span><em>→</em></button>
+      <div class="menu-secondary">
+        <button class="btn menu-action" id="btn-howto"><span>?</span> HOW TO PLAY</button>
+        <button class="btn menu-action" id="btn-stats"><span>◈</span> STATS</button>
+        <button class="btn menu-action" id="btn-settings"><span>⚙</span> SETTINGS</button>
+      </div>
     </nav>
+    <div class="menu-footer"><span>NEONBLOCK</span><i></i><span>ARCADE SYSTEMS</span><b>v2.0</b></div>
   </section>
 
   <!-- ============ GAME SCREEN ============ -->
