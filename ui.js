@@ -563,34 +563,27 @@ const UI = (() => {
     }, 2600);
   }
 
+  /** Builds the menu's hero visual: a small tetromino made of real 3D
+   *  cubes (six shaded faces each), gently tumbling in space. All depth,
+   *  lighting and glow are CSS — this just lays out the DOM once. */
   function initOrbit() {
-    const g = document.getElementById('orbit-pieces');
-    if (!g) return;
-    const specs = [
-      { color: 'cyan', cx: 50, cy: 20, size: 14 },
-      { color: 'magenta', cx: 78, cy: 50, size: 14 },
-      { color: 'amber', cx: 50, cy: 80, size: 14 },
-      { color: 'violet', cx: 22, cy: 50, size: 14 },
+    const stage = document.getElementById('blocks3d-stage');
+    if (!stage) return;
+    const cubes = [
+      { gx: -1, gy: 0.5, c: 'var(--cyan)', bd: '0s' },
+      { gx: 0, gy: 0.5, c: 'var(--magenta)', bd: '.4s' },
+      { gx: 0, gy: -0.5, c: 'var(--amber)', bd: '.8s' },
+      { gx: 1, gy: -0.5, c: 'var(--violet)', bd: '1.2s' },
     ];
-    g.innerHTML = specs.map((s) => `
-      <rect x="${s.cx - s.size / 2}" y="${s.cy - s.size / 2}" width="${s.size}" height="${s.size}"
-        rx="3" fill="var(--${s.color})" opacity="0.9" />
-    `).join('');
-    g.style.transformOrigin = '50px 50px';
-    g.style.animation = 'orbit-spin 12s linear infinite';
-    if (!document.getElementById('orbit-style')) {
-      const style = document.createElement('style');
-      style.id = 'orbit-style';
-      style.textContent = `
-        @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        #orbit-pieces rect { animation: orbit-pulse 1.6s ease-in-out infinite; }
-        #orbit-pieces rect:nth-child(2) { animation-delay: 0.4s; }
-        #orbit-pieces rect:nth-child(3) { animation-delay: 0.8s; }
-        #orbit-pieces rect:nth-child(4) { animation-delay: 1.2s; }
-        @keyframes orbit-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-      `;
-      document.head.appendChild(style);
-    }
+    const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
+    const cubeHtml = (cube) => `
+      <div class="cube3d" style="--gx:${cube.gx};--gy:${cube.gy};--c:${cube.c};--bd:${cube.bd}">
+        ${faces.map((f) => `<div class="cube3d__face cube3d__face--${f}"></div>`).join('')}
+      </div>`;
+    stage.innerHTML = `
+      <div class="blocks3d-shadow"></div>
+      <div class="blocks3d-group">${cubes.map(cubeHtml).join('')}</div>
+    `;
   }
 
   function startAmbientBackground() {
