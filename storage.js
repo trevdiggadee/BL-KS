@@ -34,6 +34,7 @@ const Storage = (() => {
       ghostPiece: true,
       animations: true,
       controlLayout: 'right', // 'right' | 'left'
+      showControls: false, // on-screen buttons; swipe/tap/keyboard always work regardless
     },
   });
 

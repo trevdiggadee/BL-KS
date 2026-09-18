@@ -19,6 +19,11 @@ const SettingsScreen = (() => {
     document.body.classList.toggle('no-anim', !on);
   }
 
+  function applyShowControls(on) {
+    document.body.classList.toggle('controls-visible', on);
+    if (typeof Game !== 'undefined' && Game.state !== 'start') UI.resizeBoardCanvas();
+  }
+
   function refreshUI() {
     const s = data.settings;
     document.getElementById('set-music').checked = s.musicOn;
@@ -29,6 +34,7 @@ const SettingsScreen = (() => {
     document.getElementById('set-animations').checked = s.animations;
     document.getElementById('set-vibration').checked = s.vibration;
     document.getElementById('set-layout').checked = s.controlLayout === 'left';
+    document.getElementById('set-controls').checked = s.showControls;
     document.querySelectorAll('.theme-swatch').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.themeChoice === s.theme);
     });
@@ -43,6 +49,7 @@ const SettingsScreen = (() => {
     onChange = changeCallback || (() => {});
     applyTheme(data.settings.theme);
     applyAnimations(data.settings.animations);
+    applyShowControls(data.settings.showControls);
     Audio_.setMusicOn(data.settings.musicOn);
     Audio_.setSfxOn(data.settings.sfxOn);
     Audio_.setMusicVolume(data.settings.musicVolume);
@@ -88,6 +95,11 @@ const SettingsScreen = (() => {
       persist();
       onChange('layout');
     });
+    document.getElementById('set-controls').addEventListener('change', (e) => {
+      data.settings.showControls = e.target.checked;
+      applyShowControls(e.target.checked);
+      persist();
+    });
 
     document.querySelectorAll('.theme-swatch').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -127,6 +139,7 @@ const SettingsScreen = (() => {
       data = Storage.clearAll();
       applyTheme(data.settings.theme);
       applyAnimations(data.settings.animations);
+      applyShowControls(data.settings.showControls);
       refreshUI();
       onChange('clear-all');
     });

@@ -47,30 +47,31 @@
   <!-- ============ GAME SCREEN ============ -->
   <section class="screen game-screen" id="screen-game">
     <div class="hud-bar">
+      <div class="hud-chip hud-chip--hold">
+        <canvas id="hold-canvas" width="64" height="64"></canvas>
+        <div class="hud-chip__label">HOLD</div>
+      </div>
+
       <div class="hud-stat">
         <div class="hud-stat__label">SCORE</div>
         <div class="hud-stat__value hud-stat__value--accent" id="hud-score">000000</div>
       </div>
+
       <button class="hud-pause-btn" id="btn-pause" aria-label="Pause">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
       </button>
-      <div class="hud-stat hud-stat--right">
+
+      <div class="hud-stat">
         <div class="hud-stat__label">LEVEL</div>
         <div class="hud-stat__value" id="hud-level">01</div>
       </div>
-    </div>
 
-    <div class="sub-hud">
-      <div class="mini-chip mini-chip--hold">
-        <div class="mini-chip__label">HOLD</div>
-        <canvas id="hold-canvas" width="64" height="64"></canvas>
-      </div>
-      <div class="combo-banner" id="combo-banner">&nbsp;</div>
-      <div class="mini-chip mini-chip--next">
-        <div class="mini-chip__label">NEXT</div>
+      <div class="hud-chip hud-chip--next">
         <canvas id="next-canvas" width="64" height="64"></canvas>
+        <div class="hud-chip__label">NEXT</div>
       </div>
     </div>
+    <div class="combo-banner" id="combo-banner" hidden>&nbsp;</div>
 
     <div class="board-wrap">
       <div class="board-frame" id="board-frame">
@@ -209,6 +210,10 @@
           <div><div class="settings-row__label">Control layout</div></div>
           <label class="switch"><input type="checkbox" id="set-layout"><span class="switch-track"></span></label>
         </div>
+        <div class="settings-row">
+          <div><div class="settings-row__label">On-screen controls</div><div class="settings-row__hint">Swipe, tap, and keyboard always work — turn this on for buttons too</div></div>
+          <label class="switch"><input type="checkbox" id="set-controls"><span class="switch-track"></span></label>
+        </div>
       </div>
 
       <div class="section-heading">THEME</div>
@@ -246,7 +251,7 @@
 
       <div class="howto-block">
         <div class="howto-title">Touch controls</div>
-        <div class="howto-text">Swipe left or right to move, tap to rotate, swipe down to hard-drop, swipe up to hold. Or use the on-screen buttons — hold the arrows to keep moving.</div>
+        <div class="howto-text">Swipe left or right to move, tap to rotate, swipe down to hard-drop, swipe up to hold. On-screen buttons are also available — turn them on in Settings.</div>
       </div>
 
       <div class="howto-block">

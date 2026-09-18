@@ -1,6 +1,5 @@
 from PIL import Image, ImageDraw
 import math
-import os
 
 def rounded_bg(size, radius_ratio, bg):
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))

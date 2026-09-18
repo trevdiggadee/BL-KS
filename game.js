@@ -57,6 +57,7 @@ const Game = (() => {
     softDropActive = false;
     gravityAcc = 0; lockTimer = 0; lockResets = 0; isLocking = false;
     pendingClearRows = null;
+    UI.resetTrail();
     UI.setCombo('');
     UI.updateHud(score, level);
   }
@@ -67,6 +68,7 @@ const Game = (() => {
     canHold = true;
     lockResets = 0;
     isLocking = false;
+    UI.resetTrail();
     UI.drawMiniPiece(UI.nextCtx, nextType);
     if (!Collision.fits(grid, active)) {
       triggerGameOver();
@@ -167,11 +169,11 @@ const Game = (() => {
     }
 
     const cellSize = UI.cellSize;
-    const colors = fullRows.map(() => getColorRgb('cyan'));
     Particles.spawnLineClearBurst(
       fullRows.map((r) => (r - Board.HIDDEN_ROWS) * cellSize),
       Board.COLS, cellSize,
-      [getColorRgb('cyan'), getColorRgb('magenta'), getColorRgb('amber'), getColorRgb('green')]
+      [getColorHex('cyan'), getColorHex('magenta'), getColorHex('amber'), getColorHex('green')],
+      result.isTetris
     );
   }
 
@@ -182,9 +184,11 @@ const Game = (() => {
     spawnNext();
   }
 
+  function getColorHex(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
+  }
   function getColorRgb(name) {
-    const hex = getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
-    return hexToRgbString(hex) || '255,255,255';
+    return hexToRgbString(getColorHex(name)) || '255,255,255';
   }
   function hexToRgbString(hex) {
     const m = hex.replace('#', '');
@@ -234,6 +238,19 @@ const Game = (() => {
     if (state !== 'playing') return;
     const distance = Collision.dropDistance(grid, active);
     score += Scoring.hardDropPoints(distance);
+
+    if (distance > 0 && saveData.settings.animations) {
+      const cellSize = UI.cellSize;
+      const hiddenOffset = Board.HIDDEN_ROWS;
+      const color = UI.resolveColor(active.color);
+      const cols = [...new Set(Pieces.getCells(active).map(([, c]) => c))];
+      const yTop = (active.row - hiddenOffset) * cellSize;
+      const yBottom = (active.row + distance - hiddenOffset) * cellSize + cellSize;
+      cols.forEach((c) => {
+        Particles.spawnDropBeam(c * cellSize + cellSize / 2, Math.max(0, yTop), yBottom, color, cellSize * 0.55);
+      });
+    }
+
     active = { ...active, row: active.row + distance };
     Audio_.sfx.hardDrop();
     Effects.shake(4);
@@ -256,6 +273,7 @@ const Game = (() => {
       lockResets = 0;
       isLocking = false;
       lockTimer = 0;
+      UI.resetTrail();
       if (!Collision.fits(grid, active)) triggerGameOver();
     }
     canHold = false;
@@ -325,9 +343,13 @@ const Game = (() => {
 
   function render() {
     const ghost = saveData.settings.ghostPiece ? Collision.getGhost(grid, active) : null;
+    const activeCells = state === 'playing' || state === 'clearing' ? Pieces.getCells(active) : null;
+    if (state === 'playing' && activeCells && saveData.settings.animations) {
+      UI.recordTrail(activeCells, UI.resolveColor(active.color));
+    }
     UI.renderBoard({
       grid,
-      activeCells: state === 'playing' || state === 'clearing' ? Pieces.getCells(active) : null,
+      activeCells,
       activeColor: active ? active.color : 'cyan',
       ghostCells: ghost ? Pieces.getCells(ghost) : null,
       ghostOn: !!ghost,

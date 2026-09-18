@@ -78,30 +78,69 @@ const UI = (() => {
     if (!COLOR_CACHE[name]) COLOR_CACHE[name] = themeColorVar(name);
     return COLOR_CACHE[name];
   }
-  function clearColorCache() { Object.keys(COLOR_CACHE).forEach((k) => delete COLOR_CACHE[k]); }
+  function clearColorCache() { Object.keys(COLOR_CACHE).forEach((k) => delete COLOR_CACHE[k]); GRADIENT_CACHE = {}; }
+
+  /** Lightens (amt > 0) or darkens (amt < 0) a #rrggbb color by blending
+   *  toward white/black. Used to build the glossy bevel gradient below. */
+  function shade(hex, amt) {
+    const h = hex.replace('#', '');
+    if (h.length !== 6) return hex;
+    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+    const f = (c) => Math.max(0, Math.min(255, Math.round(amt >= 0 ? c + (255 - c) * amt : c + c * amt)));
+    return `rgb(${f(r)},${f(g)},${f(b)})`;
+  }
+
+  // CanvasGradient objects aren't tied to the context that created them —
+  // safe to build once per color+size and reuse across boardCtx and the
+  // small hold/next preview contexts.
+  let GRADIENT_CACHE = {};
+  function getCellGradient(color, size) {
+    const key = color + '|' + Math.round(size);
+    let g = GRADIENT_CACHE[key];
+    if (g) return g;
+    const scratch = (boardCtx || (el['board-canvas'] && el['board-canvas'].getContext('2d')));
+    g = scratch.createLinearGradient(0, 0, 0, size);
+    g.addColorStop(0, shade(color, 0.45));
+    g.addColorStop(0.45, color);
+    g.addColorStop(1, shade(color, -0.35));
+    GRADIENT_CACHE[key] = g;
+    return g;
+  }
 
   function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
     const x = col * cellSize;
     const y = row * cellSize;
     const pad = Math.max(1, cellSize * 0.06);
+    const size = cellSize - pad * 2;
+    const r = cellSize * 0.2;
+
     ctx.save();
     ctx.globalAlpha = alpha;
+    ctx.translate(x + pad, y + pad);
+
     if (glow) {
       ctx.shadowColor = color;
-      ctx.shadowBlur = cellSize * 0.5;
+      ctx.shadowBlur = cellSize * 0.55;
     }
-    ctx.fillStyle = color;
-    const r = cellSize * 0.18;
-    roundRect(ctx, x + pad, y + pad, cellSize - pad * 2, cellSize - pad * 2, r);
-    ctx.fill();
-    ctx.restore();
 
-    // inner highlight for a subtle glassy bevel
-    ctx.save();
-    ctx.globalAlpha = alpha * 0.35;
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    roundRect(ctx, x + pad + 2, y + pad + 2, cellSize - pad * 2 - 4, (cellSize - pad * 2) * 0.35, r * 0.6);
+    ctx.fillStyle = getCellGradient(color, size);
+    roundRect(ctx, 0, 0, size, size, r);
     ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // glossy top highlight band
+    ctx.globalAlpha = alpha * 0.4;
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    roundRect(ctx, size * 0.08, size * 0.07, size * 0.84, size * 0.3, r * 0.6);
+    ctx.fill();
+
+    // crisp bright edge
+    ctx.globalAlpha = alpha * 0.85;
+    ctx.strokeStyle = shade(color, 0.5);
+    ctx.lineWidth = Math.max(1, cellSize * 0.045);
+    roundRect(ctx, 0.5, 0.5, size - 1, size - 1, r);
+    ctx.stroke();
+
     ctx.restore();
   }
 
@@ -113,6 +152,40 @@ const UI = (() => {
     ctx.arcTo(x, y + h, x, y, r);
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
+  }
+
+  // --- Motion trail: a short fading afterimage of where the active
+  // piece just was, so movement and falling read as fluid rather than
+  // a piece silently teleporting cell-to-cell. ---
+  let trail = [];
+  let lastTrailKey = null, lastTrailCells = null, lastTrailColor = null;
+
+  function recordTrail(cells, colorHex) {
+    const key = cells.map((c) => c[0] + ',' + c[1]).join('|');
+    if (key === lastTrailKey) return;
+    if (lastTrailCells) {
+      trail.push({ cells: lastTrailCells, color: lastTrailColor, age: 0 });
+      if (trail.length > 24) trail.shift();
+    }
+    lastTrailKey = key;
+    lastTrailCells = cells;
+    lastTrailColor = colorHex;
+  }
+  function resetTrail() {
+    trail = []; lastTrailKey = null; lastTrailCells = null; lastTrailColor = null;
+  }
+  function drawTrail(ctx) {
+    const hiddenOffset = Board.HIDDEN_ROWS;
+    trail.forEach((t) => {
+      const alpha = (1 - t.age) * 0.28;
+      if (alpha <= 0.01) return;
+      t.cells.forEach(([r, c]) => {
+        const rr = r - hiddenOffset;
+        if (rr >= 0) drawCell(ctx, rr, c, t.color, alpha, false);
+      });
+    });
+    trail.forEach((t) => { t.age += 0.22; });
+    trail = trail.filter((t) => t.age < 1);
   }
 
   function drawGhost(ctx, row, col, color) {
@@ -194,6 +267,7 @@ const UI = (() => {
     const w = el['fx-canvas'].width / dpr;
     const h = el['fx-canvas'].height / dpr;
     fxCtx.clearRect(0, 0, w, h);
+    drawTrail(fxCtx);
     Particles.draw(fxCtx);
     const flashStyle = Effects.getFlashOverlayStyle();
     if (flashStyle) {
@@ -233,8 +307,17 @@ const UI = (() => {
     });
   }
 
+  let lastScoreText = null;
   function updateHud(score, level) {
-    el['hud-score'].textContent = String(Math.floor(score)).padStart(6, '0');
+    const scoreText = String(Math.floor(score)).padStart(6, '0');
+    if (scoreText !== lastScoreText) {
+      lastScoreText = scoreText;
+      const scoreEl = el['hud-score'];
+      scoreEl.textContent = scoreText;
+      scoreEl.classList.remove('pop');
+      void scoreEl.offsetWidth; // restart the animation
+      scoreEl.classList.add('pop');
+    }
     el['hud-level'].textContent = String(level).padStart(2, '0');
   }
 
@@ -319,7 +402,7 @@ const UI = (() => {
     cacheEls, showScreen, resizeBoardCanvas, renderBoard, renderFx, applyShake,
     drawMiniPiece, updateHud, setCombo, setOverlay, setCountdown,
     showGameOver, updateStartStats, showAchievementPopup, initOrbit,
-    clearColorCache,
+    clearColorCache, recordTrail, resetTrail, resolveColor: colorFor,
     get holdCtx() { return holdCtx; },
     get nextCtx() { return nextCtx; },
     get cellSize() { return cellSize; },
