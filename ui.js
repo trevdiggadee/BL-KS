@@ -13,6 +13,8 @@ const UI = (() => {
   let ambientStars = [];
   let cellSize = 24;
   let dpr = 1;
+  let visualTime = 0;
+
 
   function cacheEls() {
     [
@@ -132,40 +134,73 @@ const UI = (() => {
     ctx.translate(x + pad, y + pad);
 
     if (style === 'voxel') {
-      ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = glow ? size * .18 : 0;
+      const bob = Math.sin(visualTime * 2.1 + row * .7 + col * .45) * size * .012;
+      ctx.translate(0, bob);
+      ctx.shadowColor = 'rgba(0,0,0,.9)'; ctx.shadowBlur = glow ? size * .2 : 0;
       ctx.fillStyle = color; ctx.fillRect(1, 1, size - 2, size - 2);
       ctx.shadowBlur = 0;
-      ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(2, 2, size - 4, Math.max(2, size * .16));
-      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(2, size * .78, size - 4, Math.max(2, size * .18));
-      ctx.strokeStyle = 'rgba(0,0,0,.42)'; ctx.lineWidth = Math.max(1, size*.055); ctx.strokeRect(1,1,size-2,size-2);
+      // Minecraft-like pixel bevel + animated dust motes.
+      ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.fillRect(2, 2, size - 4, Math.max(2, size * .16));
+      ctx.fillStyle = 'rgba(0,0,0,.24)'; ctx.fillRect(2, size * .78, size - 4, Math.max(2, size * .18));
+      ctx.fillStyle = 'rgba(255,255,255,.10)';
+      for (let q = 0; q < 3; q++) {
+        const px = ((visualTime * (5 + q * 2) + row * 11 + col * 7) % (size - 8)) + 4;
+        const py = ((q * size * .31) + size * .2) % (size - 6);
+        ctx.fillRect(px, py, Math.max(1, size * .035), Math.max(1, size * .035));
+      }
+      ctx.strokeStyle = 'rgba(0,0,0,.48)'; ctx.lineWidth = Math.max(1, size*.055); ctx.strokeRect(1,1,size-2,size-2);
       ctx.restore(); return;
     }
 
     if (style === 'glass') {
-      ctx.shadowColor = color; ctx.shadowBlur = glow ? size * .25 : 0;
+      ctx.shadowColor = color; ctx.shadowBlur = glow ? size * (.24 + .06 * Math.sin(visualTime * 2 + row + col)) : 0;
       const glass = ctx.createLinearGradient(0,0,size,size);
-      glass.addColorStop(0, 'rgba(255,255,255,.58)'); glass.addColorStop(.18, shade(color,.25)); glass.addColorStop(.55, 'rgba(255,255,255,.13)'); glass.addColorStop(1, shade(color,-.28));
+      glass.addColorStop(0, 'rgba(255,255,255,.64)'); glass.addColorStop(.18, shade(color,.25)); glass.addColorStop(.55, 'rgba(255,255,255,.13)'); glass.addColorStop(1, shade(color,-.28));
       ctx.fillStyle = glass; roundRect(ctx,0,0,size,size,r); ctx.fill(); ctx.shadowBlur=0;
-      ctx.globalAlpha=alpha*.72; ctx.strokeStyle='rgba(255,255,255,.78)'; ctx.lineWidth=Math.max(1,size*.035); roundRect(ctx,1,1,size-2,size-2,r); ctx.stroke();
+      ctx.globalAlpha=alpha*.72; ctx.strokeStyle='rgba(255,255,255,.82)'; ctx.lineWidth=Math.max(1,size*.035); roundRect(ctx,1,1,size-2,size-2,r); ctx.stroke();
       ctx.globalAlpha=alpha*.35; ctx.fillStyle='rgba(255,255,255,.45)'; roundRect(ctx,size*.08,size*.08,size*.84,size*.12,r*.45); ctx.fill();
+      // Moving caustic/refraction band.
+      ctx.save(); roundRect(ctx,0,0,size,size,r); ctx.clip();
+      const sweep = ((visualTime * size * .65 + (row + col) * size * .7) % (size * 2.4)) - size * .7;
+      const rg = ctx.createLinearGradient(sweep, 0, sweep + size * .35, size);
+      rg.addColorStop(0,'rgba(255,255,255,0)'); rg.addColorStop(.5,'rgba(255,255,255,.38)'); rg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.globalAlpha=alpha*.7; ctx.fillStyle=rg; ctx.fillRect(-size,0,size*3,size);
+      ctx.restore();
+      // Tiny trapped sparkles.
+      ctx.globalAlpha=alpha*(.22+.12*Math.sin(visualTime*3+row+col)); ctx.fillStyle='#fff';
+      const sx=(size*(.22+.56*((Math.sin(row*7.3+col*2.1)+1)/2))), sy=size*(.25+.5*((Math.cos(col*5.1+row*1.7)+1)/2));
+      ctx.beginPath(); ctx.arc(sx,sy,Math.max(1,size*.025),0,Math.PI*2); ctx.fill();
       ctx.globalAlpha=alpha*.18; ctx.strokeStyle=color; ctx.lineWidth=Math.max(1,size*.04); roundRect(ctx,size*.13,size*.13,size*.74,size*.74,r*.72); ctx.stroke();
       ctx.restore(); return;
     }
 
     if (style === 'chrome') {
-      ctx.shadowColor=color; ctx.shadowBlur=glow?size*.18:0;
+      ctx.shadowColor=color; ctx.shadowBlur=glow?size*.2:0;
       const chrome=ctx.createLinearGradient(0,0,0,size);
       chrome.addColorStop(0,'#ffffff'); chrome.addColorStop(.14,shade(color,.45)); chrome.addColorStop(.34,'#ffffff'); chrome.addColorStop(.49,shade(color,-.2)); chrome.addColorStop(.62,shade(color,.35)); chrome.addColorStop(.82,shade(color,-.4)); chrome.addColorStop(1,'#ffffff');
       ctx.fillStyle=chrome; roundRect(ctx,0,0,size,size,r); ctx.fill(); ctx.shadowBlur=0;
+      // Polished-metal scanner sweep.
+      ctx.save(); roundRect(ctx,0,0,size,size,r); ctx.clip();
+      const sx=((visualTime*size*.9 + (row*13+col*9))%(size*2.8))-size;
+      const sg=ctx.createLinearGradient(sx,0,sx+size*.3,size); sg.addColorStop(0,'rgba(255,255,255,0)'); sg.addColorStop(.5,'rgba(255,255,255,.75)'); sg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.globalAlpha=alpha*.7; ctx.fillStyle=sg; ctx.fillRect(-size,0,size*4,size); ctx.restore();
       ctx.globalAlpha=alpha*.7; ctx.strokeStyle=shade(color,.6); ctx.lineWidth=Math.max(1,size*.045); roundRect(ctx,1,1,size-2,size-2,r); ctx.stroke();
       ctx.restore(); return;
     }
 
     if (style === 'holo') {
-      ctx.shadowColor=color; ctx.shadowBlur=glow?size*.48:0;
+      const jitter = Math.sin(visualTime*8 + row*2.3 + col*1.7) > .96 ? size*.018 : 0;
+      ctx.translate(jitter, 0);
+      ctx.shadowColor=color; ctx.shadowBlur=glow?size*(.44+.12*Math.sin(visualTime*4+row)):0;
       const holo=ctx.createLinearGradient(0,0,size,size);
       holo.addColorStop(0,shade(color,.4)); holo.addColorStop(.32,'rgba(255,255,255,.48)'); holo.addColorStop(.5,shade(color,-.05)); holo.addColorStop(.68,'rgba(255,80,220,.48)'); holo.addColorStop(1,shade(color,-.3));
       ctx.fillStyle=holo; roundRect(ctx,0,0,size,size,r); ctx.fill(); ctx.shadowBlur=0;
+      // Animated scanlines + spectral glitch bars.
+      ctx.save(); roundRect(ctx,0,0,size,size,r); ctx.clip();
+      ctx.globalAlpha=alpha*.18; ctx.fillStyle='#fff';
+      const lineY=(visualTime*size*1.8 + row*size*.37)%(size+3); ctx.fillRect(0,lineY,size,Math.max(1,size*.025));
+      ctx.globalAlpha=alpha*.22; ctx.fillStyle='rgba(0,240,255,.9)'; const barY=(visualTime*size*.7+col*17)%(size+4); ctx.fillRect(0,barY,size*(.25+.35*((row+col)%3)/2),Math.max(1,size*.035));
+      ctx.restore();
       ctx.globalAlpha=alpha*.45; ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=Math.max(1,size*.04); roundRect(ctx,1,1,size-2,size-2,r); ctx.stroke();
       ctx.globalAlpha=alpha*.2; ctx.strokeStyle='rgba(0,240,255,.9)'; ctx.lineWidth=Math.max(1,size*.025); roundRect(ctx,size*.08,size*.08,size*.84,size*.84,r*.75); ctx.stroke();
       ctx.restore(); return;
@@ -230,6 +265,14 @@ const UI = (() => {
     roundRect(ctx, size * .16, size * .12, size * .18, Math.max(1.2, size * .035), size * .02);
     ctx.fill();
 
+    // Neon signature: breathing aura + tiny electrical arc.
+    ctx.globalAlpha = alpha * (.16 + .08 * Math.sin(visualTime * 5.5 + row * .8 + col));
+    ctx.strokeStyle = color; ctx.lineWidth = Math.max(1, size*.025);
+    ctx.beginPath();
+    ctx.moveTo(size*.08, size*(.25 + .18*Math.sin(visualTime*3+col)));
+    ctx.lineTo(size*.24, size*.18); ctx.lineTo(size*.38, size*.27); ctx.lineTo(size*.52, size*.14);
+    ctx.stroke();
+
     ctx.restore();
   }
 
@@ -293,6 +336,7 @@ const UI = (() => {
 
   /** Renders the locked grid + active piece + ghost onto the board canvas. */
   function renderBoard({ grid, activeCells, activeColor, ghostCells, ghostOn, lockFlashRows }) {
+    visualTime = performance.now() * 0.001;
     const w = el['board-canvas'].width / dpr;
     const h = el['board-canvas'].height / dpr;
     boardCtx.clearRect(0, 0, w, h);
