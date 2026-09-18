@@ -7,7 +7,7 @@
  * localStorage, which service workers can't see or clear).
  */
 
-const CACHE_NAME = 'neonblock-cache-v2';
+const CACHE_NAME = 'neonblock-cache-v3';
 
 // Paths are relative to this file's own location so the game still works
 // if it's served from a subfolder (e.g. GitHub Pages project sites).
@@ -25,6 +25,7 @@ const PRECACHE_URLS = [
   './particles.js',
   './effects.js',
   './achievements.js',
+  './modes.js',
   './input.js',
   './ui.js',
   './stats.js',

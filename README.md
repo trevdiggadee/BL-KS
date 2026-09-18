@@ -44,6 +44,7 @@ js/
   particles.js         Line-clear particle bursts
   effects.js            Screen shake, flash, toast banners
   achievements.js      Achievement definitions + unlock checks
+  modes.js             Special gameplay mode definitions
   input.js             Keyboard (DAS/ARR), touch buttons, swipe gestures
   ui.js                Canvas rendering, screen switching, HUD
   stats.js             Renders the Stats screen from save data
@@ -81,3 +82,16 @@ Settings → Data.
 pip install pillow
 python3 gen_icons.py
 ```
+
+
+## Special modes
+
+Special Modes are selected directly from the main menu:
+- **STANDARD** — classic endless play.
+- **ZEN** — slower, relaxed gravity.
+- **BLITZ** — 90-second score attack with faster gravity and score bonus.
+- **INFERNO** — rising garbage rows periodically pressure the stack.
+- **GRAVITY** — gravity rotates between down, right, up, and left.
+- **BOSS** — line clears damage a boss while periodic boss attacks add garbage.
+
+The selected mode is remembered locally and starts when PLAY is pressed.

@@ -10,7 +10,7 @@
   let saveData = null;
 
   const VISUAL_KEY = 'neonblock-visuals-v2';
-  const DEFAULT_VISUALS = { blockStyle: 'neon', theme: 'neon' };
+  const DEFAULT_VISUALS = { blockStyle: 'neon', theme: 'neon', gameMode: 'standard' };
 
   function loadVisuals() {
     try { return { ...DEFAULT_VISUALS, ...(JSON.parse(localStorage.getItem(VISUAL_KEY) || '{}')) }; }
@@ -23,6 +23,10 @@
     UI.clearColorCache();
     document.querySelectorAll('[data-block-style]').forEach(b => b.classList.toggle('is-selected', b.dataset.blockStyle === v.blockStyle));
     document.querySelectorAll('[data-theme-choice]').forEach(b => b.classList.toggle('is-selected', b.dataset.themeChoice === v.theme));
+    document.querySelectorAll('[data-game-mode]').forEach(b => b.classList.toggle('is-selected', b.dataset.gameMode === v.gameMode));
+    const mode = typeof Modes !== 'undefined' ? Modes.get(v.gameMode) : null;
+    const desc = document.getElementById('mode-description');
+    if (desc && mode) desc.textContent = mode.desc;
   }
   function bindVisualLab() {
     let visuals = loadVisuals();
@@ -32,6 +36,9 @@
     }));
     document.querySelectorAll('[data-theme-choice]').forEach(btn => btn.addEventListener('click', () => {
       visuals.theme = btn.dataset.themeChoice; saveVisuals(visuals); applyVisuals(visuals); Audio_.sfx.uiTap();
+    }));
+    document.querySelectorAll('[data-game-mode]').forEach(btn => btn.addEventListener('click', () => {
+      visuals.gameMode = btn.dataset.gameMode; saveVisuals(visuals); applyVisuals(visuals); Audio_.sfx.uiTap();
     }));
   }
 
@@ -63,7 +70,7 @@
   function bindNav() {
     UI.el['btn-play'].addEventListener('click', () => {
       Audio_.sfx.uiTap();
-      Game.startCountdown();
+      Game.startCountdown(loadVisuals().gameMode || 'standard');
     });
     UI.el['btn-howto'].addEventListener('click', goToHowTo);
     UI.el['btn-stats'].addEventListener('click', goToStats);

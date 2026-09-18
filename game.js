@@ -15,6 +15,9 @@ const Game = (() => {
   let bagNext = null;
 
   let state = 'start'; // start | countdown | playing | paused | clearing | gameover
+  let mode = Modes.get('standard');
+  let modeElapsed = 0, modeEventTimer = 0, bossHp = 0, bossMaxHp = 0, bossLevel = 1;
+  let gravityIndex = 0;
   let grid = null;
   let active = null;
   let nextType = null;
@@ -43,6 +46,32 @@ const Game = (() => {
     if (saveData.settings.vibration && navigator.vibrate) navigator.vibrate(ms);
   }
 
+  function gravityVector() {
+    if (mode.id !== 'gravity') return [1, 0];
+    return [[1,0],[0,1],[-1,0],[0,-1]][gravityIndex % 4];
+  }
+
+  function fitsGravity(piece) {
+    if (!Collision.fits(grid, piece)) return false;
+    const [dr] = gravityVector();
+    // Unlike normal gravity, upward gravity has a real top boundary.
+    if (dr < 0 && Pieces.getCells(piece).some(([r]) => r < 0)) return false;
+    return true;
+  }
+
+  function moveGravity(piece) {
+    const [dr, dc] = gravityVector();
+    const candidate = { ...piece, row: piece.row + dr, col: piece.col + dc };
+    return fitsGravity(candidate) ? candidate : null;
+  }
+
+  function dropDistanceGravity(piece) {
+    const [dr, dc] = gravityVector();
+    let distance = 0;
+    while (fitsGravity({ ...piece, row: piece.row + dr * (distance + 1), col: piece.col + dc * (distance + 1) })) distance += 1;
+    return distance;
+  }
+
   function resetRunState() {
     grid = Board.create();
     bagNext = Pieces.randomBagGenerator();
@@ -52,6 +81,8 @@ const Game = (() => {
     canHold = true;
     holdUsedThisGame = false;
     score = 0; lines = 0; level = 1;
+    modeElapsed = 0; modeEventTimer = 0; gravityIndex = 0;
+    bossLevel = 1; bossMaxHp = mode.bossHp || 0; bossHp = bossMaxHp;
     combo = -1; bestComboThisGame = 0; backToBack = 0;
     piecesPlaced = 0;
     softDropActive = false;
@@ -60,10 +91,12 @@ const Game = (() => {
     UI.resetTrail();
     UI.setCombo('');
     UI.updateHud(score, level);
+    UI.setModeHud(mode, { timeLeft: mode.timeLimit || 0, bossHp, bossMaxHp, gravityIndex });
   }
 
   function spawnNext() {
     active = Pieces.createPiece(nextType);
+    if (mode.id === 'gravity' && gravityIndex === 2) active.row = Math.max(0, active.row);
     nextType = bagNext();
     canHold = true;
     lockResets = 0;
@@ -75,7 +108,7 @@ const Game = (() => {
     }
   }
 
-  function triggerGameOver() {
+  function triggerGameOver(reason = 'GAME OVER') {
     state = 'gameover';
     stopLoop();
     Audio_.sfx.gameOver();
@@ -93,7 +126,7 @@ const Game = (() => {
     Storage.save(saveData);
 
     checkAchievements();
-    UI.showGameOver({ score, level, lines, bestCombo: bestComboThisGame, isHighScore });
+    UI.showGameOver({ score, level, lines, bestCombo: bestComboThisGame, isHighScore, title: reason });
     if (isHighScore && score > 0) Audio_.sfx.highScore();
   }
 
@@ -132,7 +165,22 @@ const Game = (() => {
     clearTimer = LINE_CLEAR_FLASH_MS;
 
     const result = Scoring.scoreLineClear({ linesCleared: fullRows.length, level, combo, backToBack });
-    score += result.points;
+    score += Math.round(result.points * mode.score);
+
+    if (mode.id === 'boss') {
+      const damage = fullRows.length + (result.isTetris ? 2 : 0);
+      bossHp -= damage;
+      if (bossHp <= 0) {
+        score += 2000 * bossLevel;
+        bossLevel += 1;
+        bossMaxHp = 12 + (bossLevel - 1) * 2;
+        bossHp = bossMaxHp;
+        modeEventTimer = 0;
+        Effects.toast(`BOSS DEFEATED +${2000 * (bossLevel - 1)}`, 'tetris', 1400);
+        Audio_.sfx.levelUp();
+        Effects.shake(12);
+      }
+    }
     combo = result.combo;
     backToBack = result.backToBack;
     bestComboThisGame = Math.max(bestComboThisGame, combo);
@@ -221,7 +269,8 @@ const Game = (() => {
   }
 
   function resetLockIfGrounded() {
-    const grounded = !Collision.fits(grid, { ...active, row: active.row + 1 });
+    const [dr, dc] = gravityVector();
+    const grounded = !fitsGravity({ ...active, row: active.row + dr, col: active.col + dc });
     if (grounded) {
       if (lockResets < MAX_LOCK_RESETS) {
         lockTimer = 0;
@@ -236,10 +285,10 @@ const Game = (() => {
 
   function hardDrop() {
     if (state !== 'playing') return;
-    const distance = Collision.dropDistance(grid, active);
-    score += Scoring.hardDropPoints(distance);
+    const distance = dropDistanceGravity(active);
+    score += Math.round(Scoring.hardDropPoints(distance) * mode.score);
 
-    if (distance > 0 && saveData.settings.animations) {
+    if (distance > 0 && saveData.settings.animations && mode.id !== 'gravity') {
       const cellSize = UI.cellSize;
       const hiddenOffset = Board.HIDDEN_ROWS;
       const color = UI.resolveColor(active.color);
@@ -251,7 +300,8 @@ const Game = (() => {
       });
     }
 
-    active = { ...active, row: active.row + distance };
+    const [gdr, gdc] = gravityVector();
+    active = { ...active, row: active.row + gdr * distance, col: active.col + gdc * distance };
     Audio_.sfx.hardDrop();
     Effects.shake(4);
     UI.updateHud(score, level);
@@ -306,7 +356,55 @@ const Game = (() => {
   }
 
   // --- Loop ---
+  function updateModeTimers(dt) {
+    modeElapsed += dt;
+    modeEventTimer += dt;
+
+    if (mode.timeLimit && modeElapsed >= mode.timeLimit) {
+      triggerGameOver('TIME UP');
+      return;
+    }
+
+    if (mode.id === 'inferno' && modeEventTimer >= mode.garbageEvery) {
+      modeEventTimer = 0;
+      addGarbageRows(1);
+      Effects.toast('INFERNO RISE!', 'default', 700);
+      Effects.shake(6);
+    }
+
+    if (mode.id === 'boss' && modeEventTimer >= mode.bossAttackEvery) {
+      modeEventTimer = 0;
+      addGarbageRows(bossLevel >= 3 ? 2 : 1);
+      Effects.toast('BOSS ATTACK!', 'default', 800);
+      Effects.shake(8);
+    }
+
+    if (mode.id === 'gravity' && modeEventTimer >= mode.gravityShiftEvery) {
+      modeEventTimer = 0;
+      gravityIndex = (gravityIndex + 1) % 4;
+      const labels = ['DOWN','RIGHT','UP','LEFT'];
+      Effects.toast(`GRAVITY: ${labels[gravityIndex]}`, 'levelup', 850);
+      Effects.shake(5);
+    }
+
+    UI.setModeHud(mode, { timeLeft: Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex });
+  }
+
+  function addGarbageRows(count) {
+    for (let n = 0; n < count; n++) {
+      const hole = Math.floor(Math.random() * Board.COLS);
+      grid.shift();
+      const row = Array.from({length: Board.COLS}, (_, c) => c === hole ? null : 'danger');
+      grid.push(row);
+    }
+    if (active && !fitsGravity(active)) triggerGameOver('STACK OVERLOAD');
+  }
+
   function update(dt) {
+    if (state === 'playing') {
+      updateModeTimers(dt);
+      if (state === 'gameover') return;
+    }
     if (state === 'clearing') {
       clearTimer -= dt;
       if (clearTimer <= 0) finishLineClear();
@@ -314,14 +412,15 @@ const Game = (() => {
     }
     if (state !== 'playing') return;
 
-    const gravityMs = softDropActive
-      ? Math.min(Scoring.gravityMsForLevel(level), 45)
-      : Scoring.gravityMsForLevel(level);
+    const baseGravity = Scoring.gravityMsForLevel(level) / mode.gravity;
+    const gravityMs = softDropActive && mode.id !== 'gravity'
+      ? Math.min(baseGravity, 45)
+      : baseGravity;
 
     gravityAcc += dt;
     while (gravityAcc >= gravityMs) {
       gravityAcc -= gravityMs;
-      const moved = Collision.tryMove(grid, active, 1, 0);
+      const moved = moveGravity(active);
       if (moved) {
         active = moved;
         if (softDropActive) score += Scoring.softDropPoints(1);
@@ -342,7 +441,7 @@ const Game = (() => {
   }
 
   function render() {
-    const ghost = saveData.settings.ghostPiece ? Collision.getGhost(grid, active) : null;
+    const ghost = saveData.settings.ghostPiece && active ? (() => { const d = dropDistanceGravity(active); const [dr,dc] = gravityVector(); return { ...active, row: active.row + dr*d, col: active.col + dc*d }; })() : null;
     const activeCells = state === 'playing' || state === 'clearing' ? Pieces.getCells(active) : null;
     if (state === 'playing' && activeCells && saveData.settings.animations) {
       UI.recordTrail(activeCells, UI.resolveColor(active.color));
@@ -377,7 +476,8 @@ const Game = (() => {
     Storage.save(saveData);
   }
 
-  function startCountdown() {
+  function startCountdown(selectedMode = 'standard') {
+    mode = Modes.get(selectedMode);
     UI.showScreen('game');
     UI.resizeBoardCanvas();
     resetRunState();

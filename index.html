@@ -48,6 +48,16 @@
         <button class="theme-pill" data-theme-choice="arcade">ARCADE</button>
         <button class="theme-pill" data-theme-choice="midnight">NIGHT</button>
       </div>
+      <div class="quick-customize__label">SPECIAL MODE</div>
+      <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
+        <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button>
+        <button class="mode-pill" data-game-mode="zen"><span>◉</span> ZEN</button>
+        <button class="mode-pill" data-game-mode="blitz"><span>⚡</span> BLITZ</button>
+        <button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button>
+        <button class="mode-pill" data-game-mode="gravity"><span>↻</span> GRAVITY</button>
+        <button class="mode-pill" data-game-mode="boss"><span>☠</span> BOSS</button>
+      </div>
+      <div class="mode-description" id="mode-description">Classic endless NEONBLOCK.</div>
     </div>
 
     <div class="start-stats-row" id="start-stats-row">
@@ -92,6 +102,7 @@
         <div class="hud-chip__label">NEXT</div>
       </div>
     </div>
+    <div class="mode-hud" id="mode-hud" aria-live="polite"><span id="hud-mode-name">STANDARD</span><span id="hud-mode-status"></span><span class="mode-hud__meter" id="boss-meter" hidden><i id="boss-meter-fill"></i></span></div>
     <div class="combo-banner" id="combo-banner" hidden>&nbsp;</div>
 
     <div class="board-wrap">
@@ -314,6 +325,7 @@
 <script src="particles.js"></script>
 <script src="effects.js"></script>
 <script src="achievements.js"></script>
+<script src="modes.js"></script>
 <script src="input.js"></script>
 <script src="ui.js"></script>
 <script src="stats.js"></script>

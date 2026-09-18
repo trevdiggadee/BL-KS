@@ -24,7 +24,7 @@ const UI = (() => {
       'overlay-pause', 'overlay-gameover', 'overlay-countdown', 'countdown-num',
       'go-score', 'go-level', 'go-lines', 'go-combo', 'gameover-title',
       'stat-highscore', 'stat-highlevel', 'stat-totallines', 'stat-gamesplayed',
-      'toast-layer', 'achievement-layer',
+      'toast-layer', 'achievement-layer', 'hud-mode-name', 'hud-mode-status', 'boss-meter', 'boss-meter-fill',
       'btn-play', 'btn-howto', 'btn-stats', 'btn-settings',
       'btn-pause', 'btn-resume', 'btn-restart-pause', 'btn-quit-pause',
       'btn-retry', 'btn-quit-gameover',
@@ -495,7 +495,40 @@ const UI = (() => {
     el['countdown-num'].textContent = n > 0 ? String(n) : 'GO!';
   }
 
-  function showGameOver({ score, level, lines, bestCombo, isHighScore }) {
+  function setModeHud(mode, { timeLeft = 0, bossHp = 0, bossMaxHp = 0, gravityIndex = 0 } = {}) {
+    const name = el['hud-mode-name'];
+    const status = el['hud-mode-status'];
+    const meter = el['boss-meter'];
+    const fill = el['boss-meter-fill'];
+    if (!name || !status) return;
+    name.textContent = mode ? mode.name : 'STANDARD';
+    document.body.classList.remove('mode-zen','mode-blitz','mode-inferno','mode-gravity','mode-boss','mode-standard');
+    document.body.classList.add(`mode-${mode ? mode.id : 'standard'}`);
+    let text = '';
+    if (mode && mode.id === 'blitz') {
+      const sec = Math.ceil(timeLeft / 1000);
+      text = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+    } else if (mode && mode.id === 'gravity') {
+      text = ['DOWN','RIGHT','UP','LEFT'][gravityIndex % 4];
+    } else if (mode && mode.id === 'boss') {
+      text = `BOSS LV ${bossMaxHp ? Math.ceil((bossMaxHp - 10) / 2 + 1) : 1}`;
+    } else if (mode && mode.id === 'inferno') {
+      text = 'RISING';
+    } else if (mode && mode.id === 'zen') {
+      text = 'RELAXED';
+    } else {
+      text = 'CLASSIC';
+    }
+    status.textContent = text;
+    if (meter && fill) {
+      const bossOn = mode && mode.id === 'boss' && bossMaxHp > 0;
+      meter.hidden = !bossOn;
+      fill.style.width = bossOn ? `${Math.max(0, Math.min(100, (bossHp / bossMaxHp) * 100))}%` : '0%';
+    }
+  }
+
+  function showGameOver({ score, level, lines, bestCombo, isHighScore, title = 'GAME OVER' }) {
+    el['gameover-title'].textContent = title;
     el['go-score'].textContent = Math.floor(score);
     el['go-level'].textContent = level;
     el['go-lines'].textContent = lines;
@@ -592,7 +625,7 @@ const UI = (() => {
   return {
     cacheEls, startAmbientBackground, stopAmbientBackground, showScreen, resizeBoardCanvas, renderBoard, renderFx, applyShake,
     drawMiniPiece, updateHud, setCombo, setOverlay, setCountdown,
-    showGameOver, updateStartStats, showAchievementPopup, initOrbit,
+    showGameOver, setModeHud, updateStartStats, showAchievementPopup, initOrbit,
     clearColorCache, recordTrail, resetTrail, resolveColor: colorFor,
     get holdCtx() { return holdCtx; },
     get nextCtx() { return nextCtx; },
