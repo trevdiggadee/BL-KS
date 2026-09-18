@@ -409,3 +409,224 @@ const UI = (() => {
     el,
   };
 })();
+
+
+/*
+ * NeonBlock — Prism Forge visual layer
+ * Additive visual polish: dimensional blocks, edge highlights, glass UI,
+ * scanlines, chromatic bloom, micro-particles and adaptive glow.
+ */
+(() => {
+  "use strict";
+
+  const V = {
+    enabled: true,
+    pulse: 0,
+    last: performance.now(),
+    dpr: Math.min(2, window.devicePixelRatio || 1),
+    hue: 145,
+    flashes: [],
+    sparks: [],
+    resizeObserver: null
+  };
+
+  const root = document.documentElement;
+
+  function themeHue() {
+    const raw = getComputedStyle(root).getPropertyValue("--accent").trim();
+    const m = raw.match(/hsl\(\s*([-\d.]+)/i);
+    if (m) return Number(m[1]);
+    const vars = ["--primary", "--neon", "--accent-color"];
+    for (const k of vars) {
+      const v = getComputedStyle(root).getPropertyValue(k).trim();
+      const mm = v.match(/hsl\(\s*([-\d.]+)/i);
+      if (mm) return Number(mm[1]);
+    }
+    return V.hue;
+  }
+
+  function addStyle() {
+    if (document.getElementById("prism-forge-style")) return;
+    const s = document.createElement("style");
+    s.id = "prism-forge-style";
+    s.textContent = `
+      :root {
+        --prism-hue: 145;
+        --prism-glow: 0 0 18px hsl(var(--prism-hue) 100% 60% / .24),
+                      0 0 42px hsl(var(--prism-hue) 100% 60% / .12);
+      }
+      body::before {
+        content:"";
+        position:fixed; inset:0; pointer-events:none; z-index:9997;
+        background:
+          radial-gradient(circle at 50% -10%, hsl(var(--prism-hue) 100% 65% / .10), transparent 38%),
+          radial-gradient(circle at 100% 100%, hsl(calc(var(--prism-hue) + 80) 100% 60% / .06), transparent 34%);
+        mix-blend-mode:screen;
+      }
+      body::after {
+        content:""; position:fixed; inset:0; pointer-events:none; z-index:9998;
+        background:repeating-linear-gradient(to bottom, transparent 0, transparent 3px,
+          rgba(255,255,255,.018) 4px);
+        opacity:.35;
+      }
+      canvas {
+        filter: drop-shadow(0 0 8px hsl(var(--prism-hue) 100% 60% / .13));
+      }
+      button, input, select, .panel, .card, .modal, .settings, .stat, .score,
+      .game-over, .overlay, [class*="panel"], [class*="card"] {
+        transition: transform .18s cubic-bezier(.2,.8,.2,1),
+                    box-shadow .22s ease, border-color .22s ease,
+                    background-color .22s ease, filter .22s ease;
+      }
+      button:active { transform: translateY(1px) scale(.975); }
+      button:hover { filter: brightness(1.12) saturate(1.15); }
+      .prism-surface {
+        position:relative; overflow:hidden;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.08), var(--prism-glow);
+      }
+      .prism-surface::before {
+        content:""; position:absolute; inset:-100% -40%;
+        background:linear-gradient(105deg, transparent 42%, rgba(255,255,255,.065) 49%,
+          rgba(255,255,255,.015) 54%, transparent 61%);
+        transform:translateX(-35%);
+        animation:prismSweep 7s linear infinite;
+        pointer-events:none;
+      }
+      @keyframes prismSweep { to { transform:translateX(35%); } }
+      .prism-pop { animation: prismPop .28s cubic-bezier(.16,1,.3,1); }
+      @keyframes prismPop {
+        0% { transform:scale(.92); filter:brightness(1.8); }
+        65% { transform:scale(1.025); }
+        100% { transform:scale(1); filter:brightness(1); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .prism-surface::before { animation:none; }
+        .prism-pop { animation:none; }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function decorateUI() {
+    const selectors = [
+      "button", ".panel", ".card", ".modal", ".settings", ".stat",
+      ".score", ".game-over", ".overlay", ".controls", ".next", ".hold"
+    ];
+    document.querySelectorAll(selectors.join(",")).forEach(el => {
+      el.classList.add("prism-surface");
+    });
+  }
+
+  function installCanvasFX() {
+    document.querySelectorAll("canvas").forEach(canvas => {
+      if (canvas.dataset.prismReady) return;
+      canvas.dataset.prismReady = "1";
+      const parent = canvas.parentElement;
+      if (parent) parent.classList.add("prism-canvas-shell");
+    });
+  }
+
+  function loop(now) {
+    const dt = Math.min(32, now - V.last);
+    V.last = now;
+    V.pulse += dt * .001;
+    const h = themeHue();
+    if (Number.isFinite(h)) V.hue = h;
+    root.style.setProperty("--prism-hue", String(V.hue));
+    if (Math.floor(now / 500) % 2 === 0) {
+      decorateUI();
+      installCanvasFX();
+    }
+    requestAnimationFrame(loop);
+  }
+
+  function expose() {
+    window.NeonBlockPrism = {
+      flash(x = innerWidth / 2, y = innerHeight / 2, power = 1) {
+        V.flashes.push({x, y, p: power, t: performance.now()});
+      },
+      sparkle(x, y, count = 10) {
+        for (let i = 0; i < count; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const sp = 20 + Math.random() * 90;
+          V.sparks.push({
+            x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
+            t:performance.now(), life:350+Math.random()*450
+          });
+        }
+      }
+    };
+  }
+
+  addStyle();
+  decorateUI();
+  installCanvasFX();
+  expose();
+  requestAnimationFrame(loop);
+})();
+
+
+
+/* Prism Forge block renderer enhancement */
+(() => {
+  const Ctx = window.CanvasRenderingContext2D;
+  if (!Ctx || Ctx.prototype.__prismBlocks) return;
+  Ctx.prototype.__prismBlocks = true;
+
+  const originalFillRect = Ctx.prototype.fillRect;
+  const originalStrokeRect = Ctx.prototype.strokeRect;
+
+  Ctx.prototype.fillRect = function(x, y, w, h) {
+    // Only enhance reasonably block-like rectangles; preserve tiny UI rectangles.
+    const blockLike = w >= 8 && h >= 8 && Math.abs(w - h) <= Math.max(w,h) * .18;
+    if (!blockLike || this.__prismInternal) {
+      return originalFillRect.call(this, x, y, w, h);
+    }
+
+    const oldFill = this.fillStyle;
+    const oldAlpha = this.globalAlpha;
+    const oldComp = this.globalCompositeOperation;
+
+    try {
+      const g = this.createLinearGradient(x, y, x, y + h);
+      g.addColorStop(0, "rgba(255,255,255,.22)");
+      g.addColorStop(.08, oldFill);
+      g.addColorStop(.72, oldFill);
+      g.addColorStop(1, "rgba(0,0,0,.28)");
+
+      this.__prismInternal = true;
+      this.fillStyle = g;
+      originalFillRect.call(this, x, y, w, h);
+
+      // Crisp inner highlight along the upper/left faces.
+      this.fillStyle = "rgba(255,255,255,.12)";
+      originalFillRect.call(this, x + 1, y + 1, Math.max(1,w - 2), Math.max(1,h * .075));
+
+      this.fillStyle = "rgba(255,255,255,.075)";
+      originalFillRect.call(this, x + 1, y + 1, Math.max(1,w * .075), Math.max(1,h - 2));
+
+      // Lower edge adds a subtle inset depth.
+      this.fillStyle = "rgba(0,0,0,.18)";
+      originalFillRect.call(this, x + 1, y + h - Math.max(2,h*.07),
+                            Math.max(1,w - 2), Math.max(1,h*.05));
+
+      this.fillStyle = oldFill;
+      this.globalAlpha = oldAlpha;
+      this.globalCompositeOperation = oldComp;
+    } finally {
+      this.__prismInternal = false;
+    }
+  };
+
+  // Give outlines a cleaner glass-metal edge without replacing existing colors.
+  Ctx.prototype.strokeRect = function(x,y,w,h) {
+    const old = this.globalAlpha;
+    if (w >= 8 && h >= 8) {
+      this.globalAlpha = Math.min(1, old * .72);
+      originalStrokeRect.call(this, x,y,w,h);
+      this.globalAlpha = old;
+    } else {
+      originalStrokeRect.call(this, x,y,w,h);
+    }
+  };
+})();
