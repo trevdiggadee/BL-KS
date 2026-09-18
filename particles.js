@@ -77,7 +77,28 @@ const Particles = (() => {
     ctx.save();ctx.globalAlpha=a;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;const s=p.size*(.6+Math.random()*.7);ctx.fillRect(p.x-s,p.y-s*.35,s*2,s*.7);ctx.restore();
   }
 
+  function drawAmbientStyle(ctx, w, h){
+    const st=style();
+    const t=performance.now()*.001;
+    ctx.save();
+    if(st==='fire'){
+      for(let i=0;i<18;i++){ const x=(Math.sin(i*12.7)*.5+.5)*w; const y=(h-((t*(18+i%5*5)+i*31)%h)); const a=.08+.07*Math.sin(t*5+i); ctx.globalAlpha=Math.max(0,a); ctx.fillStyle=i%3?'#ff6b1f':'#ffe08a'; ctx.shadowColor='#ff3b18'; ctx.shadowBlur=7; ctx.beginPath(); ctx.arc(x,y,1.1+(i%3)*.5,0,Math.PI*2); ctx.fill(); }
+    } else if(st==='crystal' || st==='glass'){
+      for(let i=0;i<12;i++){ const x=(Math.sin(i*9.1)*.5+.5)*w; const y=(Math.cos(t*.7+i)*.35+.5)*h; const a=.12+.12*Math.sin(t*3+i); ctx.globalAlpha=Math.max(0,a); ctx.strokeStyle='#dffcff'; ctx.shadowColor='#65eaff'; ctx.shadowBlur=8; const s=2+(i%3); ctx.beginPath(); ctx.moveTo(x-s,y);ctx.lineTo(x+s,y);ctx.moveTo(x,y-s);ctx.lineTo(x,y+s);ctx.stroke(); }
+    } else if(st==='voxel'){
+      for(let i=0;i<16;i++){ const x=(i*47+ t*(5+i%3))%w; const y=(i*71+t*(8+i%4))%h; ctx.globalAlpha=.12; ctx.fillStyle='#d7c7a1'; ctx.fillRect(x,y,2+(i%3),2+(i%2)); }
+    } else if(st==='chrome'){
+      ctx.globalAlpha=.08; ctx.strokeStyle='#fff'; ctx.shadowColor='#fff'; ctx.shadowBlur=12; const sweep=(t*80)% (w+120)-120; ctx.lineWidth=2; ctx.beginPath();ctx.moveTo(sweep,0);ctx.lineTo(sweep+100,h);ctx.stroke();
+    } else if(st==='holo'){
+      ctx.globalAlpha=.09; ctx.strokeStyle='#b75cff'; ctx.lineWidth=1; for(let y=(t*20)%18;y<h;y+=18){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    } else {
+      ctx.globalAlpha=.08; ctx.fillStyle='#fff'; for(let i=0;i<20;i++){const x=(Math.sin(i*8.2)*.5+.5)*w,y=(Math.cos(t*.3+i)*.5+.5)*h;ctx.beginPath();ctx.arc(x,y,1+(i%2),0,Math.PI*2);ctx.fill();}
+    }
+    ctx.restore();
+  }
+
   function draw(ctx){
+    drawAmbientStyle(ctx, ctx.canvas.clientWidth || ctx.canvas.width || 1, ctx.canvas.clientHeight || ctx.canvas.height || 1);
     shocks.forEach(s=>{const a=Math.max(0,s.life)*.5;const g=ctx.createLinearGradient(0,s.y-s.height/2,0,s.y+s.height/2);g.addColorStop(0,rgba(s.color,0));g.addColorStop(.5,rgba(s.color,a));g.addColorStop(1,rgba(s.color,0));ctx.fillStyle=g;ctx.fillRect(0,s.y-s.height/2,s.width,s.height);});
     beams.forEach(b=>{const a=Math.max(0,b.life);if(a<=.01)return;const g=ctx.createLinearGradient(0,b.yTop,0,b.yBottom);g.addColorStop(0,rgba(b.color,0));g.addColorStop(.7,rgba(b.color,a*.5));g.addColorStop(1,rgba(b.color,a*.9));ctx.fillStyle=g;ctx.fillRect(b.x-b.width/2,b.yTop,b.width,Math.max(1,b.yBottom-b.yTop));});
     particles.forEach(p=>{const a=Math.max(0,p.life);if(a<=.01)return;switch(p.kind){case'electric':drawElectric(ctx,p,a);break;case'sparkle':drawSparkle(ctx,p,a);break;case'voxel':drawVoxel(ctx,p,a);break;case'chrome':drawChrome(ctx,p,a);break;case'glitch':drawHolo(ctx,p,a);break;default:ctx.save();ctx.globalAlpha=a;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);ctx.restore();}});
