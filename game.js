@@ -151,6 +151,7 @@ const Game = (() => {
       Effects.shake(9);
       Effects.flash(getColorRgb('cyan'), 0.3);
       Effects.toast('TETRIS!', 'tetris');
+      Effects.pulse('#board-frame');
       vibrate([40, 30, 40, 30, 60]);
     } else {
       Audio_.sfx.lineClear(fullRows.length);
@@ -162,10 +163,12 @@ const Game = (() => {
     if (combo >= 2) {
       Audio_.sfx.combo(combo);
       Effects.toast(`${combo}x COMBO`, 'combo', 800);
+      Effects.pulse('#combo-banner');
     }
     if (leveledUp) {
       Audio_.sfx.levelUp();
       Effects.toast(`LEVEL ${level}`, 'levelup');
+      Effects.pulse('#hud-level');
     }
 
     const cellSize = UI.cellSize;

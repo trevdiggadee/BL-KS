@@ -41,9 +41,47 @@ const Effects = (() => {
 
   // --- Toasts (combo / tetris / level up / high score banners) ---
   let toastContainer = null;
+  let streakTimer = null;
+  let ambientEnabled = true;
 
   function initToasts(containerEl) {
     toastContainer = containerEl;
+    if (!streakTimer) startAmbientStreaks();
+  }
+
+  function startAmbientStreaks() {
+    if (!ambientEnabled || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    streakTimer = setInterval(() => {
+      if (document.hidden || !document.body.contains(document.body)) return;
+      const el = document.createElement('i');
+      el.className = 'fx-streak';
+      el.style.left = `${Math.random() * 100}vw`;
+      el.style.top = `${65 + Math.random() * 30}vh`;
+      el.style.transform = `rotate(${18 + Math.random() * 25}deg) scaleY(${0.65 + Math.random() * .8})`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    }, 2600);
+  }
+
+  function pulse(selector) {
+    const target = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    if (!target) return;
+    target.classList.remove('ui-pulse');
+    void target.offsetWidth;
+    target.classList.add('ui-pulse');
+  }
+
+  function rippleFromEvent(event) {
+    const target = event?.currentTarget || event?.target;
+    if (!target || !target.getBoundingClientRect) return;
+    const r = target.getBoundingClientRect();
+    const dot = document.createElement('i');
+    dot.className = 'ui-ripple';
+    dot.style.left = `${(event?.clientX ?? (r.left + r.width / 2)) - r.left}px`;
+    dot.style.top = `${(event?.clientY ?? (r.top + r.height / 2)) - r.top}px`;
+    target.style.position = target.style.position || 'relative';
+    target.appendChild(dot);
+    setTimeout(() => dot.remove(), 650);
   }
 
   function toast(text, variant = 'default', duration = 1100) {
@@ -51,6 +89,7 @@ const Effects = (() => {
     const el = document.createElement('div');
     el.className = `toast toast--${variant}`;
     el.textContent = text;
+    el.setAttribute('aria-live', 'polite');
     toastContainer.appendChild(el);
     requestAnimationFrame(() => el.classList.add('toast--in'));
     setTimeout(() => {
@@ -60,5 +99,8 @@ const Effects = (() => {
     }, duration);
   }
 
-  return { setAnimationsEnabled, shake, flash, getShakeOffset, getFlashOverlayStyle, initToasts, toast };
+  return {
+    setAnimationsEnabled, shake, flash, getShakeOffset, getFlashOverlayStyle,
+    initToasts, toast, pulse, rippleFromEvent
+  };
 })();

@@ -107,6 +107,12 @@
   function init() {
     UI.cacheEls();
     UI.initOrbit();
+    Effects.initToasts(UI.el['toast-layer']);
+
+    // Native-feeling micro-interactions: every tap gets a tiny energy ripple.
+    document.querySelectorAll('button').forEach((btn) => {
+      btn.addEventListener('pointerdown', (ev) => Effects.rippleFromEvent(ev), { passive: true });
+    });
 
     saveData = Storage.load();
 
