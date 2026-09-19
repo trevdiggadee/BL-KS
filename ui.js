@@ -577,12 +577,7 @@ const UI = (() => {
         ambientCtx.shadowColor=st==='fire'?'#ff4b16':accent; ambientCtx.shadowBlur=st==='neon'||st==='holo'?8:4;
         ambientCtx.beginPath(); ambientCtx.arc(q.x*w,q.y*h,q.r,0,Math.PI*2); ambientCtx.fill();
       });
-      ambientCtx.globalAlpha=.08; ambientCtx.strokeStyle=accent; ambientCtx.lineWidth=1;
-      const speed=st==='fire'?70:st==='holo'?35:18;
-      const off=(t*speed)%55;
-      for(let i=-h;i<w+55;i+=55){ ambientCtx.beginPath(); ambientCtx.moveTo(i+off,0); ambientCtx.lineTo(i+h+off,h); ambientCtx.stroke(); }
-      if(st==='fire'){ ambientCtx.globalAlpha=.06; ambientCtx.fillStyle='#ff4218'; ambientCtx.fillRect(0,h*.72,w,h*.28); }
-      if(st==='crystal'){ ambientCtx.globalAlpha=.07; ambientCtx.strokeStyle='#8fefff'; for(let i=0;i<7;i++){let y=(Math.sin(t*.8+i)*.5+.5)*h;ambientCtx.beginPath();ambientCtx.moveTo(0,y);ambientCtx.lineTo(w,y+h*.08);ambientCtx.stroke();} }
+      if (st==='fire'){ ambientCtx.globalAlpha=.06; ambientCtx.fillStyle='#ff4218'; ambientCtx.fillRect(0,h*.72,w,h*.28); }
       ambientCtx.globalAlpha=1; ambientRaf=requestAnimationFrame(tick);
     };
     ambientRaf=requestAnimationFrame(tick);

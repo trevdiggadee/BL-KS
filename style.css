@@ -235,7 +235,10 @@ button { font-family: inherit; color: inherit; }
    Game screen layout
    ========================================================================== */
 
-.game-screen { padding: 8px 10px 10px; gap: 8px; }
+.game-screen {
+  padding: max(28px, calc(env(safe-area-inset-top) + 18px)) 10px max(12px, env(safe-area-inset-bottom));
+  gap: 8px;
+}
 
 .hud-bar {
   display: grid;
