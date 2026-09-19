@@ -79,7 +79,14 @@ const Effects = (() => {
     dot.className = 'ui-ripple';
     dot.style.left = `${(event?.clientX ?? (r.left + r.width / 2)) - r.left}px`;
     dot.style.top = `${(event?.clientY ?? (r.top + r.height / 2)) - r.top}px`;
-    target.style.position = target.style.position || 'relative';
+    // Only add a positioning context if the element doesn't already have one
+    // via CSS — checking the computed style (not target.style) avoids
+    // clobbering an existing `position: absolute/fixed` rule, which would
+    // otherwise yank the button out of its CSS-positioned spot the instant
+    // it's pressed (breaking real clicks on any absolutely-positioned button).
+    if (getComputedStyle(target).position === 'static') {
+      target.style.position = 'relative';
+    }
     target.appendChild(dot);
     setTimeout(() => dot.remove(), 650);
   }

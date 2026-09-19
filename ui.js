@@ -23,7 +23,7 @@ const UI = (() => {
       'hud-score', 'hud-level', 'combo-banner',
       'overlay-pause', 'overlay-gameover', 'overlay-countdown', 'countdown-num',
       'go-score', 'go-level', 'go-lines', 'go-combo', 'gameover-title',
-      'stat-highscore', 'stat-highlevel', 'stat-totallines', 'stat-gamesplayed',
+      'corner-highscore',
       'toast-layer', 'achievement-layer', 'hud-mode-name', 'hud-mode-status', 'boss-meter', 'boss-meter-fill',
       'btn-play', 'btn-howto', 'btn-stats', 'btn-settings',
       'btn-pause', 'btn-resume', 'btn-restart-pause', 'btn-quit-pause',
@@ -539,10 +539,7 @@ const UI = (() => {
   }
 
   function updateStartStats(stats) {
-    el['stat-highscore'].textContent = stats.highScore;
-    el['stat-highlevel'].textContent = stats.highestLevel;
-    el['stat-totallines'].textContent = stats.totalLines;
-    el['stat-gamesplayed'].textContent = stats.totalGames;
+    el['corner-highscore'].textContent = stats.highScore;
   }
 
   function showAchievementPopup(achievement) {
@@ -561,29 +558,6 @@ const UI = (() => {
       popup.classList.remove('show');
       setTimeout(() => popup.remove(), 300);
     }, 2600);
-  }
-
-  /** Builds the menu's hero visual: a small tetromino made of real 3D
-   *  cubes (six shaded faces each), gently tumbling in space. All depth,
-   *  lighting and glow are CSS — this just lays out the DOM once. */
-  function initOrbit() {
-    const stage = document.getElementById('blocks3d-stage');
-    if (!stage) return;
-    const cubes = [
-      { gx: -1, gy: 0.5, c: 'var(--cyan)', bd: '0s' },
-      { gx: 0, gy: 0.5, c: 'var(--magenta)', bd: '.4s' },
-      { gx: 0, gy: -0.5, c: 'var(--amber)', bd: '.8s' },
-      { gx: 1, gy: -0.5, c: 'var(--violet)', bd: '1.2s' },
-    ];
-    const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
-    const cubeHtml = (cube) => `
-      <div class="cube3d" style="--gx:${cube.gx};--gy:${cube.gy};--c:${cube.c};--bd:${cube.bd}">
-        ${faces.map((f) => `<div class="cube3d__face cube3d__face--${f}"></div>`).join('')}
-      </div>`;
-    stage.innerHTML = `
-      <div class="blocks3d-shadow"></div>
-      <div class="blocks3d-group">${cubes.map(cubeHtml).join('')}</div>
-    `;
   }
 
   function startAmbientBackground() {
@@ -618,7 +592,7 @@ const UI = (() => {
   return {
     cacheEls, startAmbientBackground, stopAmbientBackground, showScreen, resizeBoardCanvas, renderBoard, renderFx, applyShake,
     drawMiniPiece, updateHud, setCombo, setOverlay, setCountdown,
-    showGameOver, setModeHud, updateStartStats, showAchievementPopup, initOrbit,
+    showGameOver, setModeHud, updateStartStats, showAchievementPopup,
     clearColorCache, recordTrail, resetTrail, resolveColor: colorFor,
     get holdCtx() { return holdCtx; },
     get nextCtx() { return nextCtx; },

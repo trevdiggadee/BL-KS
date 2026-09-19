@@ -27,66 +27,98 @@
       <span class="menu-orb orb-a"></span><span class="menu-orb orb-b"></span><span class="menu-orb orb-c"></span>
       <div class="menu-rings"><i></i><i></i><i></i></div>
     </div>
-    <div class="start-top">
-      <div class="wordmark wordmark--hero">NEON<span class="wm-accent">BLOCK</span></div>
-      <div class="start-tagline">STACK · CLEAR · CHAIN</div>
-      <div class="menu-status"><span class="status-dot"></span> ONLINE ARCADE <b>•</b> SEASON 01</div>
+
+    <div class="start-scroll">
+      <div class="hud-corner hud-corner--left" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 21h8M12 17v4M6 4h12v3a6 6 0 0 1-12 0V4z"/><path d="M6 5H3v2a3 3 0 0 0 3 3M18 5h3v2a3 3 0 0 1-3 3"/></svg>
+        <div class="hud-corner__label">BEST</div>
+        <div class="hud-corner__value" id="corner-highscore">0</div>
+      </div>
+      <button class="hud-corner hud-corner--right" id="btn-settings-corner" aria-label="Settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V19.5a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H4.5a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1.1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H10a1.7 1.7 0 0 0 1-1.55V4.5a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V10a1.7 1.7 0 0 0 1.55 1h.19a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+      </button>
+
+      <div class="start-top">
+        <div class="wordmark wordmark--hero wordmark--gradient">NEONBLOCK</div>
+        <div class="start-subtitle"><i></i><span>TETRIS</span><i></i></div>
+      </div>
+
+      <div class="hero-stage" aria-hidden="true">
+        <div class="hero-piece hp--1"><div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div></div>
+        <div class="hero-piece hp--2"><div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div></div>
+        <div class="hero-piece hp--3"><div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div></div>
+        <div class="hero-piece hp--4">
+          <div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div>
+          <div class="cube3d cube3d--b"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div>
+        </div>
+        <div class="hero-piece hp--5"><div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div></div>
+        <div class="hero-piece hp--6">
+          <div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div>
+          <div class="cube3d cube3d--b"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div>
+        </div>
+
+        <button class="play-orb" id="btn-play" aria-label="Play">
+          <span class="play-orb__ring"></span>
+          <span class="play-orb__core"><span class="play-orb__icon">▶</span></span>
+        </button>
+        <div class="play-orb__reflection" aria-hidden="true"></div>
+      </div>
+
+      <nav class="pill-nav">
+        <button class="pill-nav__item pn--stats" id="btn-stats">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>
+          <span>STATS</span>
+        </button>
+        <button class="pill-nav__item pn--achv" id="btn-achievements">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l2.9 6.26L21 9.27l-4.5 4.62L17.8 21 12 17.77 6.2 21l1.3-7.11L3 9.27l6.1-1.01L12 2z"/></svg>
+          <span>AWARDS</span>
+        </button>
+        <button class="pill-nav__item pn--themes" id="btn-themes">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21a9 9 0 1 1 0-18c4.5 0 8 3 8 6.5 0 2-1.5 3.5-3.5 3.5H15a1.5 1.5 0 0 0-1 2.6c.4.4.6.9.6 1.4 0 1.1-1 2-2.6 2z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor" stroke="none"/></svg>
+          <span>THEMES</span>
+        </button>
+        <button class="pill-nav__item pn--howto" id="btn-howto">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 1-1 1.9"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg>
+          <span>GUIDE</span>
+        </button>
+      </nav>
+      <div class="pill-nav__indicator"></div>
+
+      <details class="customize-panel" id="customize-panel">
+        <summary><span>APPEARANCE &amp; MODE</span><i class="chev">⌄</i></summary>
+        <div class="quick-customize" aria-label="Visual customization">
+          <div class="quick-customize__label">BLOCK STYLE</div>
+          <div class="quick-customize__row" id="block-style-choices">
+            <button class="style-chip is-selected" data-block-style="neon"><span class="style-chip__preview style-preview--neon"></span><span>NEON</span></button>
+            <button class="style-chip" data-block-style="glass"><span class="style-chip__preview style-preview--glass"></span><span>GLASS</span></button>
+            <button class="style-chip" data-block-style="voxel"><span class="style-chip__preview style-preview--voxel"></span><span>VOXEL</span></button>
+            <button class="style-chip" data-block-style="chrome"><span class="style-chip__preview style-preview--chrome"></span><span>CHROME</span></button>
+            <button class="style-chip" data-block-style="holo"><span class="style-chip__preview style-preview--holo"></span><span>HOLO</span></button>
+          </div>
+          <div class="quick-customize__label">THEME</div>
+          <div class="theme-pills" id="quick-theme-choices">
+            <button class="theme-pill is-selected" data-theme-choice="neon">NEON</button>
+            <button class="theme-pill" data-theme-choice="classic">CLASSIC</button>
+            <button class="theme-pill" data-theme-choice="cyber">CYBER</button>
+            <button class="theme-pill" data-theme-choice="arcade">ARCADE</button>
+            <button class="theme-pill" data-theme-choice="midnight">NIGHT</button>
+          </div>
+          <div class="quick-customize__label">SPECIAL MODE</div>
+          <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
+            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button>
+            <button class="mode-pill" data-game-mode="zen"><span>◉</span> ZEN</button>
+            <button class="mode-pill" data-game-mode="blitz"><span>⚡</span> BLITZ</button>
+            <button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button>
+            <button class="mode-pill" data-game-mode="gravity"><span>↻</span> GRAVITY</button>
+            <button class="mode-pill" data-game-mode="boss"><span>☠</span> BOSS</button>
+          </div>
+          <div class="mode-description" id="mode-description">Classic endless NEONBLOCK.</div>
+          <div class="selection-readout"><span>LOADOUT</span><b id="menu-selection-readout">NEON · STANDARD</b><i></i></div>
+        </div>
+      </details>
+
+      <div class="menu-footer"><span>NEONBLOCK</span><i></i><span>ARCADE SYSTEMS</span><b>v2.0</b></div>
     </div>
-
-    <div class="start-scroll" id="start-scroll">
-      <div class="blocks3d-stage" id="blocks3d-stage" aria-hidden="true"></div>
-
-      <div class="menu-hero-badge"><span>✦</span> ULTIMATE BLOCK ARENA <span>✦</span></div>
-
-      <div class="quick-customize" aria-label="Visual customization">
-        <div class="quick-customize__title"><span>STYLE LAB</span><small>PERSONALIZE YOUR RUN</small></div>
-        <div class="quick-customize__row" id="block-style-choices">
-          <button class="style-chip is-selected" data-block-style="neon"><span class="style-chip__preview style-preview--neon"></span><span>NEON</span></button>
-          <button class="style-chip" data-block-style="glass"><span class="style-chip__preview style-preview--glass"></span><span>GLASS</span></button>
-          <button class="style-chip" data-block-style="voxel"><span class="style-chip__preview style-preview--voxel"></span><span>VOXEL</span></button>
-          <button class="style-chip" data-block-style="chrome"><span class="style-chip__preview style-preview--chrome"></span><span>CHROME</span></button>
-          <button class="style-chip" data-block-style="holo"><span class="style-chip__preview style-preview--holo"></span><span>HOLO</span></button>
-          <button class="style-chip" data-block-style="fire"><span class="style-chip__preview style-preview--fire"></span><span>FIRE</span></button>
-          <button class="style-chip" data-block-style="crystal"><span class="style-chip__preview style-preview--crystal"></span><span>CRYSTAL</span></button>
-        </div>
-        <div class="quick-customize__label">THEME</div>
-        <div class="theme-pills" id="quick-theme-choices">
-          <button class="theme-pill is-selected" data-theme-choice="neon">NEON</button>
-          <button class="theme-pill" data-theme-choice="classic">CLASSIC</button>
-          <button class="theme-pill" data-theme-choice="cyber">CYBER</button>
-          <button class="theme-pill" data-theme-choice="arcade">ARCADE</button>
-          <button class="theme-pill" data-theme-choice="midnight">NIGHT</button>
-        </div>
-        <div class="quick-customize__label">SPECIAL MODE</div>
-        <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
-          <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button>
-          <button class="mode-pill" data-game-mode="zen"><span>◉</span> ZEN</button>
-          <button class="mode-pill" data-game-mode="blitz"><span>⚡</span> BLITZ</button>
-          <button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button>
-          <button class="mode-pill" data-game-mode="gravity"><span>↻</span> GRAVITY</button>
-          <button class="mode-pill" data-game-mode="boss"><span>☠</span> BOSS</button>
-        </div>
-        <div class="mode-description" id="mode-description">Classic endless NEONBLOCK.</div>
-        <div class="selection-readout"><span>LOADOUT</span><b id="menu-selection-readout">NEON · STANDARD</b><i></i></div>
-      </div>
-
-      <div class="start-stats-row" id="start-stats-row">
-        <div class="mini-stat"><div class="mini-stat__value" id="stat-highscore">0</div><div class="mini-stat__label">HIGH SCORE</div></div>
-        <div class="mini-stat"><div class="mini-stat__value" id="stat-highlevel">1</div><div class="mini-stat__label">BEST LEVEL</div></div>
-        <div class="mini-stat"><div class="mini-stat__value" id="stat-totallines">0</div><div class="mini-stat__label">TOTAL LINES</div></div>
-        <div class="mini-stat"><div class="mini-stat__value" id="stat-gamesplayed">0</div><div class="mini-stat__label">GAMES PLAYED</div></div>
-      </div>
-    </div>
-
-    <nav class="start-menu">
-      <button class="btn btn--primary btn--play-hero" id="btn-play"><span class="play-icon">▶</span><span><strong>PLAY NOW</strong><small>ENTER THE ARENA</small></span><em>→</em></button>
-      <div class="menu-secondary">
-        <button class="btn menu-action" id="btn-howto"><span class="menu-action__icon">?</span><span class="menu-action__label">HOW TO PLAY</span></button>
-        <button class="btn menu-action" id="btn-stats"><span class="menu-action__icon">◈</span><span class="menu-action__label">STATS</span></button>
-        <button class="btn menu-action" id="btn-settings"><span class="menu-action__icon">⚙</span><span class="menu-action__label">SETTINGS</span></button>
-      </div>
-    </nav>
-    <div class="menu-footer"><span>NEONBLOCK</span><i></i><span>ARCADE SYSTEMS</span><b>v2.0</b></div>
   </section>
 
   <!-- ============ GAME SCREEN ============ -->
@@ -204,7 +236,7 @@
       <div class="section-heading">RECENT GAMES</div>
       <div class="recent-list" id="recent-list"></div>
 
-      <div class="section-heading">ACHIEVEMENTS</div>
+      <div class="section-heading" id="achievements-heading">ACHIEVEMENTS</div>
       <div class="achv-grid" id="achv-grid"></div>
     </div>
   </section>
