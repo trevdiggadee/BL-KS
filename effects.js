@@ -41,9 +41,26 @@ const Effects = (() => {
 
   // --- Toasts (combo / tetris / level up / high score banners) ---
   let toastContainer = null;
+  let streakTimer = null;
+  let ambientEnabled = true;
+
   function initToasts(containerEl) {
     toastContainer = containerEl;
-    // Deliberately no full-screen speed streaks: gameplay stays visually clean.
+    if (!streakTimer) startAmbientStreaks();
+  }
+
+  function startAmbientStreaks() {
+    if (!ambientEnabled || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    streakTimer = setInterval(() => {
+      if (document.hidden || !document.body.contains(document.body)) return;
+      const el = document.createElement('i');
+      el.className = 'fx-streak';
+      el.style.left = `${Math.random() * 100}vw`;
+      el.style.top = `${65 + Math.random() * 30}vh`;
+      el.style.transform = `rotate(${18 + Math.random() * 25}deg) scaleY(${0.65 + Math.random() * .8})`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    }, 2600);
   }
 
   function pulse(selector) {

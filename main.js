@@ -79,35 +79,9 @@
       Audio_.sfx.uiTap();
       Game.startCountdown(loadVisuals().gameMode || 'standard');
     });
-    UI.el['btn-howto'].addEventListener('click', () => { closeMenu(); goToHowTo(); });
-    UI.el['btn-stats'].addEventListener('click', () => { closeMenu(); goToStats(); });
-    UI.el['btn-settings'].addEventListener('click', () => { closeMenu(); goToSettings(); });
-
-    const menuDrawer = document.getElementById('menu-drawer');
-    const menuOpen = document.getElementById('btn-menu');
-    const menuClose = document.getElementById('btn-menu-close');
-    const menuClosePanel = document.getElementById('btn-menu-close-panel');
-    function openMenu() {
-      if (!menuDrawer) return;
-      menuDrawer.classList.add('is-open');
-      menuDrawer.setAttribute('aria-hidden', 'false');
-      menuOpen?.setAttribute('aria-expanded', 'true');
-      document.body.classList.add('menu-is-open');
-      Audio_.sfx.uiTap();
-    }
-    function closeMenu() {
-      if (!menuDrawer) return;
-      menuDrawer.classList.remove('is-open');
-      menuDrawer.setAttribute('aria-hidden', 'true');
-      menuOpen?.setAttribute('aria-expanded', 'false');
-      document.body.classList.remove('menu-is-open');
-    }
-    menuOpen?.addEventListener('click', openMenu);
-    menuClose?.addEventListener('click', closeMenu);
-    menuClosePanel?.addEventListener('click', closeMenu);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && menuDrawer?.classList.contains('is-open')) closeMenu();
-    });
+    UI.el['btn-howto'].addEventListener('click', goToHowTo);
+    UI.el['btn-stats'].addEventListener('click', goToStats);
+    UI.el['btn-settings'].addEventListener('click', goToSettings);
 
     document.querySelectorAll('[data-back]').forEach((btn) => {
       btn.addEventListener('click', () => {

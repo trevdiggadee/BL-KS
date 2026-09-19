@@ -27,104 +27,66 @@
       <span class="menu-orb orb-a"></span><span class="menu-orb orb-b"></span><span class="menu-orb orb-c"></span>
       <div class="menu-rings"><i></i><i></i><i></i></div>
     </div>
-
-    <header class="start-top">
+    <div class="start-top">
       <div class="wordmark wordmark--hero">NEON<span class="wm-accent">BLOCK</span></div>
       <div class="start-tagline">STACK · CLEAR · CHAIN</div>
-      <div class="menu-status"><span class="status-dot"></span> ARCADE MODE <b>•</b> SEASON 01</div>
-    </header>
+      <div class="menu-status"><span class="status-dot"></span> ONLINE ARCADE <b>•</b> SEASON 01</div>
+    </div>
 
-    <main class="start-hero" id="start-scroll">
+    <div class="start-scroll" id="start-scroll">
       <div class="blocks3d-stage" id="blocks3d-stage" aria-hidden="true"></div>
+
       <div class="menu-hero-badge"><span>✦</span> ULTIMATE BLOCK ARENA <span>✦</span></div>
 
-      <div class="start-play-orbit">
-        <div class="play-orbit-ring play-orbit-ring--one"></div>
-        <div class="play-orbit-ring play-orbit-ring--two"></div>
-        <div class="play-orbit-glow"></div>
-        <button class="btn btn--primary btn--play-hero" id="btn-play" aria-label="Play NEONBLOCK">
-          <span class="play-icon">▶</span>
-          <span class="play-copy"><strong>PLAY</strong><small>ENTER THE ARENA</small></span>
-        </button>
+      <div class="quick-customize" aria-label="Visual customization">
+        <div class="quick-customize__title"><span>STYLE LAB</span><small>PERSONALIZE YOUR RUN</small></div>
+        <div class="quick-customize__row" id="block-style-choices">
+          <button class="style-chip is-selected" data-block-style="neon"><span class="style-chip__preview style-preview--neon"></span><span>NEON</span></button>
+          <button class="style-chip" data-block-style="glass"><span class="style-chip__preview style-preview--glass"></span><span>GLASS</span></button>
+          <button class="style-chip" data-block-style="voxel"><span class="style-chip__preview style-preview--voxel"></span><span>VOXEL</span></button>
+          <button class="style-chip" data-block-style="chrome"><span class="style-chip__preview style-preview--chrome"></span><span>CHROME</span></button>
+          <button class="style-chip" data-block-style="holo"><span class="style-chip__preview style-preview--holo"></span><span>HOLO</span></button>
+          <button class="style-chip" data-block-style="fire"><span class="style-chip__preview style-preview--fire"></span><span>FIRE</span></button>
+          <button class="style-chip" data-block-style="crystal"><span class="style-chip__preview style-preview--crystal"></span><span>CRYSTAL</span></button>
+        </div>
+        <div class="quick-customize__label">THEME</div>
+        <div class="theme-pills" id="quick-theme-choices">
+          <button class="theme-pill is-selected" data-theme-choice="neon">NEON</button>
+          <button class="theme-pill" data-theme-choice="classic">CLASSIC</button>
+          <button class="theme-pill" data-theme-choice="cyber">CYBER</button>
+          <button class="theme-pill" data-theme-choice="arcade">ARCADE</button>
+          <button class="theme-pill" data-theme-choice="midnight">NIGHT</button>
+        </div>
+        <div class="quick-customize__label">SPECIAL MODE</div>
+        <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
+          <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button>
+          <button class="mode-pill" data-game-mode="zen"><span>◉</span> ZEN</button>
+          <button class="mode-pill" data-game-mode="blitz"><span>⚡</span> BLITZ</button>
+          <button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button>
+          <button class="mode-pill" data-game-mode="gravity"><span>↻</span> GRAVITY</button>
+          <button class="mode-pill" data-game-mode="boss"><span>☠</span> BOSS</button>
+        </div>
+        <div class="mode-description" id="mode-description">Classic endless NEONBLOCK.</div>
+        <div class="selection-readout"><span>LOADOUT</span><b id="menu-selection-readout">NEON · STANDARD</b><i></i></div>
       </div>
 
       <div class="start-stats-row" id="start-stats-row">
         <div class="mini-stat"><div class="mini-stat__value" id="stat-highscore">0</div><div class="mini-stat__label">HIGH SCORE</div></div>
         <div class="mini-stat"><div class="mini-stat__value" id="stat-highlevel">1</div><div class="mini-stat__label">BEST LEVEL</div></div>
-        <div class="mini-stat"><div class="mini-stat__value" id="stat-totallines">0</div><div class="mini-stat__label">LINES</div></div>
-        <div class="mini-stat"><div class="mini-stat__value" id="stat-gamesplayed">0</div><div class="mini-stat__label">GAMES</div></div>
-      </div>
-    </main>
-
-    <nav class="start-menu" aria-label="Main menu">
-      <button class="btn menu-open-btn" id="btn-menu" aria-expanded="false" aria-controls="menu-drawer">
-        <span class="menu-open-icon"><i></i><i></i><i></i></span>
-        <span><strong>MENU</strong><small>OPTIONS &amp; CUSTOMIZE</small></span>
-        <span class="menu-open-chevron">⌃</span>
-      </button>
-    </nav>
-
-    <div class="menu-footer"><span>NEONBLOCK</span><i></i><span>ARCADE SYSTEMS</span><b>v2.1</b></div>
-
-    <!-- Everything except PLAY lives here, keeping the home screen clean. -->
-    <div class="menu-drawer" id="menu-drawer" aria-hidden="true">
-      <button class="menu-drawer__backdrop" id="btn-menu-close" aria-label="Close menu"></button>
-      <div class="menu-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="menu-drawer-title">
-        <div class="menu-drawer__handle"></div>
-        <div class="menu-drawer__head">
-          <div>
-            <span class="menu-drawer__eyebrow">NEONBLOCK SYSTEMS</span>
-            <h2 id="menu-drawer-title">COMMAND MENU</h2>
-          </div>
-          <button class="menu-drawer__close" id="btn-menu-close-panel" aria-label="Close menu">×</button>
-        </div>
-
-        <div class="menu-command-grid">
-          <button class="btn menu-command menu-command--wide" id="btn-howto">
-            <span class="menu-command__icon">?</span><span><strong>HOW TO PLAY</strong><small>CONTROLS &amp; SCORING</small></span><em>›</em>
-          </button>
-          <button class="btn menu-command" id="btn-stats">
-            <span class="menu-command__icon">◈</span><span><strong>STATS</strong><small>YOUR RECORD</small></span><em>›</em>
-          </button>
-          <button class="btn menu-command" id="btn-settings">
-            <span class="menu-command__icon">⚙</span><span><strong>SETTINGS</strong><small>GAME OPTIONS</small></span><em>›</em>
-          </button>
-        </div>
-
-        <div class="menu-section-label">LOADOUT</div>
-        <div class="quick-customize quick-customize--drawer" aria-label="Game customization">
-          <div class="quick-customize__title"><span>BLOCK STYLE</span><small>VISUALS</small></div>
-          <div class="quick-customize__row" id="block-style-choices">
-            <button class="style-chip is-selected" data-block-style="neon"><span class="style-chip__preview style-preview--neon"></span><span>NEON</span></button>
-            <button class="style-chip" data-block-style="glass"><span class="style-chip__preview style-preview--glass"></span><span>GLASS</span></button>
-            <button class="style-chip" data-block-style="voxel"><span class="style-chip__preview style-preview--voxel"></span><span>VOXEL</span></button>
-            <button class="style-chip" data-block-style="chrome"><span class="style-chip__preview style-preview--chrome"></span><span>CHROME</span></button>
-            <button class="style-chip" data-block-style="holo"><span class="style-chip__preview style-preview--holo"></span><span>HOLO</span></button>
-            <button class="style-chip" data-block-style="fire"><span class="style-chip__preview style-preview--fire"></span><span>FIRE</span></button>
-            <button class="style-chip" data-block-style="crystal"><span class="style-chip__preview style-preview--crystal"></span><span>CRYSTAL</span></button>
-          </div>
-          <div class="quick-customize__label">THEME</div>
-          <div class="theme-pills" id="quick-theme-choices">
-            <button class="theme-pill is-selected" data-theme-choice="neon">NEON</button>
-            <button class="theme-pill" data-theme-choice="classic">CLASSIC</button>
-            <button class="theme-pill" data-theme-choice="cyber">CYBER</button>
-            <button class="theme-pill" data-theme-choice="arcade">ARCADE</button>
-            <button class="theme-pill" data-theme-choice="midnight">NIGHT</button>
-          </div>
-          <div class="quick-customize__label">SPECIAL MODE</div>
-          <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
-            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button>
-            <button class="mode-pill" data-game-mode="zen"><span>◉</span> ZEN</button>
-            <button class="mode-pill" data-game-mode="blitz"><span>⚡</span> BLITZ</button>
-            <button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button>
-            <button class="mode-pill" data-game-mode="gravity"><span>↻</span> GRAVITY</button>
-            <button class="mode-pill" data-game-mode="boss"><span>☠</span> BOSS</button>
-          </div>
-          <div class="mode-description" id="mode-description">Classic endless NEONBLOCK.</div>
-          <div class="selection-readout"><span>ACTIVE LOADOUT</span><b id="menu-selection-readout">NEON · STANDARD</b><i></i></div>
-        </div>
+        <div class="mini-stat"><div class="mini-stat__value" id="stat-totallines">0</div><div class="mini-stat__label">TOTAL LINES</div></div>
+        <div class="mini-stat"><div class="mini-stat__value" id="stat-gamesplayed">0</div><div class="mini-stat__label">GAMES PLAYED</div></div>
       </div>
     </div>
+
+    <nav class="start-menu">
+      <button class="btn btn--primary btn--play-hero" id="btn-play"><span class="play-icon">▶</span><span><strong>PLAY NOW</strong><small>ENTER THE ARENA</small></span><em>→</em></button>
+      <div class="menu-secondary">
+        <button class="btn menu-action" id="btn-howto"><span class="menu-action__icon">?</span><span class="menu-action__label">HOW TO PLAY</span></button>
+        <button class="btn menu-action" id="btn-stats"><span class="menu-action__icon">◈</span><span class="menu-action__label">STATS</span></button>
+        <button class="btn menu-action" id="btn-settings"><span class="menu-action__icon">⚙</span><span class="menu-action__label">SETTINGS</span></button>
+      </div>
+    </nav>
+    <div class="menu-footer"><span>NEONBLOCK</span><i></i><span>ARCADE SYSTEMS</span><b>v2.0</b></div>
   </section>
 
   <!-- ============ GAME SCREEN ============ -->
