@@ -7,7 +7,7 @@
  * localStorage, which service workers can't see or clear).
  */
 
-const CACHE_NAME = 'bloks-cache-v9';
+const CACHE_NAME = 'bloks-cache-v10';
 
 // Paths are relative to this file's own location so the game still works
 // if it's served from a subfolder (e.g. GitHub Pages project sites).
@@ -26,6 +26,7 @@ const PRECACHE_URLS = [
   './effects.js',
   './achievements.js',
   './modes.js',
+  './mindbender.js',
   './input.js',
   './ui.js',
   './stats.js',

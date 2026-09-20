@@ -2048,3 +2048,30 @@ html, body, #app { min-height:100%; background:#030611; }
   .pf-fire, .pf-glow, .pf-t, .pf-embers b, .pf-ring, .pf-reflection { animation: none !important; }
   .pf-embers { display: none; }
 }
+
+
+/* ==========================================================================
+   MIND BENDER HUD — multiplier + active timed effect live in the mode pill
+   ========================================================================== */
+.mode-hud__mb {
+  padding: 0 7px;
+  border-left: 1px solid rgba(255, 255, 255, .14);
+  color: #ffd45b;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(255, 190, 60, .55);
+  font-variant-numeric: tabular-nums;
+}
+.mode-hud__mb.is-hot { color: #ff8a3d; text-shadow: 0 0 10px rgba(255, 110, 40, .8); }
+.mode-hud__mb.pop { animation: hud-pop 320ms ease; }
+.mode-hud__fx {
+  padding: 0 4px 0 7px;
+  border-left: 1px solid rgba(255, 255, 255, .14);
+  color: #ff6fe0;
+  font-weight: 900;
+  text-shadow: 0 0 8px rgba(255, 80, 210, .6);
+  font-variant-numeric: tabular-nums;
+  animation: mb-fx-blink 1s ease-in-out infinite alternate;
+}
+.mode-hud__fx[hidden] { display: none; }
+@keyframes mb-fx-blink { from { opacity: .7; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .mode-hud__fx { animation: none; } }
