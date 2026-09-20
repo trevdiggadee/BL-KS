@@ -104,6 +104,8 @@ const Audio_ = (() => {
     combo: (n) => tone({ freq: 300 + Math.min(n, 10) * 40, duration: 0.08, type: 'triangle', gain: 0.15 }),
     levelUp: () => [392, 494, 588, 784].forEach((f, i) => tone({ freq: f, duration: 0.14, type: 'sawtooth', gain: 0.15, delay: i * 0.07 })),
     gameOver: () => [392, 349, 294, 220].forEach((f, i) => tone({ freq: f, duration: 0.28, type: 'sawtooth', gain: 0.18, delay: i * 0.16 })),
+    mbSpawn: () => [880, 1320].forEach((f, i) => tone({ freq: f, duration: 0.09, type: 'triangle', gain: 0.14, delay: i * 0.07 })),
+    mbActivate: () => [330, 494, 740, 988].forEach((f, i) => tone({ freq: f, duration: 0.12, type: 'sawtooth', gain: 0.15, delay: i * 0.055 })),
     achievement: () => [660, 880, 1100].forEach((f, i) => tone({ freq: f, duration: 0.18, type: 'triangle', gain: 0.2, delay: i * 0.09 })),
     uiTap: () => tone({ freq: 500, duration: 0.04, type: 'triangle', gain: 0.1 }),
     countdown: () => tone({ freq: 700, duration: 0.1, type: 'square', gain: 0.15 }),

@@ -42,6 +42,13 @@ const Game = (() => {
   let countdownTimer = null;
   let awaitingTopOutCheck = false;
 
+  // Mind Bender + spin tracking
+  let mb = null;                     // MindBender.createState()
+  let lastMoveWasRotation = false;   // T-spin rule: last successful action must be a rotation
+  let pendingEffect = null;          // effect id waiting for the line-clear animation to end
+  let itemHintShown = false;
+  let lastTSpin = 'none';         // teach the "?" block once per session
+
   function vibrate(ms) {
     if (saveData.settings.vibration && navigator.vibrate) navigator.vibrate(ms);
   }
@@ -84,6 +91,9 @@ const Game = (() => {
     modeElapsed = 0; modeEventTimer = 0; gravityIndex = 0;
     bossLevel = 1; bossMaxHp = mode.bossHp || 0; bossHp = bossMaxHp;
     combo = -1; bestComboThisGame = 0; backToBack = 0;
+    mb = MindBender.createState();
+    lastMoveWasRotation = false; pendingEffect = null;
+    UI.resetMindBenderHud(); UI.setMindBender(mb.multiplier, '');
     piecesPlaced = 0;
     softDropActive = false;
     gravityAcc = 0; lockTimer = 0; lockResets = 0; isLocking = false;
@@ -99,6 +109,7 @@ const Game = (() => {
     if (mode.id === 'gravity' && gravityIndex === 2) active.row = Math.max(0, active.row);
     nextType = bagNext();
     canHold = true;
+    lastMoveWasRotation = false;
     lockResets = 0;
     isLocking = false;
     UI.resetTrail();
@@ -143,7 +154,46 @@ const Game = (() => {
     Storage.save(saveData);
   }
 
+  /** SRS three-corner rule. 'full' needs both corners the T points toward. */
+  function detectTSpin() {
+    if (mode.id === 'gravity' || active.type !== 'T' || !lastMoveWasRotation) return 'none';
+    const cr = active.row + 1, cc = active.col + 1;      // centre of the T's 3x3 box
+    const occ = (r, c) => !Board.cellFree(grid, r, c);   // walls and floor count as filled
+    const tl = occ(cr - 1, cc - 1), tr = occ(cr - 1, cc + 1);
+    const bl = occ(cr + 1, cc - 1), br = occ(cr + 1, cc + 1);
+    if ([tl, tr, bl, br].filter(Boolean).length < 3) return 'none';
+    const front = [[tl, tr], [tr, br], [bl, br], [tl, bl]][active.rotation];
+    return front[0] && front[1] ? 'full' : 'mini';
+  }
+
+  function tspinLabel(tspin, n) {
+    const names = tspin === 'mini' ? ['', ' SINGLE', ' DOUBLE'] : ['', ' SINGLE', ' DOUBLE', ' TRIPLE'];
+    return (tspin === 'mini' ? 'T-SPIN MINI' : 'T-SPIN') + (names[n] || '');
+  }
+
+  function refreshMbHud() {
+    let label = '';
+    if (mb.effect) {
+      const info = MindBender.EFFECTS[mb.effect.id];
+      label = `${info.name} ${Math.ceil(mb.effect.remainingMs / 1000)}`;
+    }
+    UI.setMindBender(mb.multiplier, label);
+  }
+
+  /** Called whenever a piece is placed or held. */
+  function maybeSpawnItem() {
+    if (MindBender.trySpawn(grid, mb, lines)) {
+      Audio_.sfx.mbSpawn();
+      if (!itemHintShown) {
+        itemHintShown = true;
+        Effects.toast('CLEAR THE ? ROW', 'levelup', 1300);
+      }
+    }
+  }
+
   function lockActivePiece() {
+    const tspin = detectTSpin();
+    lastTSpin = tspin;
     Board.lockPiece(grid, Pieces.getCells(active), active.color);
     piecesPlaced += 1;
     saveData.stats.totalPieces += 1;
@@ -153,8 +203,16 @@ const Game = (() => {
     if (fullRows.length > 0) {
       beginLineClear(fullRows);
     } else {
+      if (tspin !== 'none') {
+        const pts = Math.round(Scoring.tspinNoLinePoints(tspin, mb.multiplier) * mode.score);
+        score += pts;
+        UI.updateHud(score, level);
+        Audio_.sfx.combo(4);
+        Effects.toast(tspin === 'mini' ? 'T-SPIN MINI' : 'T-SPIN', 'combo', 900);
+      }
       combo = -1;
       UI.setCombo('');
+      maybeSpawnItem();
       spawnNext();
     }
   }
@@ -164,8 +222,25 @@ const Game = (() => {
     pendingClearRows = fullRows;
     clearTimer = LINE_CLEAR_FLASH_MS;
 
-    const result = Scoring.scoreLineClear({ linesCleared: fullRows.length, level, combo, backToBack });
-    score += Math.round(result.points * mode.score);
+    // Mind Bender: did this clear take out the flashing item block?
+    let itemBonus = 0;
+    let itemCleared = false;
+    if (MindBender.ENABLED && MindBender.rowsHaveItem(grid, fullRows)) {
+      itemCleared = true;
+      const won = MindBender.onItemCleared(mb);     // multiplier rises; bonus uses the old one
+      itemBonus = won.bonus;
+      pendingEffect = MindBender.pickEffect(grid, mb);
+    }
+
+    // perfect clear = nothing left once the full rows are gone
+    const rowSet = new Set(fullRows);
+    const allClear = grid.every((row, r) => rowSet.has(r) || row.every((cell) => cell === null));
+
+    const result = Scoring.scoreLineClear({
+      linesCleared: fullRows.length, level, multiplier: mb.multiplier, combo, backToBack,
+      tspin: lastTSpin, allClear,
+    });
+    score += Math.round((result.points + itemBonus) * mode.score);
 
     if (mode.id === 'boss') {
       const damage = fullRows.length + (result.isTetris ? 2 : 0);
@@ -194,7 +269,22 @@ const Game = (() => {
 
     UI.updateHud(score, level);
 
-    if (result.isTetris) {
+    if (itemCleared) {
+      const info = MindBender.EFFECTS[pendingEffect];
+      Audio_.sfx.mbActivate();
+      Effects.flash('255,212,91', 0.32);
+      Effects.toast(`MIND BENDER \u00D7${mb.multiplier}`, 'combo', 1300);
+      setTimeout(() => Effects.toast(info.name, 'tetris', 1300), 350);
+    }
+    if (result.allClear) {
+      Effects.toast('ALL CLEAR!', 'highscore', 1400);
+      Audio_.sfx.highScore();
+    } else if (result.isTSpin) {
+      Audio_.sfx.tetris();
+      Effects.shake(7);
+      Effects.toast(tspinLabel(result.tspin, fullRows.length) + (result.b2bApplied ? ' B2B' : ''), 'tetris', 1100);
+      vibrate([40, 30, 40]);
+    } else if (result.isTetris) {
       Audio_.sfx.tetris();
       Effects.shake(9);
       Effects.flash(getColorRgb('cyan'), 0.3);
@@ -225,10 +315,24 @@ const Game = (() => {
     );
   }
 
+  function applyMindBenderEffect(id) {
+    const info = MindBender.EFFECTS[id];
+    if (info.timed) {
+      mb.effect = { id, remainingMs: info.ms, totalMs: info.ms };
+    } else {
+      grid = MindBender.applyInstant(id, grid);
+      Effects.shake(8);
+    }
+    refreshMbHud();
+  }
+
   function finishLineClear() {
     grid = Board.clearRows(grid, pendingClearRows);
     pendingClearRows = null;
+    if (pendingEffect) applyMindBenderEffect(pendingEffect);
+    pendingEffect = null;
     state = 'playing';
+    maybeSpawnItem();
     spawnNext();
   }
 
@@ -251,6 +355,7 @@ const Game = (() => {
     const moved = Collision.tryMove(grid, active, dRow, dCol);
     if (moved) {
       active = moved;
+      lastMoveWasRotation = false;
       if (dCol !== 0) Audio_.sfx.move();
       resetLockIfGrounded();
       return true;
@@ -263,6 +368,7 @@ const Game = (() => {
     const rotated = Collision.tryRotate(grid, active, dir);
     if (rotated) {
       active = rotated;
+      lastMoveWasRotation = true;
       Audio_.sfx.rotate();
       resetLockIfGrounded();
     }
@@ -286,6 +392,7 @@ const Game = (() => {
   function hardDrop() {
     if (state !== 'playing') return;
     const distance = dropDistanceGravity(active);
+    if (distance > 0) lastMoveWasRotation = false;
     score += Math.round(Scoring.hardDropPoints(distance) * mode.score);
 
     if (distance > 0 && saveData.settings.animations && mode.id !== 'gravity') {
@@ -312,6 +419,7 @@ const Game = (() => {
     if (state !== 'playing' || !canHold) return;
     Audio_.sfx.hold();
     holdUsedThisGame = true;
+    lastMoveWasRotation = false;
     if (heldType === null) {
       heldType = active.type;
       spawnNext();
@@ -327,6 +435,7 @@ const Game = (() => {
       if (!Collision.fits(grid, active)) triggerGameOver();
     }
     canHold = false;
+    maybeSpawnItem();
     UI.drawMiniPiece(UI.holdCtx, heldType);
   }
 
@@ -404,6 +513,12 @@ const Game = (() => {
     if (state === 'playing') {
       updateModeTimers(dt);
       if (state === 'gameover') return;
+      const t = MindBender.tick(grid, mb, dt, lines);
+      if (t.despawned) {
+        Effects.toast('ITEM LOST  MB \u00D7' + mb.multiplier, 'default', 1000);
+        Audio_.sfx.mbSpawn();
+      }
+      refreshMbHud();
     }
     if (state === 'clearing') {
       clearTimer -= dt;
@@ -412,9 +527,10 @@ const Game = (() => {
     }
     if (state !== 'playing') return;
 
-    const baseGravity = Scoring.gravityMsForLevel(level) / mode.gravity;
+    const fxFactor = MindBender.gravityFactor(mb);          // Slow Down x2, Speed Up x0.5
+    const baseGravity = (Scoring.gravityMsForLevel(level) / mode.gravity) * fxFactor;
     const gravityMs = softDropActive && mode.id !== 'gravity'
-      ? Math.min(baseGravity, 45)
+      ? Math.min(baseGravity, 45 * fxFactor)
       : baseGravity;
 
     gravityAcc += dt;
@@ -423,6 +539,7 @@ const Game = (() => {
       const moved = moveGravity(active);
       if (moved) {
         active = moved;
+        lastMoveWasRotation = false;
         if (softDropActive) score += Scoring.softDropPoints(1);
         isLocking = false;
         lockTimer = 0;
@@ -453,6 +570,10 @@ const Game = (() => {
       ghostCells: ghost ? Pieces.getCells(ghost) : null,
       ghostOn: !!ghost,
       lockFlashRows: state === 'clearing' ? pendingClearRows : null,
+      mb: mb ? {
+        urgency: MindBender.urgency(mb),
+        blurMs: mb.effect && mb.effect.id === 'blur' ? mb.effect.totalMs - mb.effect.remainingMs : null,
+      } : null,
     });
     Particles.update();
     UI.renderFx();
@@ -518,7 +639,7 @@ const Game = (() => {
   function restart() {
     stopLoop();
     Particles.clear();
-    startCountdown();
+    startCountdown(mode.id);
   }
 
   function quitToMenu() {

@@ -85,7 +85,10 @@
       Audio_.sfx.uiTap();
       Game.startCountdown(loadVisuals().gameMode || 'standard');
     });
-    UI.el['btn-howto'].addEventListener('click', goToHowTo);
+    // The redesigned menu has no How-To button (yet). This used to throw
+    // on the null element and abort bindNav(), so every button wired after
+    // it (Stats, Settings, Achievements, popups, back, pause...) was dead.
+    UI.el['btn-howto']?.addEventListener('click', goToHowTo);
     UI.el['btn-stats'].addEventListener('click', goToStats);
     document.getElementById('btn-settings').addEventListener('click', goToSettings);
     document.getElementById('btn-achievements').addEventListener('click', () => {
@@ -112,9 +115,8 @@
     });
     document.querySelectorAll('[data-popup-close="all"]').forEach(btn => btn.addEventListener('click', closePopups));
     document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closePopups(); });
-    document.querySelectorAll('.selector-popup [data-theme-choice], .selector-popup [data-block-style], .selector-popup [data-game-mode]').forEach(btn => {
-      btn.addEventListener('click', () => closePopups());
-    });
+    // Picking a theme / block style / mode no longer closes its popup — the
+    // player leaves with the X, a tap on the backdrop, or Escape.
 
     document.querySelectorAll('[data-back]').forEach((btn) => {
       btn.addEventListener('click', () => {

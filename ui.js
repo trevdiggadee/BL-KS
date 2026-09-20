@@ -24,7 +24,7 @@ const UI = (() => {
       'overlay-pause', 'overlay-gameover', 'overlay-countdown', 'countdown-num',
       'go-score', 'go-level', 'go-lines', 'go-combo', 'gameover-title',
       'corner-highscore',
-      'toast-layer', 'achievement-layer', 'hud-mode-name', 'hud-mode-status', 'boss-meter', 'boss-meter-fill',
+      'toast-layer', 'achievement-layer', 'hud-mb', 'hud-mb-effect', 'hud-mode-name', 'hud-mode-status', 'boss-meter', 'boss-meter-fill',
       'btn-play', 'btn-howto', 'btn-stats', 'btn-settings',
       'btn-pause', 'btn-resume', 'btn-restart-pause', 'btn-quit-pause',
       'btn-retry', 'btn-quit-gameover',
@@ -53,13 +53,15 @@ const UI = (() => {
     const availH = parent.clientHeight;
     const cols = Board.COLS, rows = Board.ROWS;
 
+    dpr = window.devicePixelRatio || 1;
     let size = Math.min(availW / cols, availH / rows);
-    size = Math.max(12, Math.floor(size));
+    // Snap to whole DEVICE pixels (not whole CSS pixels) so the board uses
+    // nearly all of the available space instead of leaving a leftover strip.
+    size = Math.max(12, Math.floor(size * dpr) / dpr);
     cellSize = size;
 
     const width = size * cols;
     const height = size * rows;
-    dpr = window.devicePixelRatio || 1;
 
     const wrap = parent;
     const ambient = el['ambient-canvas'];
@@ -363,8 +365,41 @@ const UI = (() => {
     ctx.restore();
   }
 
+  /** Flashing "?" overlay for a Mind Bender item block. Flashes faster as it runs out. */
+  function drawItemMark(ctx, row, col, urgency, alpha = 1) {
+    const x = col * cellSize;
+    const y = row * cellSize;
+    const pad = Math.max(1, cellSize * 0.055);
+    const size = cellSize - pad * 2;
+    const rate = 1.6 + urgency * 5.5;                       // flashes per second
+    const pulse = 0.5 + 0.5 * Math.sin(visualTime * rate * Math.PI * 2);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    // white-hot flash over the block
+    ctx.globalAlpha = alpha * (0.25 + 0.6 * pulse);
+    ctx.fillStyle = '#ffffff';
+    roundRect(ctx, x + pad, y + pad, size, size, cellSize * 0.19);
+    ctx.fill();
+    // gold rim so it reads as special even mid-flash
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = '#ffd45b';
+    ctx.shadowBlur = cellSize * (0.25 + 0.4 * pulse);
+    ctx.lineWidth = Math.max(1.5, cellSize * 0.08);
+    ctx.strokeStyle = '#ffd45b';
+    roundRect(ctx, x + pad, y + pad, size, size, cellSize * 0.19);
+    ctx.stroke();
+    // the question mark
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = pulse > 0.5 ? '#3a2500' : '#ffffff';
+    ctx.font = `900 ${Math.round(cellSize * 0.66)}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('?', x + cellSize / 2, y + cellSize / 2 + cellSize * 0.04);
+    ctx.restore();
+  }
+
   /** Renders the locked grid + active piece + ghost onto the board canvas. */
-  function renderBoard({ grid, activeCells, activeColor, ghostCells, ghostOn, lockFlashRows }) {
+  function renderBoard({ grid, activeCells, activeColor, ghostCells, ghostOn, lockFlashRows, mb }) {
     visualTime = performance.now() * 0.001;
     const w = el['board-canvas'].width / dpr;
     const h = el['board-canvas'].height / dpr;
@@ -391,10 +426,15 @@ const UI = (() => {
     const hiddenOffset = Board.HIDDEN_ROWS;
     for (let r = hiddenOffset; r < Board.TOTAL_ROWS; r++) {
       for (let c = 0; c < Board.COLS; c++) {
-        const cell = grid[r][c];
-        if (cell) {
+        const rawCell = grid[r][c];
+        if (rawCell) {
+          const isItem = MindBender.isItem(rawCell);
+          const cell = MindBender.baseColor(rawCell);
           const flashing = lockFlashRows && lockFlashRows.includes(r);
-          drawCell(boardCtx, r - hiddenOffset, c, colorFor(cell), flashing ? 1 : 1, true);
+          // Mind Bender "Blur": the stack fades left-to-right once a second
+          const cellAlpha = mb && mb.blurMs != null ? MindBender.blurAlpha(c, mb.blurMs) : 1;
+          drawCell(boardCtx, r - hiddenOffset, c, colorFor(cell), cellAlpha, true);
+          if (isItem) drawItemMark(boardCtx, r - hiddenOffset, c, mb ? mb.urgency : 0, cellAlpha);
           if (flashing) {
             boardCtx.save();
             boardCtx.globalAlpha = 0.7;
@@ -482,6 +522,25 @@ const UI = (() => {
     }
     el['hud-level'].textContent = String(level).padStart(2, '0');
   }
+
+  let lastMbMult = null, lastMbFx = null;
+  /** Mind Bender multiplier + active timed effect, shown in the mode pill. */
+  function setMindBender(multiplier, effectLabel) {
+    const m = el['hud-mb'];
+    const fx = el['hud-mb-effect'];
+    if (m && multiplier !== lastMbMult) {
+      m.textContent = `MB \u00D7${multiplier}`;
+      m.classList.toggle('is-hot', multiplier >= 5);
+      m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop');
+      lastMbMult = multiplier;
+    }
+    if (fx && effectLabel !== lastMbFx) {
+      fx.textContent = effectLabel || '';
+      fx.hidden = !effectLabel;
+      lastMbFx = effectLabel;
+    }
+  }
+  function resetMindBenderHud() { lastMbMult = null; lastMbFx = null; }
 
   function setCombo(text) {
     el['combo-banner'].textContent = text || '\u00A0';
@@ -588,7 +647,7 @@ const UI = (() => {
     cacheEls, startAmbientBackground, stopAmbientBackground, showScreen, resizeBoardCanvas, renderBoard, renderFx, applyShake,
     drawMiniPiece, updateHud, setCombo, setOverlay, setCountdown,
     showGameOver, setModeHud, updateStartStats, showAchievementPopup,
-    clearColorCache, recordTrail, resetTrail, resolveColor: colorFor,
+    clearColorCache, recordTrail, resetTrail, resolveColor: colorFor, setMindBender, resetMindBenderHud,
     get holdCtx() { return holdCtx; },
     get nextCtx() { return nextCtx; },
     get cellSize() { return cellSize; },
