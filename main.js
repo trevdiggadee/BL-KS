@@ -34,6 +34,12 @@
       readout.textContent = `${styleName} · ${modeName}`;
     }
     document.documentElement.dataset.gameMode = v.gameMode || 'standard';
+    const themeLabel = document.getElementById('theme-current');
+    const blockLabel = document.getElementById('blocks-current');
+    const modeLabel = document.getElementById('mode-current');
+    if (themeLabel) themeLabel.textContent = (v.theme || 'neon').toUpperCase();
+    if (blockLabel) blockLabel.textContent = (v.blockStyle || 'neon').toUpperCase();
+    if (modeLabel) modeLabel.textContent = (mode?.name || v.gameMode || 'standard').toUpperCase();
   }
   function bindVisualLab() {
     let visuals = loadVisuals();
@@ -89,11 +95,25 @@
         if (heading) heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
-    document.getElementById('btn-themes').addEventListener('click', () => {
-      Audio_.sfx.uiTap();
-      const panel = document.getElementById('customize-panel');
-      panel.open = !panel.open;
-      if (panel.open) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const openPopup = (name) => {
+      document.querySelectorAll('.selector-popup').forEach(p => { p.hidden = p.id !== `popup-${name}`; });
+      document.getElementById('selector-popups').classList.add('is-open');
+      document.body.classList.add('has-selector-popup');
+      const active = document.getElementById(`popup-${name}`);
+      if (active) active.querySelector('.popup-close')?.focus({ preventScroll: true });
+    };
+    const closePopups = () => {
+      document.querySelectorAll('.selector-popup').forEach(p => { p.hidden = true; });
+      document.getElementById('selector-popups').classList.remove('is-open');
+      document.body.classList.remove('has-selector-popup');
+    };
+    [['open-theme','theme'],['open-blocks','blocks'],['open-mode','mode']].forEach(([id,name]) => {
+      document.getElementById(id)?.addEventListener('click', () => { Audio_.sfx.uiTap(); openPopup(name); });
+    });
+    document.querySelectorAll('[data-popup-close="all"]').forEach(btn => btn.addEventListener('click', closePopups));
+    document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closePopups(); });
+    document.querySelectorAll('.selector-popup [data-theme-choice], .selector-popup [data-block-style], .selector-popup [data-game-mode]').forEach(btn => {
+      btn.addEventListener('click', () => closePopups());
     });
 
     document.querySelectorAll('[data-back]').forEach((btn) => {
