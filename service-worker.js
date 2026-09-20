@@ -7,7 +7,7 @@
  * localStorage, which service workers can't see or clear).
  */
 
-const CACHE_NAME = 'bloks-cache-v12';
+const CACHE_NAME = 'bloks-cache-v14';
 
 // Paths are relative to this file's own location so the game still works
 // if it's served from a subfolder (e.g. GitHub Pages project sites).
@@ -15,7 +15,7 @@ const PRECACHE_URLS = [
   './',
   './index.html',
   './style.css',
-  './menu-background.png',
+  './MenuBG.JPG',
   './manifest.json',
   './storage.js',
   './pieces.js',
@@ -73,8 +73,6 @@ self.addEventListener('fetch', (event) => {
       if (cached) return cached;
       return fetch(event.request)
         .then((response) => {
-          // Opportunistically cache same-origin assets fetched later
-          // (e.g. a future icon) so they're available offline too.
           if (response.ok && new URL(event.request.url).origin === self.location.origin) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));

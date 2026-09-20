@@ -1,13 +1,13 @@
 /* ============================================================
    BLØKS MENU – FIXED BACKGROUND + BOTTOM UI
-   Replaces the old “CINEMATIC MENU ART BACKDROP” block.
+   Uses MenuBG.JPG as the full-viewport menu backdrop.
    ============================================================ */
 
 /* Background: cover instead of stretch, mobile-safe position */
 .start-screen {
   background-image:
     linear-gradient(180deg, rgba(2, 6, 24, .18) 0%, rgba(3, 7, 25, .06) 40%, rgba(1, 5, 20, .50) 100%),
-    url('./menu-background.png') !important;
+    url('./MenuBG.JPG') !important;
   background-size: cover !important;
   background-position: center top !important;
   background-repeat: no-repeat !important;
