@@ -81,17 +81,11 @@
   }
 
   function bindNav() {
-    // Bind the hero play hit area directly, independent of cached elements.
-    const playControl = document.getElementById('btn-play');
-    if (playControl) playControl.addEventListener('click', (event) => {
-      event.preventDefault();
+    UI.el['btn-play'].addEventListener('click', () => {
       Audio_.sfx.uiTap();
       Game.startCountdown(loadVisuals().gameMode || 'standard');
     });
-    // The redesigned menu has no How-To button (yet). This used to throw
-    // on the null element and abort bindNav(), so every button wired after
-    // it (Stats, Settings, Achievements, popups, back, pause...) was dead.
-    UI.el['btn-howto']?.addEventListener('click', goToHowTo);
+    UI.el['btn-howto'].addEventListener('click', goToHowTo);
     UI.el['btn-stats'].addEventListener('click', goToStats);
     document.getElementById('btn-settings').addEventListener('click', goToSettings);
     document.getElementById('btn-achievements').addEventListener('click', () => {
@@ -118,8 +112,9 @@
     });
     document.querySelectorAll('[data-popup-close="all"]').forEach(btn => btn.addEventListener('click', closePopups));
     document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closePopups(); });
-    // Picking a theme / block style / mode no longer closes its popup — the
-    // player leaves with the X, a tap on the backdrop, or Escape.
+    document.querySelectorAll('.selector-popup [data-theme-choice], .selector-popup [data-block-style], .selector-popup [data-game-mode]').forEach(btn => {
+      btn.addEventListener('click', () => closePopups());
+    });
 
     document.querySelectorAll('[data-back]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -145,16 +140,14 @@
   /** Auto-pause if the player switches tabs/apps mid-game, so a stray
    *  background tick never eats a life or racks up a silent game over. */
   function bindVisibility() {
-    const pauseWhenLeaving = () => {
-      if (document.visibilityState === 'hidden' || document.hidden) {
-        if (Game.state === 'playing') Game.togglePause();
-        Audio_.stopForBackground();
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && Game.state === 'playing') {
+        Game.togglePause();
       }
-    };
-    document.addEventListener('visibilitychange', pauseWhenLeaving, true);
-    window.addEventListener('pagehide', () => Audio_.stopForBackground(), true);
-    window.addEventListener('freeze', () => Audio_.stopForBackground(), true);
-    window.addEventListener('blur', pauseWhenLeaving, true);
+    });
+    window.addEventListener('blur', () => {
+      if (Game.state === 'playing') Game.togglePause();
+    });
   }
 
   function registerServiceWorker() {
