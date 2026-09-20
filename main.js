@@ -142,14 +142,15 @@
   /** Auto-pause if the player switches tabs/apps mid-game, so a stray
    *  background tick never eats a life or racks up a silent game over. */
   function bindVisibility() {
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && Game.state === 'playing') {
-        Game.togglePause();
+    const pauseWhenLeaving = () => {
+      if (document.hidden || !document.hasFocus()) {
+        if (Game.state === 'playing') Game.togglePause();
+        Audio_.stopForBackground();
       }
-    });
-    window.addEventListener('blur', () => {
-      if (Game.state === 'playing') Game.togglePause();
-    });
+    };
+    document.addEventListener('visibilitychange', pauseWhenLeaving);
+    window.addEventListener('blur', pauseWhenLeaving);
+    window.addEventListener('pagehide', () => Audio_.stopForBackground());
   }
 
   function registerServiceWorker() {

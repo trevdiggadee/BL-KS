@@ -2206,3 +2206,28 @@ html, body, #app { min-height:100%; background:#030611; }
 @media (prefers-reduced-motion: reduce) {
   .start-screen, .start-screen .selector-card, .start-screen .pill-nav { scroll-behavior: auto !important; }
 }
+
+
+/* The artwork itself is the Play control: keep the whole hero image tappable. */
+.hero-stage { position: relative; isolation: isolate; }
+.menu-bg-play {
+  position: absolute; inset: 0; z-index: 20; display: block; width: 100%; height: 100%;
+  padding: 0; border: 2px solid rgba(91, 246, 255, .72); border-radius: inherit;
+  background: transparent; cursor: pointer; color: transparent; outline: none;
+  box-shadow: 0 0 12px rgba(0,240,255,.65), inset 0 0 18px rgba(0,240,255,.16),
+              0 0 28px rgba(255,35,210,.35);
+  animation: menu-play-neon 2.2s ease-in-out infinite;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu-bg-play:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.menu-bg-play:active { box-shadow: 0 0 22px #00f0ff, inset 0 0 30px rgba(255,35,210,.28); }
+@keyframes menu-play-neon {
+  0%,100% { border-color: rgba(0,240,255,.62); box-shadow: 0 0 10px rgba(0,240,255,.55), inset 0 0 15px rgba(0,240,255,.12), 0 0 24px rgba(255,35,210,.25); }
+  50% { border-color: rgba(255,70,220,.95); box-shadow: 0 0 20px rgba(0,240,255,.8), inset 0 0 25px rgba(255,35,210,.2), 0 0 38px rgba(255,35,210,.55); }
+}
+
+/* Keep both drawing layers stacked predictably; the effects canvas must
+   remain transparent so it never paints over the falling blocks. */
+#board-frame { isolation: isolate; }
+canvas#board-canvas { z-index: 1; background: transparent; }
+canvas#fx-canvas { z-index: 2; background: transparent; pointer-events: none; }

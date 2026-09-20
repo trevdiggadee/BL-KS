@@ -110,6 +110,17 @@ const Audio_ = (() => {
     stopCurrentMusic();
   }
 
+  // Browsers may keep media alive while a tab is backgrounded or the app is
+  // switched away from. Hard-stop every player on page visibility loss.
+  function stopForBackground() {
+    Object.values(musicPlayers).forEach((player) => {
+      player.pause();
+      try { player.currentTime = 0; } catch (_) {}
+    });
+    currentMusic = null;
+    if (ctx && ctx.state === 'running') ctx.suspend().catch(() => {});
+  }
+
   /** Call this whenever the game level changes */
   function setMusicLevel(level) {
     if (!musicOn) {
@@ -201,7 +212,7 @@ const Audio_ = (() => {
   return {
     resume,
     setMusicOn, setSfxOn, setMusicVolume, setSfxVolume,
-    startMusic, stopMusic, setMusicLevel,
+    startMusic, stopMusic, stopForBackground, setMusicLevel,
     sfx: SFX,
   };
 })();
