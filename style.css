@@ -2077,48 +2077,132 @@ html, body, #app { min-height:100%; background:#030611; }
 @media (prefers-reduced-motion: reduce) { .mode-hud__fx { animation: none; } }
 
 /* ============================================================
-   BLØKS CINEMATIC MENU ART BACKDROP
-   The supplied reference artwork is now the full-viewport menu
-   backdrop; live DOM controls remain above it and keep their handlers.
+   BLØKS MENU FIX — MenuBG.JPG + bottom UI (safe: .start-screen only)
    ============================================================ */
+
 .start-screen {
   background-image:
-    linear-gradient(180deg, rgba(2, 6, 24, .10) 0%, rgba(3, 7, 25, .04) 44%, rgba(1, 5, 20, .36) 100%),
-    url('./menu-background.png') !important;
-  background-size: 100% 100% !important;
-  background-position: center center !important;
+    linear-gradient(180deg, rgba(2, 6, 24, .18) 0%, rgba(3, 7, 25, .06) 40%, rgba(1, 5, 20, .50) 100%),
+    url('./MenuBG.JPG') !important;
+  background-size: cover !important;
+  background-position: center top !important;
   background-repeat: no-repeat !important;
   background-color: #020617 !important;
 }
-.start-screen::before { opacity: .28 !important; }
-.menu-ambient { opacity: .22 !important; }
-.menu-grid { opacity: .10 !important; }
-.menu-vignette {
-  background: linear-gradient(180deg, rgba(0, 4, 20, .04), rgba(0, 4, 20, .02) 45%, rgba(0, 3, 16, .38)) !important;
+.start-screen::before { opacity: .22 !important; }
+.start-screen .menu-ambient { opacity: .18 !important; }
+.start-screen .menu-grid { opacity: .08 !important; }
+.start-screen .menu-vignette {
+  background: linear-gradient(180deg, rgba(0, 4, 20, .05), rgba(0, 4, 20, .02) 45%, rgba(0, 3, 16, .42)) !important;
 }
-/* Maintain contrast for interactive cards over the detailed art. */
-.selector-card {
-  background: linear-gradient(160deg, rgba(4, 19, 56, .88), rgba(5, 7, 32, .92)) !important;
-  backdrop-filter: blur(8px) saturate(1.25) !important;
+
+/* Hide title only on start menu */
+.start-screen .start-top,
+.start-screen .wordmark--hero,
+.start-screen .start-subtitle {
+  display: none !important;
 }
-.pill-nav {
-  background: linear-gradient(180deg, rgba(4, 19, 54, .94), rgba(1, 5, 23, .97)) !important;
-  backdrop-filter: blur(10px) saturate(1.2) !important;
+
+/* Menu layout: content toward bottom */
+.start-screen .start-scroll {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  min-height: 100% !important;
+  gap: 8px !important;
+  padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
 }
-/* Softer brand glow keeps the white BLØKS lettering crisp. */
-.wordmark--hero {
-  color: #fff !important;
-  text-shadow: 0 2px 0 #4b9fe8, 0 5px 0 #09285d, 0 0 10px rgba(55, 215, 255, .62), 0 0 22px rgba(102, 64, 255, .34) !important;
+
+.start-screen .hud-corner--left {
+  position: absolute !important;
+  top: max(10px, env(safe-area-inset-top)) !important;
+  left: 10px !important;
+  z-index: 8 !important;
 }
-/* The background already paints scenic water and floating crystals;
-   preserve the live play action while toning down duplicate CSS scenery. */
-.hero-stage { background: transparent !important; }
-.water-plane { opacity: .30 !important; }
-.hero-piece { opacity: .34 !important; }
-@media (max-width: 420px) {
+
+/* Decorative hero only on menu — keep PLAY clickable */
+.start-screen .hero-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+  opacity: 0.55 !important;
+}
+.start-screen .water-plane { opacity: .25 !important; }
+.start-screen .hero-piece { opacity: .3 !important; }
+.start-screen .hero-stage .play-flame {
+  pointer-events: auto !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 40% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 5 !important;
+}
+
+/* Selectors + pill nav at bottom */
+.start-screen .menu-selector-row {
+  position: relative !important;
+  z-index: 7 !important;
+  order: 10 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  width: 100% !important;
+  max-width: 760px !important;
+  margin: 0 auto !important;
+}
+.start-screen .selector-card {
+  min-height: 62px !important;
+  padding: 7px 4px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(160deg, rgba(4, 19, 56, .93), rgba(5, 7, 32, .96)) !important;
+  backdrop-filter: blur(10px) saturate(1.3) !important;
+  border: 1px solid rgba(80, 190, 255, .48) !important;
+}
+.start-screen .pill-nav {
+  position: relative !important;
+  z-index: 7 !important;
+  order: 11 !important;
+  width: 100% !important;
+  max-width: 760px !important;
+  margin: 0 auto !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg, rgba(4, 19, 54, .97), rgba(1, 5, 23, .99)) !important;
+  border: 1.5px solid rgba(75, 194, 255, .55) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+.start-screen .pill-nav__item {
+  min-height: 54px !important;
+  padding: 6px 2px !important;
+}
+.start-screen .pill-nav__indicator { display: none !important; }
+
+@media (max-width: 390px) {
+  .start-screen .selector-card { min-height: 56px !important; }
+  .start-screen .pill-nav__item { min-height: 50px !important; }
+  .start-screen .hero-stage .play-flame { top: 36% !important; }
+}
+@media (max-height: 680px) {
+  .start-screen .selector-card { min-height: 50px !important; }
+  .start-screen .pill-nav__item { min-height: 46px !important; }
+  .start-screen .hero-stage .play-flame {
+    top: 34% !important;
+    transform: translate(-50%, -50%) scale(0.85) !important;
+  }
+}
+@media (max-height: 700px) {
+  .start-screen { background-position: center 18% !important; }
+}
+@media (min-aspect-ratio: 1/1) {
   .start-screen { background-position: center center !important; }
-  .selector-card { backdrop-filter: blur(6px) saturate(1.2) !important; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .start-screen, .selector-card, .pill-nav { scroll-behavior: auto !important; }
+  .start-screen, .start-screen .selector-card, .start-screen .pill-nav { scroll-behavior: auto !important; }
 }
