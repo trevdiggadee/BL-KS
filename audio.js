@@ -15,6 +15,8 @@ const Audio_ = (() => {
   let musicTimer = null;
   let musicStep = 0;
   let started = false;
+  let levelAudio = null;
+  let currentLevelTrack = 0;
 
   function ensureContext() {
     if (ctx) return;
@@ -41,7 +43,51 @@ const Audio_ = (() => {
 
   function setMusicOn(on) { musicOn = on; if (!on) stopMusic(); }
   function setSfxOn(on) { sfxOn = on; }
-  function setMusicVolume(v) { musicVolume = v; if (musicGain) musicGain.gain.value = v; }
+  function setMusicVolume(v) {
+    musicVolume = v;
+    if (musicGain) musicGain.gain.value = v;
+    if (levelAudio) levelAudio.volume = Math.max(0, Math.min(1, v));
+  }
+
+  // Level music: Level-1.mp3, Level-2.mp3, Level-3.mp3, etc.
+  // Files live beside the game files in the GitHub Pages repository.
+  function ensureLevelAudio() {
+    if (levelAudio) return levelAudio;
+    levelAudio = new Audio();
+    levelAudio.preload = 'auto';
+    levelAudio.loop = true;
+    levelAudio.volume = Math.max(0, Math.min(1, musicVolume));
+    levelAudio.setAttribute('playsinline', '');
+    levelAudio.addEventListener('error', () => {
+      // A missing level track is intentionally silent; the game continues.
+      if (levelAudio) levelAudio.removeAttribute('src');
+    });
+    return levelAudio;
+  }
+
+  function stopLevelMusic() {
+    if (!levelAudio) return;
+    levelAudio.pause();
+    try { levelAudio.currentTime = 0; } catch (_) {}
+    levelAudio.removeAttribute('src');
+    levelAudio.load();
+    currentLevelTrack = 0;
+  }
+
+  function playLevelMusic(level) {
+    if (!musicOn) return;
+    const n = Math.max(1, Math.floor(Number(level) || 1));
+    if (currentLevelTrack === n && levelAudio && !levelAudio.paused) return;
+
+    const audio = ensureLevelAudio();
+    const base = new URL('./', window.location.href);
+    audio.src = new URL(`Level-${n}.mp3`, base).href;
+    audio.volume = Math.max(0, Math.min(1, musicVolume));
+    currentLevelTrack = n;
+    const promise = audio.play();
+    if (promise && typeof promise.catch === 'function') promise.catch(() => {});
+  }
+
   function setSfxVolume(v) { sfxVolume = v; if (sfxGain) sfxGain.gain.value = v; }
 
   function tone({ freq, duration = 0.12, type = 'square', gain = 0.22, slideTo = null, delay = 0 }) {
@@ -146,9 +192,7 @@ const Audio_ = (() => {
     if (!musicOn) return;
     ensureContext();
     resume();
-    if (musicTimer) return;
-    musicStep = 0;
-    scheduleMusicStep();
+    // Level tracks are started explicitly by Game when a level begins.
   }
 
   function stopMusic() {
@@ -156,10 +200,11 @@ const Audio_ = (() => {
       clearTimeout(musicTimer);
       musicTimer = null;
     }
+    stopLevelMusic();
   }
 
   return {
     resume, setMusicOn, setSfxOn, setMusicVolume, setSfxVolume,
-    startMusic, stopMusic, sfx: SFX,
+    startMusic, stopMusic, playLevelMusic, sfx: SFX,
   };
 })();

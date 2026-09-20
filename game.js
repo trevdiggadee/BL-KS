@@ -102,6 +102,7 @@ const Game = (() => {
     UI.setCombo('');
     UI.updateHud(score, level);
     UI.setModeHud(mode, { timeLeft: mode.timeLimit || 0, bossHp, bossMaxHp, gravityIndex });
+    if (saveData && saveData.settings.musicOn) Audio_.playLevelMusic(level);
   }
 
   function spawnNext() {
@@ -303,6 +304,7 @@ const Game = (() => {
     }
     if (leveledUp) {
       Audio_.sfx.levelUp();
+      if (saveData.settings.musicOn) Audio_.playLevelMusic(level);
       Effects.toast(`LEVEL ${level}`, 'levelup');
     }
 
@@ -451,7 +453,7 @@ const Game = (() => {
     } else if (state === 'paused') {
       state = 'playing';
       UI.setOverlay('overlay-pause', false);
-      if (saveData.settings.musicOn) Audio_.startMusic();
+      if (saveData.settings.musicOn) Audio_.playLevelMusic(level);
       sessionStartTs = performance.now();
       lastTs = performance.now();
     }
@@ -632,7 +634,7 @@ const Game = (() => {
     state = 'playing';
     sessionStartTs = performance.now();
     lastTs = 0;
-    if (saveData.settings.musicOn) Audio_.startMusic();
+    if (saveData.settings.musicOn) Audio_.playLevelMusic(level);
     rafId = requestAnimationFrame(loop);
   }
 
