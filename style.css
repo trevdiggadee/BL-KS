@@ -2075,3 +2075,50 @@ html, body, #app { min-height:100%; background:#030611; }
 .mode-hud__fx[hidden] { display: none; }
 @keyframes mb-fx-blink { from { opacity: .7; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .mode-hud__fx { animation: none; } }
+
+/* ============================================================
+   BLØKS CINEMATIC MENU ART BACKDROP
+   The supplied reference artwork is now the full-viewport menu
+   backdrop; live DOM controls remain above it and keep their handlers.
+   ============================================================ */
+.start-screen {
+  background-image:
+    linear-gradient(180deg, rgba(2, 6, 24, .10) 0%, rgba(3, 7, 25, .04) 44%, rgba(1, 5, 20, .36) 100%),
+    url('./menu-background.png') !important;
+  background-size: 100% 100% !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-color: #020617 !important;
+}
+.start-screen::before { opacity: .28 !important; }
+.menu-ambient { opacity: .22 !important; }
+.menu-grid { opacity: .10 !important; }
+.menu-vignette {
+  background: linear-gradient(180deg, rgba(0, 4, 20, .04), rgba(0, 4, 20, .02) 45%, rgba(0, 3, 16, .38)) !important;
+}
+/* Maintain contrast for interactive cards over the detailed art. */
+.selector-card {
+  background: linear-gradient(160deg, rgba(4, 19, 56, .88), rgba(5, 7, 32, .92)) !important;
+  backdrop-filter: blur(8px) saturate(1.25) !important;
+}
+.pill-nav {
+  background: linear-gradient(180deg, rgba(4, 19, 54, .94), rgba(1, 5, 23, .97)) !important;
+  backdrop-filter: blur(10px) saturate(1.2) !important;
+}
+/* Softer brand glow keeps the white BLØKS lettering crisp. */
+.wordmark--hero {
+  color: #fff !important;
+  text-shadow: 0 2px 0 #4b9fe8, 0 5px 0 #09285d, 0 0 10px rgba(55, 215, 255, .62), 0 0 22px rgba(102, 64, 255, .34) !important;
+}
+/* The background already paints scenic water and floating crystals;
+   preserve the live play action while toning down duplicate CSS scenery. */
+.hero-stage { background: transparent !important; }
+.water-plane { opacity: .30 !important; }
+.hero-piece { opacity: .34 !important; }
+@media (max-width: 420px) {
+  .start-screen { background-position: center center !important; }
+  .selector-card { backdrop-filter: blur(6px) saturate(1.2) !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .start-screen, .selector-card, .pill-nav { scroll-behavior: auto !important; }
+}
