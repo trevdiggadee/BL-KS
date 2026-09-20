@@ -7,7 +7,7 @@
  * localStorage, which service workers can't see or clear).
  */
 
-const CACHE_NAME = 'bloks-cache-v7';
+const CACHE_NAME = 'bloks-cache-v8';
 
 // Paths are relative to this file's own location so the game still works
 // if it's served from a subfolder (e.g. GitHub Pages project sites).

@@ -53,13 +53,15 @@ const UI = (() => {
     const availH = parent.clientHeight;
     const cols = Board.COLS, rows = Board.ROWS;
 
+    dpr = window.devicePixelRatio || 1;
     let size = Math.min(availW / cols, availH / rows);
-    size = Math.max(12, Math.floor(size));
+    // Snap to whole DEVICE pixels (not whole CSS pixels) so the board uses
+    // nearly all of the available space instead of leaving a leftover strip.
+    size = Math.max(12, Math.floor(size * dpr) / dpr);
     cellSize = size;
 
     const width = size * cols;
     const height = size * rows;
-    dpr = window.devicePixelRatio || 1;
 
     const wrap = parent;
     const ambient = el['ambient-canvas'];

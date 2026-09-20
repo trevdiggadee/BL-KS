@@ -1842,3 +1842,53 @@ html, body, #app { min-height:100%; background:#030611; }
 .menu-selection-status{display:none!important;}
 @media (max-height:740px){.hero-stage{height:clamp(245px,43vh,330px)!important}.selector-card{min-height:88px!important}.pill-nav__item{min-height:58px!important}.wordmark--hero{font-size:clamp(3rem,13vw,5.4rem)!important;}}
 @media (max-width:390px){.start-scroll{padding-left:9px!important;padding-right:9px!important}.selector-card{border-radius:16px!important}.hero-stage{height:clamp(285px,43vh,360px)!important}.play-orb{width:88vw!important}.pill-nav__item{min-height:62px!important}}
+
+
+/* ==========================================================================
+   LAYOUT FIX PASS — fill the whole screen on menu + gameplay
+   --------------------------------------------------------------------------
+   Root causes fixed here:
+   1. .start-screen had been switched to position:relative by the menu
+      layers, so it sat INSIDE #app's safe-area padding instead of covering
+      the viewport. Its own padding + min-height:100dvh then pushed the
+      whole menu (including the Stats / Achievements / Settings bar) off the
+      bottom of the screen on notched phones.
+   2. .hero-stage had a fixed clamp() height, so leftover space became an
+      empty gap above the bottom bar. It now flexes to fill.
+   3. .game-screen reserved safe-area + 18px on top and a full safe-area
+      inset on the bottom, plus roomy gaps, which shrank the board.
+   ========================================================================== */
+
+/* ---------- MENU ---------- */
+.start-screen {
+  position: absolute !important;
+  inset: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+.start-scroll {
+  height: 100% !important;
+  min-height: 0 !important;
+  margin-inline: auto !important;
+  box-sizing: border-box !important;
+  padding-top: max(10px, env(safe-area-inset-top)) !important;
+  padding-bottom: max(10px, calc(env(safe-area-inset-bottom) - 6px)) !important;
+  gap: clamp(8px, 1.4vh, 16px) !important;
+}
+.hero-stage {
+  flex: 1 1 0 !important;
+  height: auto !important;
+  min-height: clamp(210px, 30vh, 320px) !important;
+}
+.pill-nav { margin-top: 0 !important; flex: 0 0 auto !important; }
+.selector-card { min-height: clamp(84px, 12.5vh, 140px) !important; }
+
+/* ---------- GAMEPLAY ---------- */
+.game-screen {
+  padding: max(8px, calc(env(safe-area-inset-top) + 4px)) 8px max(6px, calc(env(safe-area-inset-bottom) - 14px)) !important;
+  gap: 5px !important;
+}
+.hud-bar { padding: 5px 10px !important; }
+.hud-chip canvas { width: 30px !important; height: 30px !important; }
+.mode-hud { min-height: 16px !important; padding: 1px 10px !important; }

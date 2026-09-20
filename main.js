@@ -85,7 +85,10 @@
       Audio_.sfx.uiTap();
       Game.startCountdown(loadVisuals().gameMode || 'standard');
     });
-    UI.el['btn-howto'].addEventListener('click', goToHowTo);
+    // The redesigned menu has no How-To button (yet). This used to throw
+    // on the null element and abort bindNav(), so every button wired after
+    // it (Stats, Settings, Achievements, popups, back, pause...) was dead.
+    UI.el['btn-howto']?.addEventListener('click', goToHowTo);
     UI.el['btn-stats'].addEventListener('click', goToStats);
     document.getElementById('btn-settings').addEventListener('click', goToSettings);
     document.getElementById('btn-achievements').addEventListener('click', () => {
