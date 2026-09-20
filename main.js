@@ -115,9 +115,8 @@
     });
     document.querySelectorAll('[data-popup-close="all"]').forEach(btn => btn.addEventListener('click', closePopups));
     document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closePopups(); });
-    document.querySelectorAll('.selector-popup [data-theme-choice], .selector-popup [data-block-style], .selector-popup [data-game-mode]').forEach(btn => {
-      btn.addEventListener('click', () => closePopups());
-    });
+    // Picking a theme / block style / mode no longer closes its popup — the
+    // player leaves with the X, a tap on the backdrop, or Escape.
 
     document.querySelectorAll('[data-back]').forEach((btn) => {
       btn.addEventListener('click', () => {

@@ -70,11 +70,102 @@
           <div class="cube3d cube3d--b"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div>
         </div>
 
-        <button class="play-orb" id="btn-play" aria-label="Play now">
-          <span class="play-orb__ring" aria-hidden="true"></span>
-          <span class="play-orb__core"><span class="play-orb__icon">▶</span><span class="play-orb__label"><strong>PLAY NOW</strong><small>ENTER THE ARENA</small></span><span class="play-orb__arrow">›</span></span>
+        <button class="play-flame" id="btn-play" aria-label="Play now">
+          <span class="pf-fire" aria-hidden="true">
+            <span class="pf-glow"></span>
+            <svg class="pf-svg" viewBox="-160 -160 320 320" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="pfGradBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffb347"/><stop offset=".3" stop-color="#ff3fc8"/><stop offset=".7" stop-color="#7a3dff"/><stop offset="1" stop-color="#2b46ff"/>
+    </linearGradient>
+    <linearGradient id="pfGradMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff7ad9"/><stop offset=".4" stop-color="#8f6bff"/><stop offset="1" stop-color="#2fd2ff"/>
+    </linearGradient>
+    <linearGradient id="pfGradFront" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a98bff"/><stop offset=".38" stop-color="#2ee6ff"/><stop offset="1" stop-color="#eaffff"/>
+    </linearGradient>
+  </defs>
+<g class="pf-layer pf-layer--back">
+<g transform="rotate(0.0) translate(0,-58) rotate(-0.0)"><g transform="scale(-0.948,0.782)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.40s;--dl:-0.54s"/></g></g>
+<g transform="rotate(13.8) translate(0,-58) rotate(-6.9)"><g transform="scale(-0.739,0.796)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:0.82s;--dl:-0.45s"/></g></g>
+<g transform="rotate(27.7) translate(0,-58) rotate(-13.8)"><g transform="scale(0.837,0.816)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.52s;--dl:-0.01s"/></g></g>
+<g transform="rotate(41.5) translate(0,-58) rotate(-20.8)"><g transform="scale(0.692,0.788)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.49s;--dl:-0.37s"/></g></g>
+<g transform="rotate(55.4) translate(0,-58) rotate(-27.7)"><g transform="scale(-0.716,0.754)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.68s;--dl:-1.46s"/></g></g>
+<g transform="rotate(69.2) translate(0,-58) rotate(-34.6)"><g transform="scale(-0.771,0.527)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.64s;--dl:-1.47s"/></g></g>
+<g transform="rotate(83.1) translate(0,-58) rotate(-41.5)"><g transform="scale(-1.011,0.456)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.33s;--dl:-0.48s"/></g></g>
+<g transform="rotate(96.9) translate(0,-58) rotate(-48.5)"><g transform="scale(-0.826,0.410)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.59s;--dl:-1.11s"/></g></g>
+<g transform="rotate(110.8) translate(0,-58) rotate(-55.4)"><g transform="scale(0.681,0.321)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.30s;--dl:-1.44s"/></g></g>
+<g transform="rotate(124.6) translate(0,-58) rotate(-62.3)"><g transform="scale(-0.850,0.255)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:0.87s;--dl:-0.07s"/></g></g>
+<g transform="rotate(138.5) translate(0,-58) rotate(-69.2)"><g transform="scale(0.876,0.162)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.35s;--dl:-0.69s"/></g></g>
+<g transform="rotate(152.3) translate(0,-58) rotate(-76.2)"><g transform="scale(0.769,0.169)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.01s;--dl:-1.68s"/></g></g>
+<g transform="rotate(166.2) translate(0,-58) rotate(-83.1)"><g transform="scale(-0.805,0.152)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.24s;--dl:-1.30s"/></g></g>
+<g transform="rotate(-180.0) translate(0,-58) rotate(90.0)"><g transform="scale(-1.013,0.137)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:0.91s;--dl:-1.63s"/></g></g>
+<g transform="rotate(-166.2) translate(0,-58) rotate(83.1)"><g transform="scale(0.877,0.166)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.51s;--dl:-0.55s"/></g></g>
+<g transform="rotate(-152.3) translate(0,-58) rotate(76.2)"><g transform="scale(-0.901,0.153)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.11s;--dl:-0.39s"/></g></g>
+<g transform="rotate(-138.5) translate(0,-58) rotate(69.2)"><g transform="scale(0.937,0.204)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.24s;--dl:-0.47s"/></g></g>
+<g transform="rotate(-124.6) translate(0,-58) rotate(62.3)"><g transform="scale(-0.862,0.278)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:0.80s;--dl:-0.54s"/></g></g>
+<g transform="rotate(-110.8) translate(0,-58) rotate(55.4)"><g transform="scale(-0.793,0.264)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.04s;--dl:-1.60s"/></g></g>
+<g transform="rotate(-96.9) translate(0,-58) rotate(48.5)"><g transform="scale(-0.985,0.377)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:0.95s;--dl:-1.11s"/></g></g>
+<g transform="rotate(-83.1) translate(0,-58) rotate(41.5)"><g transform="scale(0.957,0.434)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:0.81s;--dl:-0.52s"/></g></g>
+<g transform="rotate(-69.2) translate(0,-58) rotate(34.6)"><g transform="scale(0.826,0.521)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.01s;--dl:-0.62s"/></g></g>
+<g transform="rotate(-55.4) translate(0,-58) rotate(27.7)"><g transform="scale(-1.005,0.815)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.34s;--dl:-1.38s"/></g></g>
+<g transform="rotate(-41.5) translate(0,-58) rotate(20.8)"><g transform="scale(-0.826,0.812)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.65s;--dl:-0.72s"/></g></g>
+<g transform="rotate(-27.7) translate(0,-58) rotate(13.8)"><g transform="scale(0.949,0.975)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.41s;--dl:-1.20s"/></g></g>
+<g transform="rotate(-13.8) translate(0,-58) rotate(6.9)"><g transform="scale(-0.831,0.785)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradBack)" style="--t:1.53s;--dl:-1.38s"/></g></g>
+</g>
+<g class="pf-layer pf-layer--mid">
+<g transform="rotate(9.0) translate(0,-58) rotate(-4.5)"><g transform="scale(0.608,0.613)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.04s;--dl:-0.96s"/></g></g>
+<g transform="rotate(27.0) translate(0,-58) rotate(-13.5)"><g transform="scale(-0.655,0.617)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.00s;--dl:-0.51s"/></g></g>
+<g transform="rotate(45.0) translate(0,-58) rotate(-22.5)"><g transform="scale(0.889,0.525)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:0.80s;--dl:-0.93s"/></g></g>
+<g transform="rotate(63.0) translate(0,-58) rotate(-31.5)"><g transform="scale(0.893,0.407)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:0.97s;--dl:-0.02s"/></g></g>
+<g transform="rotate(81.0) translate(0,-58) rotate(-40.5)"><g transform="scale(0.653,0.364)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.46s;--dl:-1.58s"/></g></g>
+<g transform="rotate(99.0) translate(0,-58) rotate(-49.5)"><g transform="scale(0.626,0.239)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.46s;--dl:-1.44s"/></g></g>
+<g transform="rotate(117.0) translate(0,-58) rotate(-58.5)"><g transform="scale(0.678,0.184)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.02s;--dl:-1.48s"/></g></g>
+<g transform="rotate(135.0) translate(0,-58) rotate(-67.5)"><g transform="scale(0.643,0.155)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.30s;--dl:-1.90s"/></g></g>
+<g transform="rotate(153.0) translate(0,-58) rotate(-76.5)"><g transform="scale(0.801,0.084)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.45s;--dl:-1.19s"/></g></g>
+<g transform="rotate(171.0) translate(0,-58) rotate(-85.5)"><g transform="scale(-0.725,0.096)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:0.83s;--dl:-0.35s"/></g></g>
+<g transform="rotate(-171.0) translate(0,-58) rotate(85.5)"><g transform="scale(0.822,0.075)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.11s;--dl:-0.28s"/></g></g>
+<g transform="rotate(-153.0) translate(0,-58) rotate(76.5)"><g transform="scale(-0.853,0.106)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.56s;--dl:-1.56s"/></g></g>
+<g transform="rotate(-135.0) translate(0,-58) rotate(67.5)"><g transform="scale(-0.691,0.142)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.38s;--dl:-0.10s"/></g></g>
+<g transform="rotate(-117.0) translate(0,-58) rotate(58.5)"><g transform="scale(-0.636,0.171)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.54s;--dl:-1.15s"/></g></g>
+<g transform="rotate(-99.0) translate(0,-58) rotate(49.5)"><g transform="scale(0.753,0.236)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.05s;--dl:-0.28s"/></g></g>
+<g transform="rotate(-81.0) translate(0,-58) rotate(40.5)"><g transform="scale(-0.649,0.339)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:0.98s;--dl:-1.21s"/></g></g>
+<g transform="rotate(-63.0) translate(0,-58) rotate(31.5)"><g transform="scale(-0.804,0.479)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.01s;--dl:-0.54s"/></g></g>
+<g transform="rotate(-45.0) translate(0,-58) rotate(22.5)"><g transform="scale(-0.634,0.557)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.04s;--dl:-1.84s"/></g></g>
+<g transform="rotate(-27.0) translate(0,-58) rotate(13.5)"><g transform="scale(-0.696,0.719)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.52s;--dl:-1.63s"/></g></g>
+<g transform="rotate(-9.0) translate(0,-58) rotate(4.5)"><g transform="scale(-0.618,0.793)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradMid)" style="--t:1.30s;--dl:-0.34s"/></g></g>
+</g>
+<g class="pf-layer pf-layer--front">
+<g transform="rotate(13.0) translate(0,-58) rotate(-6.5)"><g transform="scale(-0.746,0.379)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.23s;--dl:-1.00s"/></g></g>
+<g transform="rotate(38.7) translate(0,-58) rotate(-19.4)"><g transform="scale(-0.567,0.353)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.03s;--dl:-1.01s"/></g></g>
+<g transform="rotate(64.4) translate(0,-58) rotate(-32.2)"><g transform="scale(-0.783,0.273)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.22s;--dl:-1.80s"/></g></g>
+<g transform="rotate(90.1) translate(0,-58) rotate(-45.1)"><g transform="scale(-0.775,0.247)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:0.81s;--dl:-0.53s"/></g></g>
+<g transform="rotate(115.9) translate(0,-58) rotate(-57.9)"><g transform="scale(0.835,0.147)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.51s;--dl:-0.79s"/></g></g>
+<g transform="rotate(141.6) translate(0,-58) rotate(-70.8)"><g transform="scale(0.821,0.081)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.45s;--dl:-1.05s"/></g></g>
+<g transform="rotate(167.3) translate(0,-58) rotate(-83.6)"><g transform="scale(-0.724,0.045)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.47s;--dl:-0.88s"/></g></g>
+<g transform="rotate(-167.0) translate(0,-58) rotate(83.5)"><g transform="scale(0.804,0.040)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.66s;--dl:-1.69s"/></g></g>
+<g transform="rotate(-141.3) translate(0,-58) rotate(70.6)"><g transform="scale(0.715,0.068)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.34s;--dl:-1.16s"/></g></g>
+<g transform="rotate(-115.6) translate(0,-58) rotate(57.8)"><g transform="scale(-0.582,0.109)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:0.96s;--dl:-1.46s"/></g></g>
+<g transform="rotate(-89.9) translate(0,-58) rotate(44.9)"><g transform="scale(-0.731,0.190)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:0.93s;--dl:-1.02s"/></g></g>
+<g transform="rotate(-64.1) translate(0,-58) rotate(32.1)"><g transform="scale(0.625,0.318)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.50s;--dl:-1.87s"/></g></g>
+<g transform="rotate(-38.4) translate(0,-58) rotate(19.2)"><g transform="scale(0.698,0.473)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:0.85s;--dl:-0.08s"/></g></g>
+<g transform="rotate(-12.7) translate(0,-58) rotate(6.4)"><g transform="scale(0.595,0.461)"><path class="pf-t" d="M-13,0 C-19,-22 -8,-40 -6,-58 C-4,-74 6,-80 8,-100 C16,-84 26,-66 20,-40 C17,-24 15,-10 13,0 Z" fill="url(#pfGradFront)" style="--t:1.32s;--dl:-0.20s"/></g></g>
+</g>
+</svg>
+            <span class="pf-embers"><b style="--x:34%;--dl:-0.2s;--dur:2.6s"></b>
+<b style="--x:46%;--dl:-1.4s;--dur:3.1s"></b>
+<b style="--x:58%;--dl:-0.9s;--dur:2.4s"></b>
+<b style="--x:68%;--dl:-2.0s;--dur:3.4s"></b>
+<b style="--x:26%;--dl:-2.4s;--dur:2.9s"></b>
+<b style="--x:52%;--dl:-1.8s;--dur:2.2s"></b></span>
+          </span>
+          <span class="pf-ring" aria-hidden="true"></span>
+          <span class="pf-disc">
+            <svg class="pf-icon" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="pfIcon" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#5ff0ff"/></linearGradient></defs><path d="M7.5 4.6v14.8c0 .8.9 1.3 1.6.8l11-7.4a1 1 0 0 0 0-1.6L9.1 3.8c-.7-.5-1.6 0-1.6.8z" fill="url(#pfIcon)"/></svg>
+            <span class="pf-label">PLAY</span>
+          </span>
+          <span class="pf-reflection" aria-hidden="true"></span>
         </button>
-        <div class="play-orb__reflection" aria-hidden="true"></div>
       </div>
 
       <nav class="pill-nav">

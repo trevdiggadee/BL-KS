@@ -1892,3 +1892,159 @@ html, body, #app { min-height:100%; background:#030611; }
 .hud-bar { padding: 5px 10px !important; }
 .hud-chip canvas { width: 30px !important; height: 30px !important; }
 .mode-hud { min-height: 16px !important; padding: 1px 10px !important; }
+
+
+/* ==========================================================================
+   PLAY BUTTON — circular glass disc wrapped in a neon flame
+   Cyan-white cores burn inside violet/magenta tongues tipped in amber, so the
+   fire matches the wordmark gradient. All motion is CSS transforms only.
+   ========================================================================== */
+.play-flame {
+  --pf: clamp(140px, min(44vw, 22svh), 210px);
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  z-index: 6;
+  width: var(--pf);
+  height: var(--pf);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform .16s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.play-flame:active { transform: translate(-50%, -50%) scale(.95); }
+.play-flame:focus-visible { outline: 3px solid #fff; outline-offset: 10px; }
+
+/* the fire sits behind the disc and is larger than the button */
+.pf-fire {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: calc(var(--pf) * 2.2857);
+  height: calc(var(--pf) * 2.2857);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: pf-breathe 2.6s ease-in-out infinite alternate;
+  transition: scale .16s ease;
+}
+.play-flame:active .pf-fire { scale: 1.1; }
+.pf-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 9px rgba(255, 80, 220, .8));
+}
+.pf-glow {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 70, 205, .5) 0 34%, rgba(70, 130, 255, .32) 54%, transparent 72%);
+  filter: blur(12px);
+  animation: pf-glow 2.2s ease-in-out infinite alternate;
+}
+.pf-t {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pf-flick var(--t, 1.2s) ease-in-out var(--dl, 0s) infinite alternate;
+}
+.pf-layer--mid .pf-t { animation-duration: calc(var(--t, 1.2s) * .9); }
+.pf-layer--front .pf-t { animation-duration: calc(var(--t, 1.2s) * .75); }
+@keyframes pf-flick {
+  0%   { transform: scale(1, .9) skewX(-4deg); }
+  50%  { transform: scale(.94, 1.12) skewX(3deg); }
+  100% { transform: scale(1.06, 1) skewX(-2deg); }
+}
+@keyframes pf-breathe { from { transform: translate(-50%, -50%) scale(.98); } to { transform: translate(-50%, -50%) scale(1.04); } }
+@keyframes pf-glow { from { opacity: .65; } to { opacity: 1; } }
+
+/* embers drifting up off the top of the flame */
+.pf-embers { position: absolute; inset: 0; }
+.pf-embers b {
+  position: absolute;
+  left: var(--x); top: 22%;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #ffd28a;
+  box-shadow: 0 0 8px 2px rgba(255, 150, 60, .9);
+  opacity: 0;
+  animation: pf-ember var(--dur, 2.8s) ease-out var(--dl, 0s) infinite;
+}
+@keyframes pf-ember {
+  0%   { opacity: 0; transform: translate(0, 12px) scale(1); }
+  15%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(8px, -46px) scale(.3); }
+}
+
+/* rotating neon rim around the disc */
+.pf-ring {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  background: conic-gradient(#39efff, #247aff, #9d4dff, #ff42d2, #ffbc38, #39efff);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  filter: drop-shadow(0 0 6px rgba(80, 220, 255, .9));
+  animation: pf-spin 7s linear infinite;
+  pointer-events: none;
+}
+@keyframes pf-spin { to { transform: rotate(360deg); } }
+
+.pf-disc {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--pf) * .04);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(130, 225, 255, .5), transparent 46%),
+    radial-gradient(circle at 50% 108%, rgba(255, 60, 200, .4), transparent 58%),
+    linear-gradient(180deg, #0d3f8f 0%, #0a1d5e 55%, #190a48 100%);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, .55),
+    inset 0 -16px 28px rgba(0, 0, 0, .5),
+    inset 0 0 0 2px rgba(150, 235, 255, .5),
+    0 0 26px rgba(0, 200, 255, .45);
+}
+.pf-icon {
+  width: calc(var(--pf) * .32);
+  height: calc(var(--pf) * .32);
+  margin-left: calc(var(--pf) * .03);          /* optical centring of the triangle */
+  filter: drop-shadow(0 0 8px rgba(100, 240, 255, .95));
+}
+.pf-label {
+  padding-left: .16em;                          /* balances the trailing letter-space */
+  font-size: calc(var(--pf) * .15);
+  font-weight: 1000;
+  line-height: 1;
+  letter-spacing: .16em;
+  text-shadow: 0 0 10px #8df5ff, 0 2px 0 #123b77;
+}
+
+/* soft flame reflection on the water below */
+.pf-reflection {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + var(--pf) * .05);
+  width: 80%;
+  height: calc(var(--pf) * .3);
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 90, 220, .65), rgba(70, 130, 255, .35) 45%, transparent 72%);
+  filter: blur(9px);
+  animation: pf-glow 2.2s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-fire, .pf-glow, .pf-t, .pf-embers b, .pf-ring, .pf-reflection { animation: none !important; }
+  .pf-embers { display: none; }
+}
