@@ -81,7 +81,7 @@
     });
     UI.el['btn-howto'].addEventListener('click', goToHowTo);
     UI.el['btn-stats'].addEventListener('click', goToStats);
-    document.getElementById('btn-settings-corner').addEventListener('click', goToSettings);
+    document.getElementById('btn-settings').addEventListener('click', goToSettings);
     document.getElementById('btn-achievements').addEventListener('click', () => {
       goToStats();
       requestAnimationFrame(() => {
@@ -92,8 +92,8 @@
     document.getElementById('btn-themes').addEventListener('click', () => {
       Audio_.sfx.uiTap();
       const panel = document.getElementById('customize-panel');
-      panel.open = true;
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      panel.open = !panel.open;
+      if (panel.open) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     document.querySelectorAll('[data-back]').forEach((btn) => {

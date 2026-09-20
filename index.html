@@ -34,16 +34,23 @@
         <div class="hud-corner__label">BEST</div>
         <div class="hud-corner__value" id="corner-highscore">0</div>
       </div>
-      <button class="hud-corner hud-corner--right" id="btn-settings-corner" aria-label="Settings">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V19.5a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H4.5a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1.1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H10a1.7 1.7 0 0 0 1-1.55V4.5a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V10a1.7 1.7 0 0 0 1.55 1h.19a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
-      </button>
+
 
       <div class="start-top">
         <div class="wordmark wordmark--hero wordmark--gradient">NEONBLOCK</div>
         <div class="start-subtitle"><i></i><span>TETRIS</span><i></i></div>
       </div>
 
-      <div class="hero-stage" aria-hidden="true">
+      <div class="hero-stage" aria-label="Neon blocks floating on reflective water">
+        <div class="menu-horizon" aria-hidden="true"><span class="moon-glow"></span><span class="mountain-range"></span></div>
+        <div class="water-plane" aria-hidden="true">
+          <div class="water-shimmer"></div>
+          <div class="water-block water-block--green"><i></i><i></i><i></i><i></i><b></b></div>
+          <div class="water-block water-block--gold"><i></i><i></i><i></i><i></i><b></b></div>
+          <div class="water-block water-block--violet"><i></i><i></i><i></i><i></i><b></b></div>
+          <div class="water-block water-block--blue"><i></i><i></i><i></i><i></i><b></b></div>
+          <div class="water-block water-block--red"><i></i><i></i><i></i><i></i><b></b></div>
+        </div>
         <div class="hero-piece hp--1"><div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div></div>
         <div class="hero-piece hp--2"><div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div></div>
         <div class="hero-piece hp--3"><div class="cube3d"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div></div>
@@ -57,9 +64,9 @@
           <div class="cube3d cube3d--b"><i class="cf cf--front"></i><i class="cf cf--back"></i><i class="cf cf--right"></i><i class="cf cf--left"></i><i class="cf cf--top"></i><i class="cf cf--bottom"></i></div>
         </div>
 
-        <button class="play-orb" id="btn-play" aria-label="Play">
-          <span class="play-orb__ring"></span>
-          <span class="play-orb__core"><span class="play-orb__icon">▶</span></span>
+        <button class="play-orb" id="btn-play" aria-label="Play now">
+          <span class="play-orb__ring" aria-hidden="true"></span>
+          <span class="play-orb__core"><span class="play-orb__icon">▶</span><span class="play-orb__label"><strong>PLAY NOW</strong><small>ENTER THE ARENA</small></span><span class="play-orb__arrow">›</span></span>
         </button>
         <div class="play-orb__reflection" aria-hidden="true"></div>
       </div>
@@ -71,21 +78,25 @@
         </button>
         <button class="pill-nav__item pn--achv" id="btn-achievements">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l2.9 6.26L21 9.27l-4.5 4.62L17.8 21 12 17.77 6.2 21l1.3-7.11L3 9.27l6.1-1.01L12 2z"/></svg>
-          <span>AWARDS</span>
+          <span>ACHIEVEMENTS</span>
         </button>
         <button class="pill-nav__item pn--themes" id="btn-themes">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21a9 9 0 1 1 0-18c4.5 0 8 3 8 6.5 0 2-1.5 3.5-3.5 3.5H15a1.5 1.5 0 0 0-1 2.6c.4.4.6.9.6 1.4 0 1.1-1 2-2.6 2z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor" stroke="none"/></svg>
-          <span>THEMES</span>
+          <span>CUSTOMIZE</span>
         </button>
         <button class="pill-nav__item pn--howto" id="btn-howto">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 1-1 1.9"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg>
           <span>GUIDE</span>
         </button>
+        <button class="pill-nav__item pn--settings" id="btn-settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.3v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2H15v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg>
+          <span>SETTINGS</span>
+        </button>
       </nav>
       <div class="pill-nav__indicator"></div>
 
       <details class="customize-panel" id="customize-panel">
-        <summary><span>APPEARANCE &amp; MODE</span><i class="chev">⌄</i></summary>
+        <summary><span>THEME + BLOCK STYLE + MODE</span><i class="chev">⌄</i></summary>
         <div class="quick-customize" aria-label="Visual customization">
           <div class="quick-customize__label">BLOCK STYLE</div>
           <div class="quick-customize__row" id="block-style-choices">
