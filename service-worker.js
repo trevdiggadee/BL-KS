@@ -1,16 +1,12 @@
 /**
  * service-worker.js
- * Cache-first offline support so the game keeps working after the first
- * load, even with no connection. Bump CACHE_NAME whenever a shipped file
- * changes — the old cache is deleted on activate, the new one is filled
- * fresh, and nothing here ever touches player save data (that lives in
- * localStorage, which service workers can't see or clear).
+ * Network-first for HTML/CSS/JS so updates appear immediately.
+ * Cache-first only for heavy static assets (images, mp3).
+ * Bump CACHE_NAME when you change this file.
  */
 
-const CACHE_NAME = 'bloks-cache-v14';
+const CACHE_NAME = 'bloks-cache-v15';
 
-// Paths are relative to this file's own location so the game still works
-// if it's served from a subfolder (e.g. GitHub Pages project sites).
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -39,12 +35,23 @@ const PRECACHE_URLS = [
   './icon-maskable-192.png',
   './icon-maskable-512.png',
   './apple-touch-icon.png',
-  // Level music tracks
   './Level-1.mp3',
   './Level-2.mp3',
   './Level-3.mp3',
   './Level-4.mp3',
   './Level-5.mp3',
+];
+
+// Files that should always try the network first (so edits show up right away)
+const NETWORK_FIRST = [
+  'index.html',
+  'style.css',
+  'main.js',
+  'game.js',
+  'audio.js',
+  'ui.js',
+  'settings.js',
+  'service-worker.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -65,9 +72,33 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+function isNetworkFirst(url) {
+  const path = new URL(url).pathname;
+  return NETWORK_FIRST.some((f) => path.endsWith('/' + f) || path.endsWith(f));
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const url = event.request.url;
+
+  // Network-first for HTML / CSS / key JS so changes appear immediately
+  if (isNetworkFirst(url)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((c) => c || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Cache-first for images, mp3, icons, etc.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;

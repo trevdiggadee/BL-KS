@@ -1,0 +1,26 @@
+HOW TO MAKE EVERY CHANGE SHOW UP IMMEDIATELY
+============================================
+
+1. Replace service-worker.js with the one in this zip
+   (network-first for HTML/CSS/JS — cache version v15)
+
+2. ONE-TIME: clear the old service worker
+   - Desktop Chrome: F12 → Application → Service Workers → Unregister
+   - Or just open the site in an Incognito / Private window once
+   - Mobile: clear site data for the domain, or use private browsing
+
+3. After that, every time you push a change to style.css / index.html / JS
+   a normal refresh should pick it up (network-first).
+
+OPTIONAL extra safety – cache-bust query on CSS
+-----------------------------------------------
+In index.html find:
+  <link rel="stylesheet" href="style.css">
+Change to:
+  <link rel="stylesheet" href="style.css?v=15">
+
+Bump the number (v=16, v=17…) whenever you change the CSS.
+This forces the browser to re-download even if the SW is sticky.
+
+Same trick works for scripts if needed:
+  <script src="main.js?v=15"></script>
