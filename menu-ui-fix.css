@@ -197,3 +197,9 @@
 .selector-popups {
   z-index: 50 !important;
 }
+
+/* Integrated bottom dock: configuration and navigation share one bottom zone. */
+.start-scroll { position: relative !important; justify-content: flex-end !important; }
+.menu-selector-row { position: relative !important; z-index: 8 !important; margin-top: auto !important; }
+.pill-nav, .pill-nav__indicator { position: relative !important; z-index: 8 !important; }
+.start-scroll > .menu-selector-row, .start-scroll > .pill-nav { flex: 0 0 auto !important; }

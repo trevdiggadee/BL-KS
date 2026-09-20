@@ -13,6 +13,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="menu-ui-fix.css">
 </head>
 <body>
 
@@ -41,11 +42,6 @@
         <div class="start-subtitle"><i></i><span>TETRIS</span><i></i></div>
       </div>
 
-      <div class="menu-selector-row" aria-label="Game setup">
-        <button class="selector-card selector-card--theme" id="open-theme" aria-haspopup="dialog" aria-controls="popup-theme"><span class="selector-card__icon">✦</span><span class="selector-card__name">THEME</span><small id="theme-current">NEON</small><b>EDIT ↗</b></button>
-        <button class="selector-card selector-card--blocks" id="open-blocks" aria-haspopup="dialog" aria-controls="popup-blocks"><span class="selector-card__icon">▦</span><span class="selector-card__name">BLOCK STYLE</span><small id="blocks-current">NEON</small><b>EDIT ↗</b></button>
-        <button class="selector-card selector-card--mode" id="open-mode" aria-haspopup="dialog" aria-controls="popup-mode"><span class="selector-card__icon">⚡</span><span class="selector-card__name">MODE</span><small id="mode-current">STANDARD</small><b>EDIT ↗</b></button>
-      </div>
 
       <div class="hero-stage" aria-label="Neon blocks floating on reflective water">
         <div class="menu-horizon" aria-hidden="true"><span class="moon-glow"></span><span class="mountain-range"></span></div>
@@ -168,6 +164,11 @@
         </button>
       </div>
 
+      <div class="menu-selector-row" aria-label="Game setup">
+        <button class="selector-card selector-card--theme" id="open-theme" aria-haspopup="dialog" aria-controls="popup-theme"><span class="selector-card__icon">✦</span><span class="selector-card__name">THEME</span><small id="theme-current">NEON</small><b>EDIT ↗</b></button>
+        <button class="selector-card selector-card--blocks" id="open-blocks" aria-haspopup="dialog" aria-controls="popup-blocks"><span class="selector-card__icon">▦</span><span class="selector-card__name">BLOCK STYLE</span><small id="blocks-current">NEON</small><b>EDIT ↗</b></button>
+        <button class="selector-card selector-card--mode" id="open-mode" aria-haspopup="dialog" aria-controls="popup-mode"><span class="selector-card__icon">⚡</span><span class="selector-card__name">MODE</span><small id="mode-current">STANDARD</small><b>EDIT ↗</b></button>
+      </div>
       <nav class="pill-nav">
         <button class="pill-nav__item pn--stats" id="btn-stats">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>

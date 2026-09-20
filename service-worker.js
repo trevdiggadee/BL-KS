@@ -5,7 +5,7 @@
  * Bump CACHE_NAME when you change this file.
  */
 
-const CACHE_NAME = 'bloks-cache-v15';
+const CACHE_NAME = 'bloks-cache-v16';
 
 const PRECACHE_URLS = [
   './',
@@ -52,6 +52,7 @@ const NETWORK_FIRST = [
   'ui.js',
   'settings.js',
   'service-worker.js',
+  'pieces.js', 'board.js', 'collision.js', 'scoring.js', 'particles.js', 'effects.js', 'achievements.js', 'modes.js', 'mindbender.js', 'input.js', 'stats.js',
 ];
 
 self.addEventListener('install', (event) => {
