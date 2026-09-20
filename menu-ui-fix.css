@@ -1,0 +1,199 @@
+/* ============================================================
+   MENU UI FIX  –  append to the END of style.css
+   - Background uses cover (no stretch) + mobile-safe positioning
+   - BLØKS title removed
+   - Theme / Block Style / Mode moved down and merged with bottom pill-nav
+   ============================================================ */
+
+/* ---- 1. Background: stop stretching, fit properly on mobile ---- */
+.start-screen {
+  background-image:
+    linear-gradient(180deg, rgba(2, 6, 24, .18) 0%, rgba(3, 7, 25, .06) 40%, rgba(1, 5, 20, .45) 100%),
+    url('./menu-background.png') !important;
+  background-size: cover !important;          /* was 100% 100% — that stretched it */
+  background-position: center top !important; /* keep the interesting part visible */
+  background-repeat: no-repeat !important;
+  background-attachment: scroll !important;
+  background-color: #020617 !important;
+}
+
+/* On very tall phones keep focus a bit higher; on short screens center */
+@media (max-height: 700px) {
+  .start-screen {
+    background-position: center 20% !important;
+  }
+}
+@media (min-aspect-ratio: 1/1) {
+  .start-screen {
+    background-position: center center !important;
+  }
+}
+
+/* ---- 2. Remove the big BLØKS title at the top ---- */
+.start-top {
+  display: none !important;
+}
+
+/* ---- 3. Layout: push selectors + nav to the bottom as one unit ---- */
+.start-scroll {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;   /* content sits at bottom */
+  min-height: 100% !important;
+  height: 100% !important;
+  padding-top: max(12px, env(safe-area-inset-top)) !important;
+  padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
+  gap: 10px !important;
+}
+
+/* Keep the high-score badge in the top-left */
+.hud-corner--left {
+  position: absolute !important;
+  top: max(12px, env(safe-area-inset-top)) !important;
+  left: 12px !important;
+  z-index: 5 !important;
+}
+
+/* Hero stage becomes pure visual backdrop – no fixed height fight */
+.hero-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+  opacity: 0.55 !important;          /* soft so art shows through */
+}
+.hero-stage .play-flame {
+  pointer-events: auto !important;   /* PLAY button still clickable */
+  position: absolute !important;
+  left: 50% !important;
+  top: 42% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 4 !important;
+}
+
+/* ---- 4. Unified bottom control panel ---- */
+.menu-bottom-panel {
+  position: relative !important;
+  z-index: 6 !important;
+  width: 100% !important;
+  max-width: 760px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 0 4px !important;
+}
+
+/* Theme / Block / Mode row – now sits above the pill-nav */
+.menu-selector-row {
+  order: 1 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.selector-card {
+  min-height: 64px !important;
+  padding: 8px 4px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(160deg, rgba(4, 19, 56, .92), rgba(5, 7, 32, .95)) !important;
+  backdrop-filter: blur(10px) saturate(1.3) !important;
+  border: 1px solid rgba(80, 190, 255, .45) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .35) !important;
+}
+
+.selector-card__icon {
+  font-size: 1.05rem !important;
+}
+.selector-card__name {
+  font-size: 0.58rem !important;
+  letter-spacing: 0.04em !important;
+}
+.selector-card small {
+  font-size: 0.62rem !important;
+  opacity: 0.85 !important;
+}
+.selector-card b {
+  font-size: 0.48rem !important;
+  opacity: 0.7 !important;
+}
+
+/* Pill nav becomes the second row of the same panel */
+.pill-nav {
+  order: 2 !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg, rgba(4, 19, 54, .96), rgba(1, 5, 23, .98)) !important;
+  border: 1.5px solid rgba(75, 194, 255, .55) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, .4) !important;
+  backdrop-filter: blur(12px) saturate(1.25) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.pill-nav__item {
+  min-height: 56px !important;
+  padding: 6px 2px !important;
+  border-right: 1px solid rgba(98, 194, 255, .28) !important;
+}
+.pill-nav__item:last-child {
+  border-right: 0 !important;
+}
+.pill-nav__item svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+.pill-nav__item span {
+  font-size: clamp(0.48rem, 1.8vw, 0.62rem) !important;
+}
+
+/* Hide the unused indicator */
+.pill-nav__indicator {
+  display: none !important;
+}
+
+/* ---- Mobile polish ---- */
+@media (max-width: 390px) {
+  .selector-card {
+    min-height: 58px !important;
+    padding: 6px 3px !important;
+    border-radius: 12px !important;
+  }
+  .selector-card__name {
+    font-size: 0.52rem !important;
+  }
+  .pill-nav__item {
+    min-height: 52px !important;
+  }
+  .hero-stage .play-flame {
+    top: 38% !important;
+  }
+}
+
+@media (max-height: 680px) {
+  .selector-card {
+    min-height: 52px !important;
+  }
+  .pill-nav__item {
+    min-height: 48px !important;
+  }
+  .hero-stage .play-flame {
+    top: 36% !important;
+    transform: translate(-50%, -50%) scale(0.88) !important;
+  }
+}
+
+/* Make sure the popups still appear above everything */
+.selector-popups {
+  z-index: 50 !important;
+}
