@@ -1,7 +1,7 @@
 {
-  "name": "NEONBLOCK",
-  "short_name": "NEONBLOCK",
-  "description": "A premium neon-arcade falling-block puzzle game.",
+  "name": "BLØKS",
+  "short_name": "BLØKS",
+  "description": "BLØKS — a premium neon-arcade falling-block puzzle game.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

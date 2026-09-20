@@ -1,4 +1,4 @@
-# NEONBLOCK
+# BLØKS
 
 A premium, neon-arcade falling-block puzzle game. Fully client-side,
 offline-capable, installable as a PWA, no accounts and no backend.
