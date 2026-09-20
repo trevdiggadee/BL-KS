@@ -5,7 +5,7 @@
  * Bump CACHE_NAME when you change this file.
  */
 
-const CACHE_NAME = 'bloks-cache-v16';
+const CACHE_NAME = 'bloks-cache-v17';
 
 const PRECACHE_URLS = [
   './',

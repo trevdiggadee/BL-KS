@@ -2231,3 +2231,7 @@ html, body, #app { min-height:100%; background:#030611; }
 #board-frame { isolation: isolate; }
 canvas#board-canvas { z-index: 1; background: transparent; }
 canvas#fx-canvas { z-index: 2; background: transparent; pointer-events: none; }
+
+/* Make the transparent full-hero Play hit target receive taps above art layers. */
+.start-screen .hero-stage .menu-bg-play { z-index: 9999 !important; pointer-events: auto !important; touch-action: manipulation; }
+.start-screen .hero-stage > :not(.menu-bg-play) { pointer-events: none; }

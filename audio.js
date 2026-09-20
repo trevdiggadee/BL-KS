@@ -82,6 +82,7 @@ const Audio_ = (() => {
 
     stopCurrentMusic();
     currentMusic = player;
+    player.muted = false;
     player.volume = musicVolume;
     player.currentTime = 0;
     const p = player.play();
@@ -115,6 +116,7 @@ const Audio_ = (() => {
   function stopForBackground() {
     Object.values(musicPlayers).forEach((player) => {
       player.pause();
+      player.muted = true;
       try { player.currentTime = 0; } catch (_) {}
     });
     currentMusic = null;
@@ -208,6 +210,15 @@ const Audio_ = (() => {
 
   // Preload as soon as the module loads
   preloadMusic();
+
+  // Lifecycle guards are installed in the audio module itself so they still
+  // run even if the rest of app startup encounters an error.
+  const stopIfHidden = () => {
+    if (document.visibilityState === 'hidden' || document.hidden) stopForBackground();
+  };
+  document.addEventListener('visibilitychange', stopIfHidden, true);
+  window.addEventListener('pagehide', stopForBackground, true);
+  window.addEventListener('freeze', stopForBackground, true);
 
   return {
     resume,

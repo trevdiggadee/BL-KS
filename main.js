@@ -81,7 +81,10 @@
   }
 
   function bindNav() {
-    UI.el['btn-play'].addEventListener('click', () => {
+    // Bind the hero play hit area directly, independent of cached elements.
+    const playControl = document.getElementById('btn-play');
+    if (playControl) playControl.addEventListener('click', (event) => {
+      event.preventDefault();
       Audio_.sfx.uiTap();
       Game.startCountdown(loadVisuals().gameMode || 'standard');
     });
@@ -143,14 +146,15 @@
    *  background tick never eats a life or racks up a silent game over. */
   function bindVisibility() {
     const pauseWhenLeaving = () => {
-      if (document.hidden || !document.hasFocus()) {
+      if (document.visibilityState === 'hidden' || document.hidden) {
         if (Game.state === 'playing') Game.togglePause();
         Audio_.stopForBackground();
       }
     };
-    document.addEventListener('visibilitychange', pauseWhenLeaving);
-    window.addEventListener('blur', pauseWhenLeaving);
-    window.addEventListener('pagehide', () => Audio_.stopForBackground());
+    document.addEventListener('visibilitychange', pauseWhenLeaving, true);
+    window.addEventListener('pagehide', () => Audio_.stopForBackground(), true);
+    window.addEventListener('freeze', () => Audio_.stopForBackground(), true);
+    window.addEventListener('blur', pauseWhenLeaving, true);
   }
 
   function registerServiceWorker() {
