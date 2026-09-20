@@ -1,10 +1,9 @@
 /**
  * audio.js
- * Single responsibility: sound. Everything is synthesized at runtime with
- * the Web Audio API (oscillators/noise) rather than loaded from files, per
- * the project rule that audio assets shouldn't depend on external files
- * that could disappear. Swap in real samples later by replacing the play*
- * function bodies — the public API stays the same.
+ * Sound effects are synthesized at runtime with the Web Audio API
+ * (oscillators/noise). Background music, however, is loaded from real
+ * audio files — one track per level (Level-1.mp3 … Level-5.mp3), sitting
+ * alongside index.html. Level 6 and above keep looping the Level-5 track.
  */
 
 const Audio_ = (() => {
@@ -41,7 +40,7 @@ const Audio_ = (() => {
 
   function setMusicOn(on) { musicOn = on; if (!on) stopMusic(); }
   function setSfxOn(on) { sfxOn = on; }
-  function setMusicVolume(v) { musicVolume = v; if (musicGain) musicGain.gain.value = v; }
+  function setMusicVolume(v) { musicVolume = v; if (musicGain) musicGain.gain.value = v; if (musicEl) musicEl.volume = v; }
   function setSfxVolume(v) { sfxVolume = v; if (sfxGain) sfxGain.gain.value = v; }
 
   function tone({ freq, duration = 0.12, type = 'square', gain = 0.22, slideTo = null, delay = 0 }) {
@@ -113,53 +112,56 @@ const Audio_ = (() => {
     highScore: () => [523, 659, 784, 1047, 1318].forEach((f, i) => tone({ freq: f, duration: 0.2, type: 'triangle', gain: 0.2, delay: i * 0.08 })),
   };
 
-  // --- Minimal generative background music: a slow arpeggio loop over a
-  // dark, moody chord progression, synthesized step by step. ---
-  const PROGRESSION = [
-    [130.81, 155.56, 196.00], // Cm
-    [116.54, 155.56, 174.61], // Ab
-    [103.83, 130.81, 155.56], // Gm-ish
-    [174.61, 220.00, 261.63], // F
-  ];
+  // --- File-based background music, one track per level. ---
+  const LEVEL_TRACKS = ['Level-1.mp3', 'Level-2.mp3', 'Level-3.mp3', 'Level-4.mp3', 'Level-5.mp3'];
+  let musicEl = null;
+  let currentLevel = 1;
 
-  function scheduleMusicStep() {
-    if (!musicOn || !ctx) return;
-    const chord = PROGRESSION[Math.floor(musicStep / 4) % PROGRESSION.length];
-    const note = chord[musicStep % chord.length];
-    const t0 = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = note * 2;
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.linearRampToValueAtTime(0.12, t0 + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
-    osc.connect(g);
-    g.connect(musicGain);
-    osc.start(t0);
-    osc.stop(t0 + 0.55);
-    musicStep += 1;
-    musicTimer = setTimeout(scheduleMusicStep, 420);
+  function trackForLevel(level) {
+    const idx = Math.min(Math.max(Math.round(level) || 1, 1), LEVEL_TRACKS.length) - 1;
+    return LEVEL_TRACKS[idx];
   }
 
-  function startMusic() {
+  function ensureMusicEl() {
+    if (musicEl) return musicEl;
+    musicEl = new window.Audio();
+    musicEl.loop = true;
+    musicEl.preload = 'auto';
+    musicEl.volume = musicVolume;
+    return musicEl;
+  }
+
+  function playTrack(src) {
+    const el = ensureMusicEl();
+    if (el.dataset.track === src) {
+      if (el.paused) el.play().catch(() => {});
+      return;
+    }
+    el.dataset.track = src;
+    el.src = src;
+    el.currentTime = 0;
+    el.play().catch(() => {});
+  }
+
+  function startMusic(level = currentLevel) {
     if (!musicOn) return;
-    ensureContext();
-    resume();
-    if (musicTimer) return;
-    musicStep = 0;
-    scheduleMusicStep();
+    currentLevel = level;
+    playTrack(trackForLevel(level));
   }
 
   function stopMusic() {
-    if (musicTimer) {
-      clearTimeout(musicTimer);
-      musicTimer = null;
+    if (musicEl) musicEl.pause();
+  }
+
+  function setLevel(level) {
+    currentLevel = level;
+    if (musicOn && musicEl && !musicEl.paused) {
+      playTrack(trackForLevel(level));
     }
   }
 
   return {
     resume, setMusicOn, setSfxOn, setMusicVolume, setSfxVolume,
-    startMusic, stopMusic, sfx: SFX,
+    startMusic, stopMusic, setLevel, sfx: SFX,
   };
 })();

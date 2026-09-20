@@ -41,12 +41,6 @@
         <div class="start-subtitle"><i></i><span>TETRIS</span><i></i></div>
       </div>
 
-      <div class="menu-selector-row" aria-label="Game setup">
-        <button class="selector-card selector-card--theme" id="open-theme" aria-haspopup="dialog" aria-controls="popup-theme"><span class="selector-card__icon">✦</span><span class="selector-card__name">THEME</span><small id="theme-current">NEON</small><b>EDIT ↗</b></button>
-        <button class="selector-card selector-card--blocks" id="open-blocks" aria-haspopup="dialog" aria-controls="popup-blocks"><span class="selector-card__icon">▦</span><span class="selector-card__name">BLOCK STYLE</span><small id="blocks-current">NEON</small><b>EDIT ↗</b></button>
-        <button class="selector-card selector-card--mode" id="open-mode" aria-haspopup="dialog" aria-controls="popup-mode"><span class="selector-card__icon">⚡</span><span class="selector-card__name">MODE</span><small id="mode-current">STANDARD</small><b>EDIT ↗</b></button>
-      </div>
-
       <div class="hero-stage" aria-label="Neon blocks floating on reflective water">
         <div class="menu-horizon" aria-hidden="true"><span class="moon-glow"></span><span class="mountain-range"></span></div>
         <div class="water-plane" aria-hidden="true">
@@ -168,21 +162,35 @@
         </button>
       </div>
 
-      <nav class="pill-nav">
+      <nav class="pill-nav" aria-label="Game setup and menu">
+        <button class="pill-nav__item pn--theme" id="open-theme" aria-haspopup="dialog" aria-controls="popup-theme">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z"/></svg>
+          <span>THEME</span>
+          <small id="theme-current">NEON</small>
+        </button>
+        <button class="pill-nav__item pn--blocks" id="open-blocks" aria-haspopup="dialog" aria-controls="popup-blocks">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+          <span>BLOCK STYLE</span>
+          <small id="blocks-current">NEON</small>
+        </button>
+        <button class="pill-nav__item pn--mode" id="open-mode" aria-haspopup="dialog" aria-controls="popup-mode">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>
+          <span>MODE</span>
+          <small id="mode-current">STANDARD</small>
+        </button>
         <button class="pill-nav__item pn--stats" id="btn-stats">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>
           <span>STATS</span>
         </button>
         <button class="pill-nav__item pn--achv" id="btn-achievements">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8v4a4 4 0 0 1-8 0V3Z"/><path d="M8 5H4v2a4 4 0 0 0 4 4M16 5h4v2a4 4 0 0 1-4 4M12 11v5m-4 5h8m-7-5h6l1 5H8l1-5Z"/></svg>
-          <span>ACHIEVEMENTS</span>
+          <span>TROPHIES</span>
         </button>
         <button class="pill-nav__item pn--settings" id="btn-settings" aria-label="Settings">
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.3v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2H15v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg>
           <span>SETTINGS</span>
         </button>
       </nav>
-      <div class="pill-nav__indicator"></div>
 
       <div class="selector-popups" id="selector-popups">
         <div class="selector-backdrop" data-popup-close="all"></div>

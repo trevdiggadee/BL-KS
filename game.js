@@ -263,6 +263,7 @@ const Game = (() => {
     const newLevel = Scoring.levelForLines(lines);
     const leveledUp = newLevel > level;
     level = newLevel;
+    if (leveledUp) Audio_.setLevel(level);
 
     saveData.stats.totalLines += fullRows.length;
     if (result.isTetris) saveData.stats.totalTetrises += 1;
@@ -451,7 +452,7 @@ const Game = (() => {
     } else if (state === 'paused') {
       state = 'playing';
       UI.setOverlay('overlay-pause', false);
-      if (saveData.settings.musicOn) Audio_.startMusic();
+      if (saveData.settings.musicOn) Audio_.startMusic(level);
       sessionStartTs = performance.now();
       lastTs = performance.now();
     }
@@ -632,7 +633,7 @@ const Game = (() => {
     state = 'playing';
     sessionStartTs = performance.now();
     lastTs = 0;
-    if (saveData.settings.musicOn) Audio_.startMusic();
+    if (saveData.settings.musicOn) Audio_.startMusic(level);
     rafId = requestAnimationFrame(loop);
   }
 
