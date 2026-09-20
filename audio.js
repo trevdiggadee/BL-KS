@@ -1,22 +1,28 @@
 /**
  * audio.js
- * Single responsibility: sound. Everything is synthesized at runtime with
- * the Web Audio API (oscillators/noise) rather than loaded from files, per
- * the project rule that audio assets shouldn't depend on external files
- * that could disappear. Swap in real samples later by replacing the play*
- * function bodies — the public API stays the same.
+ * SFX are still synthesized with Web Audio.
+ * Background music now uses the Level-1.mp3 … Level-5.mp3 files.
+ * Level 1 → Level-1.mp3, Level 2 → Level-2.mp3, … Level ≥5 → Level-5.mp3
  */
 
 const Audio_ = (() => {
   let ctx = null;
-  let musicGain, sfxGain, masterGain;
+  let sfxGain, masterGain;
   let musicOn = true, sfxOn = true;
   let musicVolume = 0.55, sfxVolume = 0.8;
-  let musicTimer = null;
-  let musicStep = 0;
-  let started = false;
-  let levelAudio = null;
-  let currentLevelTrack = 0;
+
+  // --- Level music (HTMLAudioElement for simple looping + volume) ---
+  const LEVEL_TRACKS = {
+    1: 'Level-1.mp3',
+    2: 'Level-2.mp3',
+    3: 'Level-3.mp3',
+    4: 'Level-4.mp3',
+    5: 'Level-5.mp3',
+  };
+
+  const musicPlayers = {};   // level → HTMLAudioElement
+  let currentLevel = 1;
+  let currentMusic = null;
 
   function ensureContext() {
     if (ctx) return;
@@ -26,10 +32,6 @@ const Audio_ = (() => {
     masterGain = ctx.createGain();
     masterGain.gain.value = 1;
     masterGain.connect(ctx.destination);
-
-    musicGain = ctx.createGain();
-    musicGain.gain.value = musicVolume;
-    musicGain.connect(masterGain);
 
     sfxGain = ctx.createGain();
     sfxGain.gain.value = sfxVolume;
@@ -41,54 +43,88 @@ const Audio_ = (() => {
     if (ctx && ctx.state === 'suspended') ctx.resume();
   }
 
-  function setMusicOn(on) { musicOn = on; if (!on) stopMusic(); }
-  function setSfxOn(on) { sfxOn = on; }
-  function setMusicVolume(v) {
-    musicVolume = v;
-    if (musicGain) musicGain.gain.value = v;
-    if (levelAudio) levelAudio.volume = Math.max(0, Math.min(1, v));
+  // ---------- Music helpers ----------
+  function createPlayer(src) {
+    const a = new Audio(src);
+    a.loop = true;
+    a.preload = 'auto';
+    a.volume = musicVolume;
+    return a;
   }
 
-  // Level music: Level-1.mp3, Level-2.mp3, Level-3.mp3, etc.
-  // Files live beside the game files in the GitHub Pages repository.
-  function ensureLevelAudio() {
-    if (levelAudio) return levelAudio;
-    levelAudio = new Audio();
-    levelAudio.preload = 'auto';
-    levelAudio.loop = true;
-    levelAudio.volume = Math.max(0, Math.min(1, musicVolume));
-    levelAudio.setAttribute('playsinline', '');
-    levelAudio.addEventListener('error', () => {
-      // A missing level track is intentionally silent; the game continues.
-      if (levelAudio) levelAudio.removeAttribute('src');
-    });
-    return levelAudio;
+  function preloadMusic() {
+    for (const [lvl, src] of Object.entries(LEVEL_TRACKS)) {
+      if (!musicPlayers[lvl]) {
+        musicPlayers[lvl] = createPlayer(src);
+      }
+    }
   }
 
-  function stopLevelMusic() {
-    if (!levelAudio) return;
-    levelAudio.pause();
-    try { levelAudio.currentTime = 0; } catch (_) {}
-    levelAudio.removeAttribute('src');
-    levelAudio.load();
-    currentLevelTrack = 0;
+  function stopCurrentMusic() {
+    if (currentMusic) {
+      currentMusic.pause();
+      currentMusic.currentTime = 0;
+      currentMusic = null;
+    }
   }
 
   function playLevelMusic(level) {
     if (!musicOn) return;
-    const n = Math.max(1, Math.floor(Number(level) || 1));
-    if (currentLevelTrack === n && levelAudio && !levelAudio.paused) return;
 
-    const audio = ensureLevelAudio();
-    const base = new URL('./', window.location.href);
-    audio.src = new URL(`Level-${n}.mp3`, base).href;
-    audio.volume = Math.max(0, Math.min(1, musicVolume));
-    currentLevelTrack = n;
-    const promise = audio.play();
-    if (promise && typeof promise.catch === 'function') promise.catch(() => {});
+    const clamped = Math.max(1, Math.min(5, level | 0));
+    currentLevel = clamped;
+
+    const player = musicPlayers[clamped];
+    if (!player) return;
+
+    // Already playing the right track
+    if (currentMusic === player && !player.paused) return;
+
+    stopCurrentMusic();
+    currentMusic = player;
+    player.volume = musicVolume;
+    player.currentTime = 0;
+    const p = player.play();
+    if (p && p.catch) p.catch(() => {}); // ignore autoplay blocks
   }
 
-  function setSfxVolume(v) { sfxVolume = v; if (sfxGain) sfxGain.gain.value = v; }
+  function setMusicOn(on) {
+    musicOn = on;
+    if (!on) stopCurrentMusic();
+    else if (currentLevel) playLevelMusic(currentLevel);
+  }
+
+  function setMusicVolume(v) {
+    musicVolume = v;
+    Object.values(musicPlayers).forEach(p => { p.volume = v; });
+    if (currentMusic) currentMusic.volume = v;
+  }
+
+  function startMusic(level = currentLevel) {
+    preloadMusic();
+    resume();
+    playLevelMusic(level || 1);
+  }
+
+  function stopMusic() {
+    stopCurrentMusic();
+  }
+
+  /** Call this whenever the game level changes */
+  function setMusicLevel(level) {
+    if (!musicOn) {
+      currentLevel = Math.max(1, Math.min(5, level | 0));
+      return;
+    }
+    playLevelMusic(level);
+  }
+
+  // ---------- SFX (unchanged synthesis) ----------
+  function setSfxOn(on) { sfxOn = on; }
+  function setSfxVolume(v) {
+    sfxVolume = v;
+    if (sfxGain) sfxGain.gain.value = v;
+  }
 
   function tone({ freq, duration = 0.12, type = 'square', gain = 0.22, slideTo = null, delay = 0 }) {
     if (!sfxOn) return;
@@ -159,52 +195,13 @@ const Audio_ = (() => {
     highScore: () => [523, 659, 784, 1047, 1318].forEach((f, i) => tone({ freq: f, duration: 0.2, type: 'triangle', gain: 0.2, delay: i * 0.08 })),
   };
 
-  // --- Minimal generative background music: a slow arpeggio loop over a
-  // dark, moody chord progression, synthesized step by step. ---
-  const PROGRESSION = [
-    [130.81, 155.56, 196.00], // Cm
-    [116.54, 155.56, 174.61], // Ab
-    [103.83, 130.81, 155.56], // Gm-ish
-    [174.61, 220.00, 261.63], // F
-  ];
-
-  function scheduleMusicStep() {
-    if (!musicOn || !ctx) return;
-    const chord = PROGRESSION[Math.floor(musicStep / 4) % PROGRESSION.length];
-    const note = chord[musicStep % chord.length];
-    const t0 = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = note * 2;
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.linearRampToValueAtTime(0.12, t0 + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
-    osc.connect(g);
-    g.connect(musicGain);
-    osc.start(t0);
-    osc.stop(t0 + 0.55);
-    musicStep += 1;
-    musicTimer = setTimeout(scheduleMusicStep, 420);
-  }
-
-  function startMusic() {
-    if (!musicOn) return;
-    ensureContext();
-    resume();
-    // Level tracks are started explicitly by Game when a level begins.
-  }
-
-  function stopMusic() {
-    if (musicTimer) {
-      clearTimeout(musicTimer);
-      musicTimer = null;
-    }
-    stopLevelMusic();
-  }
+  // Preload as soon as the module loads
+  preloadMusic();
 
   return {
-    resume, setMusicOn, setSfxOn, setMusicVolume, setSfxVolume,
-    startMusic, stopMusic, playLevelMusic, sfx: SFX,
+    resume,
+    setMusicOn, setSfxOn, setMusicVolume, setSfxVolume,
+    startMusic, stopMusic, setMusicLevel,
+    sfx: SFX,
   };
 })();

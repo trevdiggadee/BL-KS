@@ -7,7 +7,7 @@
  * localStorage, which service workers can't see or clear).
  */
 
-const CACHE_NAME = 'bloks-cache-v11';
+const CACHE_NAME = 'bloks-cache-v12';
 
 // Paths are relative to this file's own location so the game still works
 // if it's served from a subfolder (e.g. GitHub Pages project sites).
@@ -39,6 +39,12 @@ const PRECACHE_URLS = [
   './icon-maskable-192.png',
   './icon-maskable-512.png',
   './apple-touch-icon.png',
+  // Level music tracks
+  './Level-1.mp3',
+  './Level-2.mp3',
+  './Level-3.mp3',
+  './Level-4.mp3',
+  './Level-5.mp3',
 ];
 
 self.addEventListener('install', (event) => {
