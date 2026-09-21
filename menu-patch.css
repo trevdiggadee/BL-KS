@@ -1,45 +1,82 @@
-/* ==========================================================================
-   MENU TWEAKS — drop-in override layer (load AFTER style.css)
-   --------------------------------------------------------------------------
-   1. Hide the top-left BEST/trophy corner (TROPHIES lives in the bottom bar)
-   2. hero-stage IS the play button — wrapped in a pulsing neon glow
-   3. Floating single cubes become real tetromino pieces (see menu-patch.js)
-   4. Water: more transparent (MenuBG.JPG shows through) + calmer,
-      more realistic reflection
-   ========================================================================== */
+/* BLØKS menu final visual layer. Loaded after style.css. */
 
-/* 1 ── top trophy corner ------------------------------------------------- */
-.hud-corner--left { display: none !important; }
-
-/* 2 ── hero stage = play button, neon glow -------------------------------- */
+/* The actual supplied artwork is the play surface. */
+.start-screen {
+  background: #020617 !important;
+}
 .hero-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  margin: 0 !important;
+  overflow: hidden !important;
   cursor: pointer !important;
+  pointer-events: auto !important;
+  z-index: 1 !important;
+  background-image: url('./MenuBG.JPG') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  border: 1px solid rgba(101,232,255,.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(130,238,255,.18),
+    0 0 24px rgba(0,205,255,.38),
+    0 0 70px rgba(255,60,210,.20),
+    inset 0 0 40px rgba(0,0,0,.12) !important;
+  animation: menu-stage-pulse 3.4s ease-in-out infinite alternate !important;
   -webkit-tap-highlight-color: transparent;
-  animation: menu-stage-glow 3.2s ease-in-out infinite alternate !important;
 }
-@keyframes menu-stage-glow {
-  from {
-    box-shadow:
-      0 0 0 1px rgba(90, 220, 255, .30),
-      0 0 22px rgba(0, 200, 255, .26),
-      0 0 55px rgba(255, 60, 210, .14),
-      inset 0 1px 0 rgba(255, 255, 255, .18);
-  }
-  to {
-    box-shadow:
-      0 0 0 1px rgba(130, 238, 255, .75),
-      0 0 36px rgba(0, 212, 255, .52),
-      0 0 95px rgba(255, 60, 210, .32),
-      inset 0 1px 0 rgba(255, 255, 255, .22);
-  }
+.hero-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(2,5,20,.03) 0%, rgba(3,7,25,.02) 48%, rgba(0,4,18,.16) 100%),
+    radial-gradient(ellipse at 50% 42%, transparent 38%, rgba(0,0,0,.18) 100%);
 }
-@media (prefers-reduced-motion: reduce) {
-  .hero-stage { animation: none !important; }
+.hero-stage::after {
+  content: "TAP TO PLAY";
+  position: absolute;
+  left: 50%;
+  top: 43%;
+  transform: translate(-50%,-50%);
+  z-index: 5;
+  padding: 10px 18px;
+  border-radius: 999px;
+  color: rgba(235,253,255,.96);
+  font: 900 clamp(.72rem,2.8vw,1rem)/1 sans-serif;
+  letter-spacing: .24em;
+  text-shadow: 0 0 10px #65f5ff, 0 0 26px rgba(255,65,214,.8);
+  background: rgba(3,10,30,.28);
+  border: 1px solid rgba(140,242,255,.55);
+  box-shadow: 0 0 24px rgba(0,220,255,.24), inset 0 0 18px rgba(0,220,255,.08);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+@keyframes menu-stage-pulse {
+  from { box-shadow: 0 0 0 1px rgba(130,238,255,.16), 0 0 22px rgba(0,205,255,.30), 0 0 58px rgba(255,60,210,.14), inset 0 0 40px rgba(0,0,0,.12); }
+  to   { box-shadow: 0 0 0 2px rgba(150,245,255,.42), 0 0 36px rgba(0,215,255,.52), 0 0 96px rgba(255,60,210,.27), inset 0 0 44px rgba(0,0,0,.10); }
 }
 
-/* 3 ── tetromino piece sizing/tilt ---------------------------------------- */
-/* (cubes themselves are rebuilt by menu-patch.js; the spin/float
-   animations from style.css are reused unchanged) */
+/* Keep the bottom controls above the clickable art. */
+.menu-selector-row,
+.pill-nav,
+.hud-corner,
+.selector-popups,
+.menu-bottom-panel { z-index: 8 !important; }
+.menu-selector-row { pointer-events: auto !important; }
+.pill-nav { pointer-events: auto !important; }
+
+/* Remove the duplicate top trophy. */
+.hud-corner--left { display: none !important; }
+.start-top { display: none !important; }
+
+/* Real tetrominoes built by menu-patch.js. */
+.hero-piece { z-index: 3 !important; }
 .hp--1 { --cube-size: 22px; transform: rotate(-8deg); }
 .hp--2 { --cube-size: 20px; transform: rotate(6deg); }
 .hp--3 { --cube-size: 21px; transform: rotate(-5deg); }
@@ -47,20 +84,34 @@
 .hp--5 { --cube-size: 20px; transform: rotate(7deg); }
 .hp--6 { --cube-size: 19px; transform: rotate(-6deg); }
 
-/* 4 ── water: transparent + realistic ------------------------------------- */
+/* More convincing, transparent water: artwork remains visible underneath. */
 .water-plane {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 38% !important;
+  opacity: .52 !important;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 219, 162, .26), transparent 46%),
-    radial-gradient(ellipse at 30% 30%, rgba(0, 190, 255, .10), transparent 55%),
-    linear-gradient(180deg, rgba(18, 90, 158, .38) 0%, rgba(6, 32, 72, .46) 42%, rgba(2, 8, 24, .66) 100%) !important;
-  border-top: 1px solid rgba(140, 232, 255, .5) !important;
-  box-shadow:
-    0 -6px 22px rgba(51, 151, 255, .10),
-    inset 0 10px 22px rgba(97, 227, 255, .09) !important;
-  opacity: .92 !important;
+    linear-gradient(180deg, rgba(19,108,164,.08) 0%, rgba(8,63,106,.20) 22%, rgba(2,19,48,.42) 100%),
+    radial-gradient(ellipse at 50% 0%, rgba(255,224,172,.15), transparent 48%) !important;
+  border-top: 1px solid rgba(155,237,255,.20) !important;
+  box-shadow: inset 0 12px 28px rgba(120,225,255,.06) !important;
+  mix-blend-mode: screen;
 }
-/* soften the fake scanline bands so the backdrop art reads through */
-.water-plane::before { opacity: .38 !important; }
-/* warm horizon/moon column reflection — dimmer + blurrier reads as real */
-.water-plane::after { opacity: .45 !important; filter: blur(18px) !important; }
-.water-shimmer { opacity: .35 !important; }
+.water-plane::before {
+  opacity: .16 !important;
+  background: repeating-linear-gradient(180deg, transparent 0 12px, rgba(130,225,255,.10) 13px, transparent 15px 27px) !important;
+}
+.water-plane::after {
+  opacity: .22 !important;
+  filter: blur(22px) !important;
+}
+.water-shimmer { opacity: .22 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-stage { animation: none !important; }
+}
+@media (max-height: 700px) {
+  .hero-stage::after { top: 40%; }
+}
