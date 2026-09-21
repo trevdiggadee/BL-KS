@@ -1,0 +1,66 @@
+/* ==========================================================================
+   MENU TWEAKS — drop-in override layer (load AFTER style.css)
+   --------------------------------------------------------------------------
+   1. Hide the top-left BEST/trophy corner (TROPHIES lives in the bottom bar)
+   2. hero-stage IS the play button — wrapped in a pulsing neon glow
+   3. Floating single cubes become real tetromino pieces (see menu-patch.js)
+   4. Water: more transparent (MenuBG.JPG shows through) + calmer,
+      more realistic reflection
+   ========================================================================== */
+
+/* 1 ── top trophy corner ------------------------------------------------- */
+.hud-corner--left { display: none !important; }
+
+/* 2 ── hero stage = play button, neon glow -------------------------------- */
+.hero-stage {
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent;
+  animation: menu-stage-glow 3.2s ease-in-out infinite alternate !important;
+}
+@keyframes menu-stage-glow {
+  from {
+    box-shadow:
+      0 0 0 1px rgba(90, 220, 255, .30),
+      0 0 22px rgba(0, 200, 255, .26),
+      0 0 55px rgba(255, 60, 210, .14),
+      inset 0 1px 0 rgba(255, 255, 255, .18);
+  }
+  to {
+    box-shadow:
+      0 0 0 1px rgba(130, 238, 255, .75),
+      0 0 36px rgba(0, 212, 255, .52),
+      0 0 95px rgba(255, 60, 210, .32),
+      inset 0 1px 0 rgba(255, 255, 255, .22);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-stage { animation: none !important; }
+}
+
+/* 3 ── tetromino piece sizing/tilt ---------------------------------------- */
+/* (cubes themselves are rebuilt by menu-patch.js; the spin/float
+   animations from style.css are reused unchanged) */
+.hp--1 { --cube-size: 22px; transform: rotate(-8deg); }
+.hp--2 { --cube-size: 20px; transform: rotate(6deg); }
+.hp--3 { --cube-size: 21px; transform: rotate(-5deg); }
+.hp--4 { --cube-size: 19px; transform: translateX(-70%) rotate(9deg); }
+.hp--5 { --cube-size: 20px; transform: rotate(7deg); }
+.hp--6 { --cube-size: 19px; transform: rotate(-6deg); }
+
+/* 4 ── water: transparent + realistic ------------------------------------- */
+.water-plane {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 219, 162, .26), transparent 46%),
+    radial-gradient(ellipse at 30% 30%, rgba(0, 190, 255, .10), transparent 55%),
+    linear-gradient(180deg, rgba(18, 90, 158, .38) 0%, rgba(6, 32, 72, .46) 42%, rgba(2, 8, 24, .66) 100%) !important;
+  border-top: 1px solid rgba(140, 232, 255, .5) !important;
+  box-shadow:
+    0 -6px 22px rgba(51, 151, 255, .10),
+    inset 0 10px 22px rgba(97, 227, 255, .09) !important;
+  opacity: .92 !important;
+}
+/* soften the fake scanline bands so the backdrop art reads through */
+.water-plane::before { opacity: .38 !important; }
+/* warm horizon/moon column reflection — dimmer + blurrier reads as real */
+.water-plane::after { opacity: .45 !important; filter: blur(18px) !important; }
+.water-shimmer { opacity: .35 !important; }
