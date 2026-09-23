@@ -1203,9 +1203,48 @@ html[data-block-style="voxel"] .board-frame { filter: drop-shadow(0 8px 10px rgb
 }
 
 body.mode-inferno .ambient-canvas { filter: saturate(1.35) contrast(1.08); }
-body.mode-gravity .board-frame { animation: gravity-pulse 2.8s ease-in-out infinite; }
-body.mode-boss .board-frame { box-shadow: 0 0 0 1px rgba(255,92,92,.12), 0 0 34px rgba(255,70,70,.12); }
-@keyframes gravity-pulse { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-1px); } }
+body.mode-bomb .board-frame { animation: bomb-pulse 1.8s ease-in-out infinite; }
+body.mode-stackattack .board-frame { box-shadow: 0 0 0 1px rgba(255,92,92,.12), 0 0 34px rgba(255,70,70,.12); }
+@keyframes bomb-pulse { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-1px) scale(1.003); } }
+
+
+/* ==========================================================================
+   STACK ATTACK + INFERNO // INTENSITY VISUAL PASS
+   ========================================================================== */
+body.mode-stackattack .board-frame {
+  animation: stack-frame-pulse 1.35s ease-in-out infinite;
+}
+body.mode-stackattack .board-frame::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,80,40,.0) 0 8px, rgba(255,80,40,.035) 9px 10px),
+    linear-gradient(180deg, transparent 55%, rgba(255,45,35,.10));
+  mix-blend-mode:screen;
+  animation: stack-scan 1.1s linear infinite;
+}
+body.mode-inferno .board-frame {
+  animation: inferno-frame 1.15s ease-in-out infinite;
+}
+body.mode-inferno .hud-bar,
+body.mode-inferno .game-controls {
+  filter: saturate(1.18);
+}
+@keyframes stack-frame-pulse {
+  0%,100% { box-shadow:0 0 0 1px rgba(255,70,50,.13),0 0 28px rgba(255,55,30,.10); }
+  50% { box-shadow:0 0 0 2px rgba(255,100,50,.28),0 0 48px rgba(255,45,20,.20); }
+}
+@keyframes stack-scan {
+  from { transform:translateY(-3%); opacity:.55; }
+  to { transform:translateY(3%); opacity:1; }
+}
+@keyframes inferno-frame {
+  0%,100% { box-shadow:0 0 0 1px rgba(255,110,30,.15),0 0 30px rgba(255,55,10,.12); }
+  50% { box-shadow:0 0 0 2px rgba(255,180,40,.28),0 0 52px rgba(255,60,0,.22); }
+}
 
 @media (max-width: 380px) {
   .mode-pill { font-size:.5rem; padding:7px 2px; }
@@ -4055,8 +4094,6 @@ body.mode-zen .mode-hud__mb {
   top: var(--y) !important;
   width: calc(var(--size) * 3) !important;
   height: calc(var(--size) * 3) !important;
-  animation: float-block-drift var(--dur, 14s) ease-in-out infinite !important;
-  animation-delay: var(--delay, 0s) !important;
   filter: drop-shadow(0 0 8px var(--c)) drop-shadow(0 0 18px color-mix(in srgb, var(--c) 50%, transparent)) !important;
   opacity: 0.85 !important;
 }
@@ -4181,15 +4218,13 @@ body.mode-zen .mode-hud__mb {
   overflow: hidden !important;
 }
 .float-piece {
-  position: absolute !important;
+  position: fixed !important;
   left: var(--x) !important;
   top: var(--y) !important;
   display: grid !important;
   grid-template-columns: repeat(4, var(--size)) !important;
   grid-template-rows: repeat(4, var(--size)) !important;
   gap: 2px !important;
-  animation: float-block-drift var(--dur, 14s) ease-in-out infinite !important;
-  animation-delay: var(--delay, 0s) !important;
   filter: drop-shadow(0 0 6px var(--c)) drop-shadow(0 0 14px color-mix(in srgb, var(--c) 55%, transparent)) !important;
   opacity: 0.88 !important;
   will-change: transform !important;
@@ -4213,7 +4248,7 @@ body.mode-zen .mode-hud__mb {
   overflow: hidden !important;
 }
 .float-piece {
-  position: absolute !important;
+  position: fixed !important;
   left: 0 !important;
   top: 0 !important;
   display: grid !important;
@@ -4315,7 +4350,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
   /* hide when not on start if possible; fallback JS handles stop */
 }
 .float-piece {
-  position: absolute !important;
+  position: fixed !important;
   left: 0 !important;
   top: 0 !important;
   display: grid !important;
@@ -4497,7 +4532,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
           <div class="popup-kicker">ARENA PROTOCOL / 03</div><h2 id="popup-mode-title">CHOOSE GAME MODE</h2><p>Pick the challenge you want to take on.</p>
           <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
-            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="gravity"><span>↻</span> GRAVITY</button><button class="mode-pill" data-game-mode="boss"><span>☠</span> BOSS</button>
+            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button>
           </div>
           <div class="mode-description" id="mode-description">Classic endless BLØKS. Mind Bender mode adds flashing item blocks and ten chaotic effects.</div>
         </section>
@@ -4689,15 +4724,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
         </div>
       </div>
 
-      <div class="section-heading">THEME</div>
-      <div class="theme-swatches" id="theme-swatches">
-        <button class="theme-swatch" data-theme-choice="neon" style="background:#0d0f18;color:#4cf3ff;">NEON</button>
-        <button class="theme-swatch" data-theme-choice="classic" style="background:#101527;color:#5ad1ff;">CLASSIC</button>
-        <button class="theme-swatch" data-theme-choice="cyber" style="background:#0d0828;color:#00f0ff;">CYBER</button>
-        <button class="theme-swatch" data-theme-choice="arcade" style="background:#200a0f;color:#ffcf3f;">ARCADE</button>
-        <button class="theme-swatch" data-theme-choice="midnight" style="background:#0b0f1f;color:#7ea6ff;">NIGHT</button>
-        <button class="theme-swatch" data-theme-choice="ember" style="background:#220e14;color:#ff6b3d;">EMBER</button>
-      </div>
+
 
       <div class="section-heading">DATA</div>
       <div class="settings-list">
@@ -5446,7 +5473,7 @@ const Audio_ = (() => {
  * Chrome = metal sparks, Holo = pixels/spectral shards.
  */
 const Particles = (() => {
-  let particles = [], shocks = [], beams = [];
+  let particles = [], shocks = [], beams = [], bombRings = [];
   const MAX_PARTICLES = 650;
   const style = () => document.documentElement.dataset.blockStyle || 'neon';
 
@@ -5495,11 +5522,42 @@ const Particles = (() => {
 
   function spawnDropBeam(x,yTop,yBottom,color,width){ beams.push({x,yTop,yBottom,color,width,life:1,kind:style()}); }
 
+
+  function spawnBombExplosion(x, y, cellSize, power=1) {
+    const st = style();
+    // Expanding concentric shock rings
+    bombRings.push({x,y,r:cellSize*.18,maxR:cellSize*(2.7+power*.8),life:1,color:'#ff3b20',width:cellSize*.12});
+    bombRings.push({x,y,r:cellSize*.10,maxR:cellSize*(1.8+power*.5),life:.9,color:'#ffd45a',width:cellSize*.055});
+
+    // Hot core flash particles
+    for(let n=0;n<90;n++){
+      const a=Math.random()*Math.PI*2;
+      const speed=(1.8+Math.random()*8.5)*power;
+      const p={x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:1,
+        decay:.018+Math.random()*.024,size:1.5+Math.random()*4.5,
+        color:n%3===0?'#fff4b0':(n%3===1?'#ffb52e':'#ff3b20'),
+        grav:true,kind:st};
+      if(st==='neon') p.kind='electric';
+      if(st==='glass') {p.kind='sparkle';p.grav=false;}
+      push(p);
+    }
+    // Smoke/debris halo
+    for(let n=0;n<28;n++){
+      const a=Math.random()*Math.PI*2, speed=.4+Math.random()*2.8;
+      push({x:x+Math.cos(a)*cellSize*.15,y:y+Math.sin(a)*cellSize*.15,
+        vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-1.2,life:1,
+        decay:.012+Math.random()*.012,size:3+Math.random()*7,
+        color:n%2?'#3b3030':'#151515',grav:true,kind:'smoke'});
+    }
+  }
+
   function update(){
     particles=particles.filter(p=>p.life>0);
     particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.grav)p.vy+=0.12;if(p.kind==='electric')p.vx*=.992;p.life-=p.decay;});
     shocks=shocks.filter(s=>s.life>0); shocks.forEach(s=>{s.height+=(s.maxHeight-s.height)*.22;s.life-=.055;});
     beams=beams.filter(b=>b.life>0); beams.forEach(b=>{b.life-=.1;});
+    bombRings=bombRings.filter(r=>r.life>0);
+    bombRings.forEach(r=>{r.r+=(r.maxR-r.r)*.19; r.life-=.055;});
   }
 
   function drawElectric(ctx,p,a){
@@ -5543,11 +5601,21 @@ const Particles = (() => {
     drawAmbientStyle(ctx, ctx.canvas.clientWidth || ctx.canvas.width || 1, ctx.canvas.clientHeight || ctx.canvas.height || 1);
     shocks.forEach(s=>{const a=Math.max(0,s.life)*.5;const g=ctx.createLinearGradient(0,s.y-s.height/2,0,s.y+s.height/2);g.addColorStop(0,rgba(s.color,0));g.addColorStop(.5,rgba(s.color,a));g.addColorStop(1,rgba(s.color,0));ctx.fillStyle=g;ctx.fillRect(0,s.y-s.height/2,s.width,s.height);});
     beams.forEach(b=>{const a=Math.max(0,b.life);if(a<=.01)return;const g=ctx.createLinearGradient(0,b.yTop,0,b.yBottom);g.addColorStop(0,rgba(b.color,0));g.addColorStop(.7,rgba(b.color,a*.5));g.addColorStop(1,rgba(b.color,a*.9));ctx.fillStyle=g;ctx.fillRect(b.x-b.width/2,b.yTop,b.width,Math.max(1,b.yBottom-b.yTop));});
-    particles.forEach(p=>{const a=Math.max(0,p.life);if(a<=.01)return;switch(p.kind){case'electric':drawElectric(ctx,p,a);break;case'sparkle':drawSparkle(ctx,p,a);break;case'voxel':drawVoxel(ctx,p,a);break;case'chrome':drawChrome(ctx,p,a);break;case'glitch':drawHolo(ctx,p,a);break;default:ctx.save();ctx.globalAlpha=a;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);ctx.restore();}});
+    bombRings.forEach(r=>{
+      const a=Math.max(0,r.life);
+      ctx.save(); ctx.globalAlpha=a;
+      ctx.strokeStyle=r.color; ctx.shadowColor=r.color; ctx.shadowBlur=18;
+      ctx.lineWidth=Math.max(1,r.width*(.35+.65*a));
+      ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.stroke();
+      ctx.globalAlpha=a*.18; ctx.fillStyle=r.color;
+      ctx.beginPath();ctx.arc(r.x,r.y,r.r*.9,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    });
+    particles.forEach(p=>{const a=Math.max(0,p.life);if(a<=.01)return;switch(p.kind){case'electric':drawElectric(ctx,p,a);break;case'sparkle':drawSparkle(ctx,p,a);break;case'voxel':drawVoxel(ctx,p,a);break;case'chrome':drawChrome(ctx,p,a);break;case'glitch':drawHolo(ctx,p,a);break;case'smoke':ctx.save();ctx.globalAlpha=a*.22;ctx.fillStyle=p.color;ctx.filter='blur(2px)';ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1.2+a),0,Math.PI*2);ctx.fill();ctx.restore();break;default:ctx.save();ctx.globalAlpha=a;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);ctx.restore();}});
     ctx.globalAlpha=1;ctx.shadowBlur=0;
   }
-  function clear(){particles=[];shocks=[];beams=[];} function count(){return particles.length;}
-  return {spawnLineClearBurst,spawnBurstAt,spawnDropBeam,update,draw,clear,count};
+  function clear(){particles=[];shocks=[];beams=[];bombRings=[];} function count(){return particles.length;}
+  return {spawnLineClearBurst,spawnBurstAt,spawnDropBeam,spawnBombExplosion,update,draw,clear,count};
 })();
 
 </script>
@@ -5723,9 +5791,9 @@ const Modes = (() => {
     standard: { id:'standard', name:'STANDARD', icon:'◆', desc:'Classic endless NEONBLOCK.', gravity:1, score:1 },
     zen: { id:'zen', name:'JEWELS', icon:'💎', desc:'Cascade mode with Red, Orange & Green gems. Beat the clock.', gravity:0.85, score:1, jewels:true, timeLimit:60000 },
     blitz: { id:'blitz', name:'MIND BENDER', icon:'🌀', desc:'Clear flashing item blocks to raise the multiplier and trigger wild effects.', gravity:1.0, score:1.0, mindBender:true },
-    inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'The stack fights back with rising garbage rows.', gravity:1.12, score:1.25, garbageEvery:10000 },
-    gravity: { id:'gravity', name:'GRAVITY', icon:'↻', desc:'Gravity shifts direction throughout the run.', gravity:1.0, score:1.2, gravityShiftEvery:8000 },
-    boss: { id:'boss', name:'BOSS', icon:'☠', desc:'Damage the boss by clearing lines while surviving attacks.', gravity:1.08, score:1.3, bossAttackEvery:7500, bossHp:12 },
+    inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'Every block burns with living flame. Clear lines through the fire before the heat overwhelms you.', gravity:1.12, score:1.25, garbageEvery:10000 },
+    bomb: { id:'bomb', name:'BOMB BLOCKS', icon:'💣', desc:'Some pieces contain bombs. Clear a bomb line to blast nearby blocks.', gravity:1.0, score:1.2, bombChance:0.55 },
+    stackattack: { id:'stackattack', name:'STACK ATTACK', icon:'⬆', desc:'Rising danger rows build pressure from below. Hold the stack back before it reaches the top.', gravity:0.81, score:1.3, garbageEvery:11719 },
   };
   function get(id){ return LIST[id] || LIST.standard; }
   function all(){ return Object.values(LIST); }
@@ -6573,7 +6641,38 @@ const UI = (() => {
     ctx.closePath();
   }
 
-    function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
+    // Layered additive fire bloom used by the FIRE block material.
+  function drawFlameAt(ctx2, ox, oy, baseR, fade) {
+    ctx2.save();
+    ctx2.globalCompositeOperation = "lighter";
+
+    // Outer red-orange glow
+    var g3 = ctx2.createRadialGradient(ox, oy + baseR * 0.3, 0, ox, oy, baseR * 2.4);
+    g3.addColorStop(0, "rgba(255,80,10," + (0.35 * fade) + ")");
+    g3.addColorStop(0.45, "rgba(180,30,0," + (0.15 * fade) + ")");
+    g3.addColorStop(1, "rgba(40,0,0,0)");
+    ctx2.fillStyle = g3;
+    ctx2.beginPath(); ctx2.arc(ox, oy, baseR * 2.4, 0, Math.PI * 2); ctx2.fill();
+
+    // Mid orange flame
+    var g2 = ctx2.createRadialGradient(ox - baseR * 0.15, oy - baseR * 0.2, 0, ox, oy, baseR * 1.4);
+    g2.addColorStop(0, "rgba(255,170,40," + (0.75 * fade) + ")");
+    g2.addColorStop(0.5, "rgba(255,90,10," + (0.45 * fade) + ")");
+    g2.addColorStop(1, "rgba(200,40,0,0)");
+    ctx2.fillStyle = g2;
+    ctx2.beginPath(); ctx2.arc(ox, oy, baseR * 1.4, 0, Math.PI * 2); ctx2.fill();
+
+    // Hot white-yellow core
+    var g1 = ctx2.createRadialGradient(ox - baseR * 0.1, oy - baseR * 0.25, 0, ox, oy, baseR * 0.7);
+    g1.addColorStop(0, "rgba(255,255,230," + (0.95 * fade) + ")");
+    g1.addColorStop(0.35, "rgba(255,220,100," + (0.7 * fade) + ")");
+    g1.addColorStop(1, "rgba(255,120,0,0)");
+    ctx2.fillStyle = g1;
+    ctx2.beginPath(); ctx2.arc(ox, oy, baseR * 0.7, 0, Math.PI * 2); ctx2.fill();
+    ctx2.restore();
+  }
+
+  function drawCellBase(ctx, row, col, color, alpha = 1, glow = true) {
     const x = col * cellSize;
     const y = row * cellSize;
     const pad = Math.max(1, cellSize * 0.05);
@@ -6661,39 +6760,39 @@ const UI = (() => {
       return;
     }
 
-    // #3 FIRE — rising ember gradient + spark particles
+    // #3 FIRE — realistic additive heat bloom, glowing core and flickering tongues
     if (style === 'fire') {
-      const pulse = 0.78 + 0.22 * Math.sin(visualTime * 7 + row * 0.8 + col * 0.5);
+      const pulse = 0.82 + 0.18 * Math.sin(visualTime * 8 + row * 1.13 + col * 0.77);
+      const cx = size * 0.5, cy = size * 0.52;
       ctx.shadowColor = '#ff4b16';
-      ctx.shadowBlur = glow ? size * (0.5 + 0.15 * pulse) : 0;
-      const fire = ctx.createLinearGradient(0, size, 0, 0);
-      fire.addColorStop(0, '#6a0808');
-      fire.addColorStop(0.3, '#e52212');
-      fire.addColorStop(0.6, '#ff7a18');
-      fire.addColorStop(0.85, '#ffc94c');
-      fire.addColorStop(1, '#fff5c0');
-      ctx.fillStyle = fire;
-      roundRect(ctx, 0, 0, size, size, r);
-      ctx.fill();
+      ctx.shadowBlur = glow ? size * (0.42 + 0.18 * pulse) : 0;
+      ctx.fillStyle = '#54130b';
+      roundRect(ctx, 0, 0, size, size, r); ctx.fill();
       ctx.shadowBlur = 0;
       ctx.save();
-      roundRect(ctx, 0, 0, size, size, r);
-      ctx.clip();
+      roundRect(ctx, 0, 0, size, size, r); ctx.clip();
+
+      // The supplied radial flame treatment becomes the actual block surface.
+      drawFlameAt(ctx, cx, cy, size * (0.34 + 0.025 * pulse), alpha);
+      drawFlameAt(ctx, size * (0.27 + 0.025 * Math.sin(visualTime * 6 + col)), size * 0.62, size * 0.18, alpha * 0.7);
+      drawFlameAt(ctx, size * (0.73 + 0.02 * Math.sin(visualTime * 7 + row)), size * 0.38, size * 0.16, alpha * 0.66);
+
+      // Uneven rising tongues and ember flecks add movement without obscuring the tile.
       for (let k = 0; k < 4; k++) {
-        const fx = size * (0.15 + 0.7 * ((Math.sin(row * 2.1 + col * 3.7 + k * 1.7) + 1) / 2));
-        const fy = size * (0.75 - 0.18 * k + 0.1 * Math.sin(visualTime * 9 + k + col));
-        ctx.globalAlpha = alpha * (0.3 + 0.15 * Math.sin(visualTime * 10 + k));
-        ctx.fillStyle = k === 0 ? '#fff2a6' : '#ff6b1f';
+        const fx = size * (0.14 + 0.24 * k + 0.035 * Math.sin(visualTime * 7 + k * 2 + row));
+        const lift = 0.10 + 0.06 * Math.sin(visualTime * 9 + k * 1.7 + col);
+        const fy = size * (0.18 + lift);
+        ctx.globalAlpha = alpha * (0.48 + 0.24 * Math.sin(visualTime * 10 + k + col));
+        ctx.fillStyle = k % 2 ? '#ff8b24' : '#fff0a0';
         ctx.beginPath();
-        ctx.arc(fx, fy, size * (0.04 + 0.02 * k), 0, Math.PI * 2);
+        ctx.ellipse(fx, fy, size * (0.035 + 0.009 * (k % 3)), size * (0.10 + lift * 0.25), -0.18 + 0.12 * Math.sin(visualTime * 5 + k), 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
-      ctx.globalAlpha = alpha * 0.9;
+      ctx.globalAlpha = alpha * 0.92;
       ctx.strokeStyle = '#ffd56a';
-      ctx.lineWidth = Math.max(1, size * 0.04);
-      roundRect(ctx, 1, 1, size - 2, size - 2, r);
-      ctx.stroke();
+      ctx.lineWidth = Math.max(1, size * 0.035);
+      roundRect(ctx, 1, 1, size - 2, size - 2, r); ctx.stroke();
       ctx.restore();
       return;
     }
@@ -6837,6 +6936,65 @@ const UI = (() => {
   }
 
 
+  // Universal animated flame overlay: applied after the selected block material
+  // so the fire treatment is visible on every block style, not only FIRE.
+  function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
+    drawCellBase(ctx, row, col, color, alpha, glow);
+    const x = col * cellSize, y = row * cellSize;
+    const pad = Math.max(1, cellSize * 0.05);
+    const size = cellSize - pad * 2;
+    const r = cellSize * 0.18;
+    const t = (typeof visualTime === 'number' ? visualTime : performance.now() * 0.001);
+    const pulse = 0.78 + 0.22 * Math.sin(t * 9 + row * 1.37 + col * 0.91);
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.88;
+    ctx.translate(x + pad, y + pad);
+    roundRect(ctx, 0, 0, size, size, r);
+    ctx.clip();
+
+    // Hot center and orange/red falloff, using additive blending.
+    drawFlameAt(ctx, size * 0.5, size * (0.56 + 0.025 * Math.sin(t * 7 + row)), size * (0.31 + 0.025 * pulse), 0.76);
+    drawFlameAt(ctx, size * (0.24 + 0.035 * Math.sin(t * 8 + col)), size * 0.68, size * 0.16, 0.62);
+    drawFlameAt(ctx, size * (0.76 + 0.03 * Math.sin(t * 9 + row)), size * 0.43, size * 0.15, 0.58);
+
+    // Organic tapered tongues with curved sides and luminous tips.
+    ctx.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 5; k++) {
+      const phase = t * (5.4 + (k % 3) * 0.8) + row * 0.83 + col * 1.11 + k * 1.9;
+      const bx = size * (0.12 + k * 0.19) + Math.sin(phase) * size * 0.035;
+      const baseY = size * (0.79 + 0.025 * Math.sin(phase * 0.7));
+      const tipY = size * (0.17 + 0.11 * (0.5 + 0.5 * Math.sin(phase * 1.3)));
+      const width = size * (0.075 + 0.025 * (0.5 + 0.5 * Math.sin(phase)));
+      ctx.globalAlpha = alpha * (0.38 + 0.16 * (0.5 + 0.5 * Math.sin(phase)));
+      const flame = ctx.createLinearGradient(bx, baseY, bx, tipY);
+      flame.addColorStop(0, 'rgba(255,45,5,0)');
+      flame.addColorStop(0.22, 'rgba(255,75,8,0.55)');
+      flame.addColorStop(0.68, 'rgba(255,156,28,0.8)');
+      flame.addColorStop(1, 'rgba(255,245,174,0.82)');
+      ctx.fillStyle = flame;
+      ctx.beginPath();
+      ctx.moveTo(bx - width, baseY);
+      ctx.quadraticCurveTo(bx - width * 0.48, baseY - size * 0.23, bx + Math.sin(phase) * width * 0.4, tipY);
+      ctx.quadraticCurveTo(bx + width * 0.6, baseY - size * 0.19, bx + width, baseY);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Tiny hot embers, kept inside the tile silhouette.
+    for (let k = 0; k < 6; k++) {
+      const phase = t * 4.5 + k * 2.17 + row * 0.5 + col;
+      const ex = size * (0.12 + ((k * 37) % 73) / 100) + Math.sin(phase) * size * 0.025;
+      const ey = size * (0.24 + ((k * 19) % 48) / 100);
+      ctx.globalAlpha = alpha * (0.22 + 0.24 * (0.5 + 0.5 * Math.sin(phase * 1.7)));
+      ctx.fillStyle = k % 3 === 0 ? '#fff4b5' : '#ff8a25';
+      ctx.beginPath();
+      ctx.arc(ex, ey, Math.max(0.7, size * (0.012 + (k % 2) * 0.006)), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+
   // Motion trail for the falling piece (soft after-images).
   let pieceTrail = [];
   function recordTrail(cells, color) {
@@ -6921,6 +7079,102 @@ const UI = (() => {
 
   /** Renders the locked grid + active piece + ghost onto the board canvas. */
   
+  function drawBombMark(ctx, row, col, alpha = 1) {
+    if (row < 0) return;
+    const x = col * cellSize + cellSize * 0.5;
+    const y = row * cellSize + cellSize * 0.5;
+    const t = visualTime;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 8.0);
+    const fusePulse = 0.5 + 0.5 * Math.sin(t * 19.0);
+    const r = cellSize * 0.245;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Cinematic outer warning aura
+    ctx.shadowColor = '#ff3b18';
+    ctx.shadowBlur = cellSize * (0.42 + pulse * 0.35);
+    ctx.fillStyle = 'rgba(255,45,20,0.13)';
+    ctx.beginPath();
+    ctx.arc(x, y, r * (1.55 + pulse * 0.12), 0, Math.PI * 2);
+    ctx.fill();
+
+    // Metallic body rim
+    ctx.shadowBlur = cellSize * 0.16;
+    const rim = ctx.createRadialGradient(x-r*.35,y-r*.4,r*.05,x,y,r*1.15);
+    rim.addColorStop(0,'#fff');
+    rim.addColorStop(.25,'#aeb7c4');
+    rim.addColorStop(.52,'#39414c');
+    rim.addColorStop(1,'#090b0f');
+    ctx.fillStyle = rim;
+    ctx.beginPath();
+    ctx.arc(x, y + r*.08, r*1.08, 0, Math.PI*2);
+    ctx.fill();
+
+    // Glossy explosive core
+    const core = ctx.createRadialGradient(x-r*.35,y-r*.4,r*.03,x,y,r*.92);
+    core.addColorStop(0,'#fff8dc');
+    core.addColorStop(.12,'#ffd66b');
+    core.addColorStop(.36,'#ff5b35');
+    core.addColorStop(.68,'#d71912');
+    core.addColorStop(1,'#4e0504');
+    ctx.shadowColor = '#ff2b14';
+    ctx.shadowBlur = cellSize * (.25 + pulse*.25);
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.arc(x, y + r*.08, r*.88, 0, Math.PI*2);
+    ctx.fill();
+
+    // Subtle hazard ring
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = `rgba(255,210,90,${0.35 + pulse*.35})`;
+    ctx.lineWidth = Math.max(1, cellSize*.035);
+    ctx.beginPath();
+    ctx.arc(x, y + r*.08, r*1.02, 0, Math.PI*2);
+    ctx.stroke();
+
+    // Fuse neck
+    ctx.strokeStyle = '#30343a';
+    ctx.lineWidth = Math.max(2, cellSize*.075);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x+r*.42,y-r*.68);
+    ctx.quadraticCurveTo(x+r*.58,y-r*1.05,x+r*.87,y-r*.91);
+    ctx.stroke();
+
+    // Hot fuse
+    ctx.strokeStyle = '#ffd35a';
+    ctx.shadowColor = '#ff8a00';
+    ctx.shadowBlur = cellSize*(.18+fusePulse*.3);
+    ctx.lineWidth = Math.max(1, cellSize*.04);
+    ctx.beginPath();
+    ctx.moveTo(x+r*.45,y-r*.69);
+    ctx.quadraticCurveTo(x+r*.59,y-r*1.03,x+r*.88,y-r*.91);
+    ctx.stroke();
+
+    // Animated fuse spark with cross flare
+    const sx=x+r*.9, sy=y-r*.92, s=cellSize*(.045+.035*fusePulse);
+    ctx.fillStyle='#fff9ce';
+    ctx.shadowColor='#fff';
+    ctx.shadowBlur=cellSize*.22;
+    ctx.beginPath(); ctx.arc(sx,sy,s,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#fff3a1';
+    ctx.lineWidth=Math.max(1,cellSize*.025);
+    ctx.beginPath();
+    ctx.moveTo(sx-s*3,sy);ctx.lineTo(sx+s*3,sy);
+    ctx.moveTo(sx,sy-s*3);ctx.lineTo(sx,sy+s*3);
+    ctx.stroke();
+
+    // Premium specular highlight
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(255,255,255,.82)';
+    ctx.beginPath();
+    ctx.ellipse(x-r*.28,y-r*.23,r*.16,r*.10,-.45,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
   function drawGemMark(ctx, row, col, gem, alpha = 1) {
     if (row < 0) return;
     const x = col * cellSize + cellSize * 0.5;
@@ -6950,8 +7204,122 @@ const UI = (() => {
     ctx.restore();
   }
 
-function renderBoard({ grid, activeCells, activeColor, ghostCells, ghostOn, lockFlashRows, mb }) {
+
+  function infernoFirePalette(baseColor) {
+    // Derive the flame from the actual block color so every block/style has
+    // its own persistent fire identity. No random hue changes while alive.
+    const fallback = '#ff7a18';
+    if (!baseColor || typeof baseColor !== 'string') return [fallback, '#ffd45a', '#fff3b0'];
+    const h = baseColor.replace('#','').trim();
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return [fallback, '#ffd45a', '#fff3b0'];
+    const r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16);
+    const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+    let hue=0;
+    if(d){
+      if(mx===r) hue=((g-b)/d)%6;
+      else if(mx===g) hue=(b-r)/d+2;
+      else hue=(r-g)/d+4;
+      hue=Math.round(hue*60); if(hue<0) hue+=360;
+    }
+    // Keep the style's hue family, but push it into a luminous flame range.
+    const hslToHex=(hh,ss,ll)=>{
+      ss/=100; ll/=100; const c=(1-Math.abs(2*ll-1))*ss, x=c*(1-Math.abs((hh/60)%2-1)), m=ll-c/2;
+      let rr=0,gg=0,bb=0;
+      if(hh<60){rr=c;gg=x;} else if(hh<120){rr=x;gg=c;} else if(hh<180){gg=c;bb=x;}
+      else if(hh<240){gg=x;bb=c;} else if(hh<300){rr=x;bb=c;} else {rr=c;bb=x;}
+      const q=v=>Math.round((v+m)*255).toString(16).padStart(2,'0');
+      return '#'+q(rr)+q(gg)+q(bb);
+    };
+    return [
+      hslToHex(hue, 96, 48),
+      hslToHex(hue, 100, 68),
+      hslToHex((hue+18)%360, 100, 88)
+    ];
+  }
+
+  function drawInfernoFire(ctx, row, col, baseColor, stackHeight, alpha = 1) {
+    if (row < 0) return;
+    const x = col * cellSize, y = row * cellSize, s = cellSize;
+    const [fireDark, fireHot, fireCore] = infernoFirePalette(baseColor);
+    // Stack height drives fire scale. More blocks in a column = larger fire.
+    const heightBoost = Math.min(1.9, 0.72 + stackHeight * 0.075);
+    const flameH = s * (0.34 + heightBoost * 0.16);
+    const pulse = 0.94 + 0.06 * Math.sin(col * 1.37 + row * 0.73);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.globalCompositeOperation = 'lighter';
+
+    // Wide heat halo around the WHOLE block — the block itself remains clean.
+    const halo = ctx.createRadialGradient(x+s*.5,y+s*.56,0,x+s*.5,y+s*.56,s*(0.62+heightBoost*.22));
+    halo.addColorStop(0, fireHot + '80');
+    halo.addColorStop(.45, fireDark + '42');
+    halo.addColorStop(1, fireDark + '00');
+    ctx.fillStyle = halo;
+    ctx.fillRect(x-s*.3,y-s*.32,s*1.6,s*1.65);
+
+    // Outer flame crown rising ABOVE the block, not inside it.
+    const baseY = y + s*.12;
+    const topY = y - flameH;
+    ctx.shadowColor = fireHot;
+    ctx.shadowBlur = s*(0.18 + heightBoost*.12);
+    const flame = ctx.createLinearGradient(0,topY,0,baseY);
+    flame.addColorStop(0, fireCore + 'cc');
+    flame.addColorStop(.42, fireHot + 'dd');
+    flame.addColorStop(1, fireDark + 'ee');
+    ctx.fillStyle = flame;
+    ctx.beginPath();
+    ctx.moveTo(x+s*.12,baseY);
+    ctx.bezierCurveTo(x+s*.06,y-s*(.04+heightBoost*.05),x+s*.22,y-s*heightBoost*.18,x+s*.31,topY+s*.06);
+    ctx.bezierCurveTo(x+s*.38,topY+s*.20,x+s*.42,y-s*heightBoost*.12,x+s*.50,topY);
+    ctx.bezierCurveTo(x+s*.61,topY+s*.17,x+s*.63,y-s*heightBoost*.13,x+s*.72,topY+s*.10);
+    ctx.bezierCurveTo(x+s*.82,y-s*heightBoost*.05,x+s*.94,y+s*.02,x+s*.88,baseY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Stable ember sparks: positions are deterministic, so their colors stay
+    // with the block instead of changing randomly every frame.
+    ctx.shadowBlur = s*.18;
+    ctx.fillStyle = fireCore;
+    const sparks = Math.min(5, 2 + Math.floor(stackHeight/5));
+    for(let i=0;i<sparks;i++){
+      const sx=x+s*(.16+(((i*37+col*11+row*7)%67)/100));
+      const sy=topY+s*(.04+(((i*19+col*5)%55)/100));
+      const rr=Math.max(0.8,s*(.018+i*.004));
+      ctx.beginPath(); ctx.arc(sx,sy,rr,0,Math.PI*2); ctx.fill();
+    }
+
+    ctx.restore();
+  }
+  function drawStackDanger(ctx, row, col, phase) {
+    const x=col*cellSize, y=row*cellSize, s=cellSize;
+    const pulse=.5+.5*Math.sin(phase*7+col*.8);
+    ctx.save();
+    ctx.globalCompositeOperation='lighter';
+    ctx.globalAlpha=.28+.18*pulse;
+    ctx.fillStyle='#ff3d2e';
+    ctx.shadowColor='#ff3d1f';
+    ctx.shadowBlur=s*(.25+.12*pulse);
+    roundRect(ctx, x+1,y+1,s-2,s-2,s*.15); ctx.stroke();
+    ctx.globalAlpha=.8;
+    ctx.strokeStyle='rgba(255,210,90,.75)';
+    ctx.lineWidth=Math.max(1,s*.025);
+    ctx.beginPath();
+    ctx.moveTo(x+s*.12,y+s*(.28+.08*Math.sin(phase*5+col)));
+    ctx.lineTo(x+s*.88,y+s*(.28+.08*Math.sin(phase*5+col)));
+    ctx.stroke();
+    ctx.fillStyle='rgba(255,238,170,.85)';
+    ctx.beginPath();
+    ctx.arc(x+s*(.25+((phase*0.18+col*.13)%0.5)), y+s*.78, Math.max(1,s*.025),0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb }) {
     visualTime = performance.now() * 0.001;
+    const phase = visualTime;
+    const infernoActive = document.body.classList.contains('mode-inferno');
+    const stackActive = document.body.classList.contains('mode-stackattack');
     const w = el['board-canvas'].width / dpr;
     const h = el['board-canvas'].height / dpr;
     boardCtx.clearRect(0, 0, w, h);
@@ -6975,19 +7343,38 @@ function renderBoard({ grid, activeCells, activeColor, ghostCells, ghostOn, lock
     boardCtx.restore();
 
     const hiddenOffset = Board.HIDDEN_ROWS;
+    const infernoHeights = new Array(Board.COLS).fill(0);
+    if (infernoActive) {
+      for (let c = 0; c < Board.COLS; c++) {
+        let top = Board.TOTAL_ROWS;
+        for (let rr = hiddenOffset; rr < Board.TOTAL_ROWS; rr++) {
+          if (grid[rr][c]) { top = rr; break; }
+        }
+        infernoHeights[c] = top < Board.TOTAL_ROWS ? (Board.TOTAL_ROWS - top) : 0;
+      }
+    }
     for (let r = hiddenOffset; r < Board.TOTAL_ROWS; r++) {
       for (let c = 0; c < Board.COLS; c++) {
         const rawCell = grid[r][c];
         if (rawCell) {
           const isItem = MindBender.isItem(rawCell);
           const isJewel = typeof Jewels !== 'undefined' && Jewels.isGem(rawCell);
-          const cell = (typeof Jewels !== 'undefined' ? Jewels.baseColor(rawCell) : MindBender.baseColor(rawCell));
+          const bombSuffix = typeof rawCell === 'string' && rawCell.endsWith('!');
+          const strippedCell = bombSuffix ? rawCell.slice(0, -1) : rawCell;
+          const cell = (typeof Jewels !== 'undefined' ? Jewels.baseColor(strippedCell) : MindBender.baseColor(strippedCell));
+          const isBomb = bombSuffix;
           const flashing = lockFlashRows && lockFlashRows.includes(r);
           // Mind Bender "Blur": the stack fades left-to-right once a second
           const cellAlpha = mb && mb.blurMs != null ? MindBender.blurAlpha(c, mb.blurMs) : 1;
-          drawCell(boardCtx, r - hiddenOffset, c, colorFor(cell), cellAlpha, true);
+          const blockColor = colorFor(cell);
+          // Inferno fire is rendered BEHIND the block so the entire block
+          // reads as a burning object rather than containing a flame texture.
+          if (infernoActive) drawInfernoFire(boardCtx, r - hiddenOffset, c, blockColor, infernoHeights[c], cellAlpha);
+          drawCell(boardCtx, r - hiddenOffset, c, blockColor, cellAlpha, true);
           if (isItem) drawItemMark(boardCtx, r - hiddenOffset, c, mb ? mb.urgency : 0, cellAlpha);
           if (isJewel) drawGemMark(boardCtx, r - hiddenOffset, c, Jewels.gemType(rawCell), cellAlpha);
+          if (isBomb) drawBombMark(boardCtx, r - hiddenOffset, c, cellAlpha);
+          if (stackActive && rawCell === 'danger') drawStackDanger(boardCtx, r - hiddenOffset, c, phase);
           if (flashing) {
             boardCtx.save();
             boardCtx.globalAlpha = 0.7;
@@ -7007,8 +7394,13 @@ function renderBoard({ grid, activeCells, activeColor, ghostCells, ghostOn, lock
     }
 
     if (activeCells) {
-      activeCells.forEach(([r, c]) => {
-        if (r - hiddenOffset >= 0) drawCell(boardCtx, r - hiddenOffset, c, colorFor(activeColor), 1, true);
+      activeCells.forEach(([r, c], idx) => {
+        if (r - hiddenOffset >= 0) {
+          const activeBlockColor = colorFor(activeColor);
+          if (infernoActive) drawInfernoFire(boardCtx, r - hiddenOffset, c, activeBlockColor, Math.max(1, infernoHeights[c] || 1), 1);
+          drawCell(boardCtx, r - hiddenOffset, c, activeBlockColor, 1, true);
+          if (activeBombIndex === idx) drawBombMark(boardCtx, r - hiddenOffset, c, 1);
+        }
       });
     }
   }
@@ -7114,17 +7506,17 @@ function renderBoard({ grid, activeCells, activeColor, ghostCells, ghostOn, lock
     const fill = el['boss-meter-fill'];
     if (!name || !status) return;
     name.textContent = mode ? mode.name : 'STANDARD';
-    document.body.classList.remove('mode-zen','mode-blitz','mode-inferno','mode-gravity','mode-boss','mode-standard');
+    document.body.classList.remove('mode-zen','mode-blitz','mode-inferno','mode-bomb','mode-stackattack','mode-standard');
     document.body.classList.add(`mode-${mode ? mode.id : 'standard'}`);
     const mbHud = document.getElementById('hud-mb');
     if (mbHud) mbHud.hidden = !(mode && (mode.mindBender || mode.jewels));
     let text = '';
     if (mode && mode.id === 'blitz') {
       text = 'ITEM HUNT';
-    } else if (mode && mode.id === 'gravity') {
-      text = ['DOWN','RIGHT','UP','LEFT'][gravityIndex % 4];
-    } else if (mode && mode.id === 'boss') {
-      text = `BOSS LV ${bossMaxHp ? Math.ceil((bossMaxHp - 10) / 2 + 1) : 1}`;
+    } else if (mode && mode.id === 'bomb') {
+      text = 'BLAST READY';
+    } else if (mode && mode.id === 'stackattack') {
+      text = 'RISING';
     } else if (mode && mode.id === 'inferno') {
       text = 'RISING';
     } else if (mode && mode.id === 'zen') {
@@ -7135,7 +7527,7 @@ function renderBoard({ grid, activeCells, activeColor, ghostCells, ghostOn, lock
     }
     status.textContent = text;
     if (meter && fill) {
-      const bossOn = mode && mode.id === 'boss' && bossMaxHp > 0;
+      const bossOn = false;
       meter.hidden = !bossOn;
       fill.style.width = bossOn ? `${Math.max(0, Math.min(100, (bossHp / bossMaxHp) * 100))}%` : '0%';
     }
@@ -7465,6 +7857,7 @@ const Game = (() => {
   let state = 'start'; // start | countdown | playing | paused | clearing | gameover
   let mode = Modes.get('standard');
   let modeElapsed = 0, modeEventTimer = 0, bossHp = 0, bossMaxHp = 0, bossLevel = 1;
+  let bombSpeedMultiplier = 1;
   let gravityIndex = 0;
   let grid = null;
   let active = null;
@@ -7503,8 +7896,7 @@ const Game = (() => {
   }
 
   function gravityVector() {
-    if (mode.id !== 'gravity') return [1, 0];
-    return [[1,0],[0,1],[-1,0],[0,-1]][gravityIndex % 4];
+    return [1, 0];
   }
 
   function fitsGravity(piece) {
@@ -7528,17 +7920,91 @@ const Game = (() => {
     return distance;
   }
 
+  function assignBombToPiece(piece) {
+    if (!piece) return piece;
+    const cells = Pieces.getCells(piece);
+    if (mode.id !== 'bomb' || !cells.length || Math.random() > (mode.bombChance || 0.55)) {
+      return { ...piece, bombCell: null };
+    }
+    return { ...piece, bombCell: Math.floor(Math.random() * cells.length) };
+  }
+
+  function isBombCell(cell) {
+    return typeof cell === 'string' && cell.endsWith('!');
+  }
+
+  function baseCellColor(cell) {
+    if (cell == null) return cell;
+    if (typeof cell !== 'string') return cell;
+    if (cell.endsWith('!')) return cell.slice(0, -1);
+    return cell;
+  }
+
+  function markBombsInFullRows(fullRows) {
+    return fullRows.some((r) => grid[r].some((cell) => isBombCell(cell)));
+  }
+
+  function detonateNearbyBombs(fullRows) {
+    const bombs = [];
+    fullRows.forEach((r) => {
+      for (let c = 0; c < Board.COLS; c++) {
+        if (isBombCell(grid[r][c])) bombs.push([r, c]);
+      }
+    });
+    if (!bombs.length) return 0;
+
+    const rowSet = new Set(fullRows);
+    const destroyed = new Set();
+    const fxOffset = Board.HIDDEN_ROWS;
+
+    // Every activated bomb makes the falling pieces faster.
+    bombSpeedMultiplier = Math.max(0.42, bombSpeedMultiplier * 0.82);
+
+    for (const [br, bc] of bombs) {
+      const bx = (bc + 0.5) * UI.cellSize;
+      const by = (br - fxOffset + 0.5) * UI.cellSize;
+
+      // Cinematic localized blast: expanding rings, hot core, sparks, debris and smoke.
+      Particles.spawnBombExplosion(bx, by, UI.cellSize, 1.15);
+      Effects.shake(12);
+      Effects.flash('255,70,40', 0.26);
+      vibrate([45, 25, 90]);
+
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const r = br + dr, c = bc + dc;
+          if (r < Board.HIDDEN_ROWS || r >= Board.TOTAL_ROWS || c < 0 || c >= Board.COLS) continue;
+          if (rowSet.has(r)) continue; // the bomb's line is already being cleared
+          if (grid[r][c] != null) {
+            destroyed.add(`${r}:${c}`);
+            grid[r][c] = null;
+            Particles.spawnBurstAt(
+              (c + 0.5) * UI.cellSize,
+              (r - fxOffset + 0.5) * UI.cellSize,
+              '#ff8a3c',
+              8
+            );
+          }
+        }
+      }
+    }
+
+    const speedPercent = Math.round((1 / bombSpeedMultiplier - 1) * 100);
+    Effects.toast(`💣 BLAST!  SPEED +${speedPercent}%`, 'tetris', 1200);
+    return destroyed.size;
+  }
+
   function resetRunState() {
     grid = Board.create();
     bagNext = Pieces.randomBagGenerator();
-    active = Pieces.createPiece(bagNext());
+    active = assignBombToPiece(Pieces.createPiece(bagNext()));
     nextType = bagNext();
     heldType = null;
     canHold = true;
     holdUsedThisGame = false;
     score = 0; lines = 0; level = 1;
-    modeElapsed = 0; modeEventTimer = 0; gravityIndex = 0;
-    bossLevel = 1; bossMaxHp = mode.bossHp || 0; bossHp = bossMaxHp;
+    modeElapsed = 0; modeEventTimer = 0; gravityIndex = 0; bombSpeedMultiplier = 1;
+    bossLevel = 1; bossMaxHp = 0; bossHp = 0;
     combo = -1; bestComboThisGame = 0; backToBack = 0;
     mb = MindBender.createState();
     jewels = (mode.jewels && typeof Jewels !== 'undefined') ? Jewels.createState() : null;
@@ -7565,8 +8031,7 @@ const Game = (() => {
   }
 
   function spawnNext() {
-    active = Pieces.createPiece(nextType);
-    if (mode.id === 'gravity' && gravityIndex === 2) active.row = Math.max(0, active.row);
+    active = assignBombToPiece(Pieces.createPiece(nextType));
     nextType = bagNext();
     canHold = true;
     lastMoveWasRotation = false;
@@ -7616,7 +8081,7 @@ const Game = (() => {
 
   /** SRS three-corner rule. 'full' needs both corners the T points toward. */
   function detectTSpin() {
-    if (mode.id === 'gravity' || active.type !== 'T' || !lastMoveWasRotation) return 'none';
+    if (mode.id === 'bomb' || active.type !== 'T' || !lastMoveWasRotation) return 'none';
     const cr = active.row + 1, cc = active.col + 1;      // centre of the T's 3x3 box
     const occ = (r, c) => !Board.cellFree(grid, r, c);   // walls and floor count as filled
     const tl = occ(cr - 1, cc - 1), tr = occ(cr - 1, cc + 1);
@@ -7660,7 +8125,14 @@ const Game = (() => {
   function lockActivePiece() {
     const tspin = detectTSpin();
     lastTSpin = tspin;
-    Board.lockPiece(grid, Pieces.getCells(active), active.color);
+    const lockedCells = Pieces.getCells(active);
+    Board.lockPiece(grid, lockedCells, active.color);
+    if (mode.id === 'bomb' && active.bombCell != null && lockedCells[active.bombCell]) {
+      const [br, bc] = lockedCells[active.bombCell];
+      if (br >= 0 && br < Board.TOTAL_ROWS && bc >= 0 && bc < Board.COLS && grid[br][bc] != null) {
+        grid[br][bc] = `${grid[br][bc]}!`;
+      }
+    }
     piecesPlaced += 1;
     saveData.stats.totalPieces += 1;
     Audio_.sfx.lock();
@@ -7719,6 +8191,9 @@ const Game = (() => {
       pendingEffect = MindBender.pickEffect(grid, mb);
     }
 
+    // Bomb Blocks: a bomb in a cleared line detonates and destroys nearby blocks.
+    if (mode.id === 'bomb') detonateNearbyBombs(fullRows);
+
     // perfect clear = nothing left once the full rows are gone
     const rowSet = new Set(fullRows);
     const allClear = grid.every((row, r) => rowSet.has(r) || row.every((cell) => cell === null));
@@ -7735,20 +8210,6 @@ const Game = (() => {
     }
     score += Math.round((result.points + itemBonus + cascadeBonus) * mode.score);
 
-    if (mode.id === 'boss') {
-      const damage = fullRows.length + (result.isTetris ? 2 : 0);
-      bossHp -= damage;
-      if (bossHp <= 0) {
-        score += 2000 * bossLevel;
-        bossLevel += 1;
-        bossMaxHp = 12 + (bossLevel - 1) * 2;
-        bossHp = bossMaxHp;
-        modeEventTimer = 0;
-        Effects.toast(`BOSS DEFEATED +${2000 * (bossLevel - 1)}`, 'tetris', 1400);
-        Audio_.sfx.levelUp();
-        Effects.shake(12);
-      }
-    }
     combo = result.combo;
     backToBack = result.backToBack;
     bestComboThisGame = Math.max(bestComboThisGame, combo);
@@ -7993,7 +8454,7 @@ const Game = (() => {
     } else {
       const swap = heldType;
       heldType = active.type;
-      active = Pieces.createPiece(swap);
+      active = assignBombToPiece(Pieces.createPiece(swap));
       canHold = false;
       lockResets = 0;
       isLocking = false;
@@ -8051,23 +8512,17 @@ const Game = (() => {
     if (mode.id === 'inferno' && modeEventTimer >= mode.garbageEvery) {
       modeEventTimer = 0;
       addGarbageRows(1);
-      Effects.toast('INFERNO RISE!', 'default', 700);
+      Effects.toast('🔥 HEAT RISING', 'tetris', 900);
       Effects.shake(6);
+      if (typeof Effects.flash === 'function') Effects.flash('rgba(255,85,20,.13)', 180);
     }
 
-    if (mode.id === 'boss' && modeEventTimer >= mode.bossAttackEvery) {
+    if (mode.id === 'stackattack' && modeEventTimer >= mode.garbageEvery) {
       modeEventTimer = 0;
-      addGarbageRows(bossLevel >= 3 ? 2 : 1);
-      Effects.toast('BOSS ATTACK!', 'default', 800);
+      addGarbageRows(1);
+      Effects.toast('⚠ STACK RISING', 'tetris', 1050);
       Effects.shake(8);
-    }
-
-    if (mode.id === 'gravity' && modeEventTimer >= mode.gravityShiftEvery) {
-      modeEventTimer = 0;
-      gravityIndex = (gravityIndex + 1) % 4;
-      const labels = ['DOWN','RIGHT','UP','LEFT'];
-      Effects.toast(`GRAVITY: ${labels[gravityIndex]}`, 'levelup', 850);
-      Effects.shake(5);
+      if (typeof Effects.flash === 'function') Effects.flash('rgba(255,55,25,.16)', 220);
     }
 
     UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex });
@@ -8075,12 +8530,19 @@ const Game = (() => {
 
   function addGarbageRows(count) {
     for (let n = 0; n < count; n++) {
+      // Stack Attack should end only when the stack actually reaches the top,
+      // just like a normal game. Never end the run merely because the rising
+      // row temporarily overlaps the falling piece.
+      const topDanger = grid[Board.HIDDEN_ROWS];
+      if (topDanger && topDanger.some((cell) => cell != null)) {
+        triggerGameOver('STACK OVERLOAD');
+        return;
+      }
       const hole = Math.floor(Math.random() * Board.COLS);
       grid.shift();
       const row = Array.from({length: Board.COLS}, (_, c) => c === hole ? null : 'danger');
       grid.push(row);
     }
-    if (active && !fitsGravity(active)) triggerGameOver('STACK OVERLOAD');
   }
 
   function update(dt) {
@@ -8102,7 +8564,7 @@ const Game = (() => {
     if (state !== 'playing') return;
 
     const fxFactor = MindBender.gravityFactor(mb);          // Slow Down x2, Speed Up x0.5
-    const baseGravity = (Scoring.gravityMsForLevel(level) / mode.gravity) * fxFactor;
+    const baseGravity = (Scoring.gravityMsForLevel(level) / mode.gravity) * fxFactor * (mode.id === 'bomb' ? bombSpeedMultiplier : 1);
     const gravityMs = softDropActive && mode.id !== 'gravity'
       ? Math.min(baseGravity, 45 * fxFactor)
       : baseGravity;
@@ -8141,6 +8603,7 @@ const Game = (() => {
       grid,
       activeCells,
       activeColor: active ? active.color : 'cyan',
+      activeBombIndex: (mode.id === 'bomb' && active) ? active.bombCell : null,
       ghostCells: ghost ? Pieces.getCells(ghost) : null,
       ghostOn: !!ghost,
       lockFlashRows: state === 'clearing' ? pendingClearRows : null,
@@ -8789,43 +9252,54 @@ const BlockPreview = (() => {
 
 
 <script>
-/* menu-float-bounce.js — visible bouncing tetrominoes on menu */
-(function menuFloatBounce() {
+/* menu-float-bounce.js — gentle wall-bouncing tetrominoes */
+(function () {
   let raf = 0, running = false, items = [];
 
-  function rootEl() {
-    return document.getElementById('menu-float-blocks');
+  function root() { return document.getElementById('menu-float-blocks'); }
+
+  function measurePiece(el, size) {
+    // true grid extent from cell positions
+    let maxC = 1, maxR = 1;
+    el.querySelectorAll('i').forEach((cell) => {
+      const c = parseInt(cell.style.gridColumn, 10) || 1;
+      const r = parseInt(cell.style.gridRow, 10) || 1;
+      if (c > maxC) maxC = c;
+      if (r > maxR) maxR = r;
+    });
+    const gap = 2;
+    return {
+      w: maxC * size + (maxC - 1) * gap,
+      h: maxR * size + (maxR - 1) * gap,
+    };
   }
 
   function layout() {
-    const root = rootEl();
-    if (!root) return;
+    const el = root();
+    if (!el) return;
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const nodes = [...root.querySelectorAll('.float-piece')];
-    items = nodes.map((el, i) => {
-      const color = el.getAttribute('data-c') || '#4cf3ff';
-      el.style.setProperty('--c', color);
-      const size = 16 + (i % 4); // 16–19px
-      el.style.setProperty('--size', size + 'px');
-      // force visible
-      el.style.opacity = '0.92';
-      el.style.visibility = 'visible';
-      // estimate bounds from cells
-      const cells = el.querySelectorAll('i').length || 4;
-      const cols = Math.min(4, cells);
-      const w = size * 4 + 8;
-      const h = size * 3 + 8;
-      const speed = 0.5 + Math.random() * 0.9;
+    const nodes = [...el.querySelectorAll('.float-piece')];
+    items = nodes.map((node, i) => {
+      const color = node.getAttribute('data-c') || '#4cf3ff';
+      const size = 17 + (i % 4) * 2; // ~17–23px
+      node.style.setProperty('--c', color);
+      node.style.setProperty('--size', size + 'px');
+      node.style.opacity = '0.92';
+      node.style.visibility = 'visible';
+      const { w, h } = measurePiece(node, size);
+      // gentle speeds
+      const speed = 0.35 + Math.random() * 0.45;
       const angle = Math.random() * Math.PI * 2;
       return {
-        el, w, h,
-        x: Math.random() * Math.max(20, W - w),
-        y: Math.random() * Math.max(20, H - h),
+        el: node,
+        w, h,
+        x: 12 + Math.random() * Math.max(20, W - w - 24),
+        y: 12 + Math.random() * Math.max(20, H - h - 24),
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         rot: Math.random() * 360,
-        vr: (Math.random() - 0.5) * 0.8,
+        vr: (Math.random() - 0.5) * 0.35, // soft spin
       };
     });
   }
@@ -8834,32 +9308,56 @@ const BlockPreview = (() => {
     if (!running) return;
     const W = window.innerWidth;
     const H = window.innerHeight;
+    const pad = 6;
     for (const p of items) {
       p.x += p.vx;
       p.y += p.vy;
       p.rot += p.vr;
-      if (p.x <= 0) { p.x = 0; p.vx = Math.abs(p.vx) || 0.4; }
-      if (p.y <= 0) { p.y = 0; p.vy = Math.abs(p.vy) || 0.4; }
-      if (p.x + p.w >= W) { p.x = Math.max(0, W - p.w); p.vx = -Math.abs(p.vx) || -0.4; }
-      if (p.y + p.h >= H) { p.y = Math.max(0, H - p.h); p.vy = -Math.abs(p.vy) || -0.4; }
+      // bounce off walls (full screen)
+      if (p.x <= pad) { p.x = pad; p.vx = Math.abs(p.vx); }
+      if (p.y <= pad) { p.y = pad; p.vy = Math.abs(p.vy); }
+      if (p.x + p.w >= W - pad) { p.x = W - pad - p.w; p.vx = -Math.abs(p.vx); }
+      if (p.y + p.h >= H - pad) { p.y = H - pad - p.h; p.vy = -Math.abs(p.vy); }
+      // keep minimum speed so nothing freezes
+      if (Math.abs(p.vx) < 0.2) p.vx = (p.vx < 0 ? -1 : 1) * 0.28;
+      if (Math.abs(p.vy) < 0.2) p.vy = (p.vy < 0 ? -1 : 1) * 0.28;
       p.el.style.transform =
         'translate3d(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px,0) rotate(' + p.rot.toFixed(1) + 'deg)';
     }
     raf = requestAnimationFrame(frame);
   }
 
-  function start() {
-    const root = rootEl();
-    if (!root) return;
-    root.style.display = 'block';
-    layout();
-    running = true;
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(frame);
+  function onStartScreen() {
+    const s = document.getElementById('screen-start');
+    if (!s) return true;
+    return s.classList.contains('screen--active') || s.style.display === 'flex' || !document.querySelector('.screen.screen--active') || s.classList.contains('screen--active');
   }
+
+  function start() {
+    const el = root();
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.visibility = 'visible';
+    layout();
+    if (!running) {
+      running = true;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
   function stop() {
     running = false;
     cancelAnimationFrame(raf);
+    const el = root();
+    if (el) el.style.display = 'none';
+  }
+
+  function sync() {
+    const startScreen = document.getElementById('screen-start');
+    const active = document.querySelector('.screen.screen--active');
+    if (!active || (startScreen && active === startScreen)) start();
+    else stop();
   }
 
   function boot() {
@@ -8867,16 +9365,155 @@ const BlockPreview = (() => {
     window.addEventListener('resize', () => { if (running) layout(); });
     const startScreen = document.getElementById('screen-start');
     if (startScreen) {
-      new MutationObserver(() => {
-        if (startScreen.classList.contains('screen--active')) start();
-        else stop();
-      }).observe(startScreen, { attributes: true, attributeFilter: ['class'] });
+      new MutationObserver(sync).observe(startScreen, { attributes: true, attributeFilter: ['class'] });
     }
+    document.querySelectorAll('.screen').forEach((sc) => {
+      new MutationObserver(sync).observe(sc, { attributes: true, attributeFilter: ['class'] });
+    });
   }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
 </script>
 
+<style id="menu-float-visibility-fix">
+/* Floating tetrominoes — full-screen, always visible on menu */
+#menu-float-blocks {
+  display: block !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  z-index: 25 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+#menu-float-blocks .float-piece {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, var(--size, 18px)) !important;
+  grid-template-rows: repeat(4, var(--size, 18px)) !important;
+  gap: 2px !important;
+  visibility: visible !important;
+  opacity: 0.92 !important;
+  z-index: 1 !important;
+  filter: drop-shadow(0 0 8px var(--c, #4cf3ff)) drop-shadow(0 0 18px color-mix(in srgb, var(--c, #4cf3ff) 55%, transparent)) !important;
+  will-change: transform !important;
+  pointer-events: none !important;
+}
+#menu-float-blocks .float-piece i {
+  display: block !important;
+  width: var(--size, 18px) !important;
+  height: var(--size, 18px) !important;
+  border-radius: 4px !important;
+  background: linear-gradient(145deg, rgba(255,255,255,0.6), var(--c, #4cf3ff) 40%, color-mix(in srgb, var(--c, #4cf3ff) 65%, #000)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(0,0,0,0.28), 0 0 6px var(--c, #4cf3ff) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+body.is-playing #menu-float-blocks,
+#screen-game.screen--active ~ #menu-float-blocks {
+  display: none !important;
+}
+</style>
+
+<style id="premium-bomb-and-level-fx">
+/* Premium in-game announcements */
+.toast {
+  min-width: min(82vw, 340px);
+  padding: 13px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.22)!important;
+  background:
+    linear-gradient(180deg,rgba(28,30,38,.94),rgba(8,9,14,.88)),
+    radial-gradient(circle at 50% 0%,rgba(255,255,255,.12),transparent 65%);
+  box-shadow:
+    0 18px 55px rgba(0,0,0,.58),
+    0 0 28px rgba(0,255,180,.16),
+    inset 0 1px 0 rgba(255,255,255,.20);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  font-family: system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .10em;
+  text-align:center;
+}
+.toast--tetris {
+  font-size: clamp(1.25rem,5vw,1.8rem);
+  color:#fff;
+  text-shadow:0 0 12px var(--accent),0 0 30px color-mix(in srgb,var(--accent) 60%,transparent);
+}
+.toast--combo,.toast--levelup {
+  font-size: clamp(1.15rem,4.5vw,1.55rem);
+  color:#fff;
+}
+.toast--highscore { font-size:clamp(1.1rem,4vw,1.45rem); color:#fff; }
+.toast--default { font-size:clamp(1rem,3.8vw,1.25rem); }
+@keyframes premiumToastIn {
+  0%{opacity:0;transform:translateY(-18px) scale(.82);filter:blur(7px)}
+  55%{opacity:1;transform:translateY(3px) scale(1.05);filter:blur(0)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.toast--in {
+  animation:premiumToastIn .38s cubic-bezier(.18,.9,.25,1.2) both;
+}
+
+/* Gameplay polish: layered, turbulent flame lighting and responsive impact feedback. */
+@keyframes gameplay-fire-drift {
+  0% { transform: translate3d(-1.5%, 1%, 0) scale(1); filter: blur(5px) brightness(.92); }
+  35% { transform: translate3d(1.2%, -2%, 0) scale(1.035,.98); filter: blur(7px) brightness(1.12); }
+  70% { transform: translate3d(-.5%, -3%, 0) scale(.985,1.04); filter: blur(4px) brightness(1.04); }
+  100% { transform: translate3d(1%, 0, 0) scale(1.02,1); filter: blur(6px) brightness(.96); }
+}
+@keyframes gameplay-ember-rise {
+  0% { transform: translate3d(0, 8px, 0) scale(.55); opacity: 0; }
+  12% { opacity: .95; }
+  75% { opacity: .75; }
+  100% { transform: translate3d(var(--ember-drift, 10px), -42px, 0) scale(.12); opacity: 0; }
+}
+html[data-block-style="fire"] .board-frame {
+  position: relative;
+  isolation: isolate;
+  filter: drop-shadow(0 0 8px rgba(255,83,18,.28)) drop-shadow(0 0 22px rgba(255,42,8,.12));
+}
+html[data-block-style="fire"] .board-frame::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 15% 100%, rgba(255,65,8,.5), transparent 43%),
+    radial-gradient(ellipse at 80% 100%, rgba(255,154,26,.38), transparent 48%),
+    linear-gradient(0deg, rgba(255,54,9,.13), transparent 45%);
+  animation: gameplay-fire-drift 1.8s ease-in-out infinite alternate;
+  mix-blend-mode: screen;
+}
+html[data-block-style="fire"] .board-frame canvas {
+  filter: drop-shadow(0 0 2px rgba(255,132,34,.18));
+}
+.game-screen canvas { backface-visibility: hidden; }
+.game-screen .particle, .game-screen [class*="particle"], .game-screen [class*="ember"] {
+  will-change: transform, opacity;
+}
+.game-screen [class*="ember"] {
+  animation: gameplay-ember-rise 1.35s cubic-bezier(.2,.65,.3,1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-block-style="fire"] .board-frame::before,
+  .game-screen [class*="ember"] { animation: none !important; }
+}
+</style>
+
 </body>
 </html>
+
+
