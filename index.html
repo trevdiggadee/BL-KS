@@ -5492,7 +5492,7 @@ const Audio_ = (() => {
  */
 const Particles = (() => {
   let particles = [], shocks = [], beams = [], bombRings = [];
-  const MAX_PARTICLES = 650;
+  const MAX_PARTICLES = 180;
   const style = () => document.documentElement.dataset.blockStyle || 'neon';
 
   function hexToRgb(hex) {
@@ -5504,37 +5504,28 @@ const Particles = (() => {
   function push(p){ if(particles.length<MAX_PARTICLES) particles.push(p); }
 
   function spawnLineClearBurst(rows, cols, cellSize, colors, big=false){
-    const st=style(), per=big?8:5, boardWidth=cols*cellSize;
+    // Cap particles hard — full-board clears used to spawn hundreds and tank FPS.
+    const st=style(), per=big?3:2, boardWidth=cols*cellSize;
+    const step = big ? 1 : 2; // every other cell when not a Tetris
     rows.forEach((y,idx)=>{
-      for(let i=0;i<cols;i++){
+      for(let i=0;i<cols;i+=step){
         const x=i*cellSize+cellSize/2, color=colors[(i+idx)%colors.length];
         for(let n=0;n<per;n++){
-          const a=Math.random()*Math.PI*2, speed=(big?3.2:2)+Math.random()*(big?7:4.5);
-          const p={x,y:y+cellSize/2,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-(big?2.4:1.2),life:1,decay:.012+Math.random()*.016,size:(big?3:2)+Math.random()*(big?6:3.5),color,grav:true,kind:st};
-          if(st==='voxel'){p.vx*=.75;p.vy*=.55;p.size=Math.max(2,Math.round(p.size));}
-          if(st==='glass'){p.grav=false;p.kind='sparkle';p.decay*=.8;}
-          if(st==='holo'){p.kind='glitch';p.grav=false;p.vx*=1.5;}
-          if(st==='chrome'){p.size*=.7;p.vy-=1;}
-          if(st==='neon'){p.kind='electric';}
+          const a=Math.random()*Math.PI*2, speed=(big?2.8:1.8)+Math.random()*(big?5:3.2);
+          const p={x,y:y+cellSize/2,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-(big?2:1),life:1,decay:.02+Math.random()*.02,size:(big?2.5:2)+Math.random()*3,color,grav:true,kind:'fast'};
           push(p);
         }
       }
-      shocks.push({y:y+cellSize/2,width:boardWidth,height:6,maxHeight:big?60:34,life:1,color:colors[idx%colors.length],kind:st});
+      shocks.push({y:y+cellSize/2,width:boardWidth,height:6,maxHeight:big?48:28,life:1,color:colors[idx%colors.length],kind:st});
     });
   }
 
-  function spawnBurstAt(x,y,color,count=14){
-    const st=style();
+  function spawnBurstAt(x,y,color,count=8){
+    count = Math.min(count, 10);
     for(let n=0;n<count;n++){
       const a=Math.random()*Math.PI*2;
-      let speed=1.5+Math.random()*3;
-      const p={x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:1,decay:.025+Math.random()*.02,size:2+Math.random()*3,color,grav:true,kind:st};
-      if(st==='glass'){p.grav=false;p.kind='sparkle';}
-      if(st==='holo'){p.grav=false;p.kind='glitch';}
-      if(st==='voxel'){p.size=Math.max(2,Math.round(p.size));p.vx*=.7;p.vy*=.7;}
-      if(st==='chrome'){p.size*=.65;p.vy-=1.2;}
-      if(st==='neon'){p.kind='electric';}
-      push(p);
+      const speed=1.4+Math.random()*2.8;
+      push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:1,decay:.03+Math.random()*.025,size:2+Math.random()*2.5,color,grav:true,kind:'fast'});
     }
   }
 
@@ -5542,29 +5533,21 @@ const Particles = (() => {
 
 
   function spawnBombExplosion(x, y, cellSize, power=1) {
-    const st = style();
-    // Expanding concentric shock rings
-    bombRings.push({x,y,r:cellSize*.18,maxR:cellSize*(2.7+power*.8),life:1,color:'#ff3b20',width:cellSize*.12});
-    bombRings.push({x,y,r:cellSize*.10,maxR:cellSize*(1.8+power*.5),life:.9,color:'#ffd45a',width:cellSize*.055});
-
-    // Hot core flash particles
-    for(let n=0;n<90;n++){
+    bombRings.push({x,y,r:cellSize*.18,maxR:cellSize*(2.4+power*.6),life:1,color:'#ff3b20',width:cellSize*.1});
+    bombRings.push({x,y,r:cellSize*.10,maxR:cellSize*(1.6+power*.4),life:.85,color:'#ffd45a',width:cellSize*.05});
+    for(let n=0;n<36;n++){
       const a=Math.random()*Math.PI*2;
-      const speed=(1.8+Math.random()*8.5)*power;
-      const p={x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:1,
-        decay:.018+Math.random()*.024,size:1.5+Math.random()*4.5,
+      const speed=(1.6+Math.random()*6)*power;
+      push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:1,
+        decay:.025+Math.random()*.03,size:1.5+Math.random()*3.5,
         color:n%3===0?'#fff4b0':(n%3===1?'#ffb52e':'#ff3b20'),
-        grav:true,kind:st};
-      if(st==='neon') p.kind='electric';
-      if(st==='glass') {p.kind='sparkle';p.grav=false;}
-      push(p);
+        grav:true,kind:'fast'});
     }
-    // Smoke/debris halo
-    for(let n=0;n<28;n++){
-      const a=Math.random()*Math.PI*2, speed=.4+Math.random()*2.8;
+    for(let n=0;n<12;n++){
+      const a=Math.random()*Math.PI*2, speed=.4+Math.random()*2.2;
       push({x:x+Math.cos(a)*cellSize*.15,y:y+Math.sin(a)*cellSize*.15,
-        vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-1.2,life:1,
-        decay:.012+Math.random()*.012,size:3+Math.random()*7,
+        vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-1,life:1,
+        decay:.018+Math.random()*.015,size:2.5+Math.random()*5,
         color:n%2?'#3b3030':'#151515',grav:true,kind:'smoke'});
     }
   }
@@ -5616,20 +5599,41 @@ const Particles = (() => {
   }
 
   function draw(ctx){
-    drawAmbientStyle(ctx, ctx.canvas.clientWidth || ctx.canvas.width || 1, ctx.canvas.clientHeight || ctx.canvas.height || 1);
+    // Skip ambient particles when the board is busy — was drawing 12–20
+    // shadowBlur arcs every frame even with no gameplay events.
+    if (particles.length < 8 && shocks.length === 0 && beams.length === 0) {
+      drawAmbientStyle(ctx, ctx.canvas.clientWidth || ctx.canvas.width || 1, ctx.canvas.clientHeight || ctx.canvas.height || 1);
+    }
     shocks.forEach(s=>{const a=Math.max(0,s.life)*.5;const g=ctx.createLinearGradient(0,s.y-s.height/2,0,s.y+s.height/2);g.addColorStop(0,rgba(s.color,0));g.addColorStop(.5,rgba(s.color,a));g.addColorStop(1,rgba(s.color,0));ctx.fillStyle=g;ctx.fillRect(0,s.y-s.height/2,s.width,s.height);});
     beams.forEach(b=>{const a=Math.max(0,b.life);if(a<=.01)return;const g=ctx.createLinearGradient(0,b.yTop,0,b.yBottom);g.addColorStop(0,rgba(b.color,0));g.addColorStop(.7,rgba(b.color,a*.5));g.addColorStop(1,rgba(b.color,a*.9));ctx.fillStyle=g;ctx.fillRect(b.x-b.width/2,b.yTop,b.width,Math.max(1,b.yBottom-b.yTop));});
     bombRings.forEach(r=>{
       const a=Math.max(0,r.life);
       ctx.save(); ctx.globalAlpha=a;
-      ctx.strokeStyle=r.color; ctx.shadowColor=r.color; ctx.shadowBlur=18;
+      ctx.strokeStyle=r.color;
       ctx.lineWidth=Math.max(1,r.width*(.35+.65*a));
       ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.stroke();
       ctx.globalAlpha=a*.18; ctx.fillStyle=r.color;
       ctx.beginPath();ctx.arc(r.x,r.y,r.r*.9,0,Math.PI*2);ctx.fill();
       ctx.restore();
     });
-    particles.forEach(p=>{const a=Math.max(0,p.life);if(a<=.01)return;switch(p.kind){case'electric':drawElectric(ctx,p,a);break;case'sparkle':drawSparkle(ctx,p,a);break;case'voxel':drawVoxel(ctx,p,a);break;case'chrome':drawChrome(ctx,p,a);break;case'glitch':drawHolo(ctx,p,a);break;case'smoke':ctx.save();ctx.globalAlpha=a*.22;ctx.fillStyle=p.color;ctx.filter='blur(2px)';ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1.2+a),0,Math.PI*2);ctx.fill();ctx.restore();break;default:ctx.save();ctx.globalAlpha=a;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);ctx.restore();}});
+    particles.forEach(p=>{
+      const a=Math.max(0,p.life); if(a<=.01) return;
+      // 'fast' = cheap solid particles (no shadowBlur) for gameplay clears/ignition.
+      if (p.kind==='fast' || p.kind==='default' || !p.kind) {
+        ctx.globalAlpha=a; ctx.fillStyle=p.color;
+        ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+        return;
+      }
+      switch(p.kind){
+        case'electric':drawElectric(ctx,p,a);break;
+        case'sparkle':drawSparkle(ctx,p,a);break;
+        case'voxel':drawVoxel(ctx,p,a);break;
+        case'chrome':drawChrome(ctx,p,a);break;
+        case'glitch':drawHolo(ctx,p,a);break;
+        case'smoke':ctx.save();ctx.globalAlpha=a*.22;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1.2+a),0,Math.PI*2);ctx.fill();ctx.restore();break;
+        default:ctx.globalAlpha=a;ctx.fillStyle=p.color;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+      }
+    });
     ctx.globalAlpha=1;ctx.shadowBlur=0;
   }
   function clear(){particles=[];shocks=[];beams=[];bombRings=[];} function count(){return particles.length;}
@@ -6820,59 +6824,52 @@ const UI = (() => {
 
     // Shared style renderer: the live Block Studio preview and in-game board both
 // call this function, so a selected material is rendered consistently in play.
-function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
+  // Hoisted — avoid reallocating every cell every frame.
+  const TYPE_INDEX = {
+    cyan: 0, amber: 1, violet: 2, green: 3,
+    magenta: 4, blue: 5, orange: 6
+  };
+  const HEX_TO_NAME = {
+    '#4cf3ff': 'cyan', '#ffc94c': 'amber', '#9b6bff': 'violet', '#3cffb0': 'green',
+    '#ff3ea5': 'magenta', '#4c8cff': 'blue', '#ff8a3c': 'orange',
+    '#5ad1ff': 'cyan', '#ffd23f': 'amber', '#b48cff': 'violet', '#5fe37a': 'green',
+    '#ff5f7e': 'magenta', '#5a86ff': 'blue', '#ff9a4d': 'orange',
+    '#00f0ff': 'cyan', '#ffea00': 'amber', '#a742ff': 'violet', '#00ffab': 'green',
+    '#d400ff': 'magenta', '#4361ff': 'blue', '#ff5e9e': 'orange'
+  };
+
+  /** applyFx only for active/falling piece — locked stack skips sparkle/pulse (main lag source). */
+  function drawCell(ctx, row, col, color, alpha = 1, glow = true, applyFx = false) {
     const x = col * cellSize;
     const y = row * cellSize;
     const t = visualTime;
 
-    // IMPORTANT: gameplay no longer has its own material renderer.
-    // BlockPreview is the single source of truth for the actual block surface.
-    // This is what makes the Block Studio selection visually identical to both
-    // falling pieces and locked/completed pieces.
-    const TYPE_INDEX = {
-      cyan: 0, amber: 1, violet: 2, green: 3,
-      magenta: 4, blue: 5, orange: 6
-    };
-    // Prefer an explicit type index, then a color name ('cyan'), then try to
-    // reverse-map a hex that colorFor() may have already resolved.
     let typeIndex = 0;
     if (typeof color === 'number') {
       typeIndex = color;
     } else if (TYPE_INDEX[color] !== undefined) {
       typeIndex = TYPE_INDEX[color];
-    } else if (typeof color === 'string' && color.startsWith('#')) {
-      const HEX_TO_NAME = {
-        '#4cf3ff': 'cyan', '#ffc94c': 'amber', '#9b6bff': 'violet', '#3cffb0': 'green',
-        '#ff3ea5': 'magenta', '#4c8cff': 'blue', '#ff8a3c': 'orange',
-        '#5ad1ff': 'cyan', '#ffd23f': 'amber', '#b48cff': 'violet', '#5fe37a': 'green',
-        '#ff5f7e': 'magenta', '#5a86ff': 'blue', '#ff9a4d': 'orange',
-        '#00f0ff': 'cyan', '#ffea00': 'amber', '#a742ff': 'violet', '#00ffab': 'green',
-        '#d400ff': 'magenta', '#4361ff': 'blue', '#ff5e9e': 'orange'
-      };
+    } else if (typeof color === 'string' && color.charCodeAt(0) === 35) {
       const name = HEX_TO_NAME[color.toLowerCase()];
       if (name) typeIndex = TYPE_INDEX[name];
     }
 
-    // ALWAYS use the Block Studio material renderer.  In particular, never
-    // fall back to a flat color: that was the source of the solid-colored
-    // active/falling blocks.  The selected material is read inside
-    // BlockPreview from document.documentElement.dataset.blockStyle.
     if (typeof BlockPreview !== 'undefined' && BlockPreview.renderCell) {
       BlockPreview.renderCell(ctx, x, y, cellSize, typeIndex, row, col, t, alpha, glow);
     }
 
-    // Gameplay FX are layered over the exact same material surface. They no
-    // longer replace, hide, or determine the block's base appearance.
-    ctx.save();
-    ctx.translate(x, y);
-    if (fx.chromatic) fxChromatic(ctx, cellSize);
-    if (fx.pulse) fxPulse(ctx, cellSize, t, row, col);
-    if (fx.frost) fxFrost(ctx, cellSize, t, row, col);
-    if (fx.fire) fxFire(ctx, cellSize, t, row, col);
-    if (fx.smoke) fxSmoke(ctx, cellSize, t, row, col);
-    if (fx.lightning) fxLightning(ctx, cellSize, t, row, col);
-    if (fx.sparkle) fxSparkle(ctx, cellSize, t, row, col);
-    ctx.restore();
+    if (applyFx) {
+      ctx.save();
+      ctx.translate(x, y);
+      if (fx.chromatic) fxChromatic(ctx, cellSize);
+      if (fx.pulse) fxPulse(ctx, cellSize, t, row, col);
+      if (fx.frost) fxFrost(ctx, cellSize, t, row, col);
+      if (fx.fire) fxFire(ctx, cellSize, t, row, col);
+      if (fx.smoke) fxSmoke(ctx, cellSize, t, row, col);
+      if (fx.lightning) fxLightning(ctx, cellSize, t, row, col);
+      if (fx.sparkle) fxSparkle(ctx, cellSize, t, row, col);
+      ctx.restore();
+    }
   }
 
   // Motion trail for the falling piece (soft after-images).
@@ -6887,27 +6884,32 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
       : 'cyan';
     pieceTrail.push({
       cells: cells.map(([r, c]) => [r, c]),
-      colorName: name,
+      hex: colorFor(name),
       life: 1,
     });
-    if (pieceTrail.length > 10) pieceTrail.shift();
+    // Keep trail short — each segment was a full material redraw (expensive).
+    if (pieceTrail.length > 4) pieceTrail.shift();
   }
   function resetTrail() { pieceTrail = []; }
   function drawTrail(ctx) {
     if (!pieceTrail.length) return;
     const hiddenOffset = (typeof Board !== 'undefined' ? Board.HIDDEN_ROWS : 2);
+    const pad = cellSize * 0.14;
     pieceTrail.forEach((seg) => {
-      seg.life *= 0.82;
-      const a = seg.life * 0.32;
+      seg.life *= 0.75;
+      const a = seg.life * 0.22;
       if (a < 0.03) return;
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.fillStyle = seg.hex;
       seg.cells.forEach(([r, c]) => {
         const row = r - hiddenOffset;
         if (row < -1) return;
-        // Same material path as the live falling block — no solid fillRect.
-        drawCell(ctx, row, c, seg.colorName, a, false);
+        ctx.fillRect(c * cellSize + pad, row * cellSize + pad, cellSize - pad * 2, cellSize - pad * 2);
       });
+      ctx.restore();
     });
-    pieceTrail = pieceTrail.filter((s) => s.life > 0.06);
+    pieceTrail = pieceTrail.filter((s) => s.life > 0.05);
   }
 
     function drawGhost(ctx, row, col, color) {
@@ -7273,16 +7275,20 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
           // Mind Bender "Blur": the stack fades left-to-right once a second
           const cellAlpha = mb && mb.blurMs != null ? MindBender.blurAlpha(c, mb.blurMs) : 1;
           const blockColor = colorFor(cell);
-          // Pass the color *name* (e.g. 'cyan'), not the resolved hex.
-          // drawCell maps the name → type index for the Block Studio material.
-          drawCell(boardCtx, r - hiddenOffset, c, cell, cellAlpha, true);
-          // Inferno: fire only on the locked stack — surrounds the block after
-          // it is drawn so flames wrap edges / rise around it (not on falling piece).
-          if (infernoActive) drawInfernoFire(boardCtx, r - hiddenOffset, c, blockColor, infernoHeights[c], cellAlpha);
-          if (isItem) drawItemMark(boardCtx, r - hiddenOffset, c, mb ? mb.urgency : 0, cellAlpha);
-          if (isJewel) drawGemMark(boardCtx, r - hiddenOffset, c, Jewels.gemType(rawCell), cellAlpha);
-          if (isBomb) drawBombMark(boardCtx, r - hiddenOffset, c, cellAlpha);
-          if (stackActive && rawCell === 'danger') drawStackDanger(boardCtx, r - hiddenOffset, c, phase);
+          const visRow = r - hiddenOffset;
+          // Locked stack: material only, no per-cell FX (sparkle/pulse) — huge FPS win.
+          drawCell(boardCtx, visRow, c, cell, cellAlpha, false, false);
+          // Inferno: fire only on the TOP cell of each column (surface), not every buried block.
+          if (infernoActive && infernoHeights[c] > 0) {
+            const topVis = Board.TOTAL_ROWS - hiddenOffset - infernoHeights[c];
+            if (visRow === topVis) {
+              drawInfernoFire(boardCtx, visRow, c, blockColor, infernoHeights[c], cellAlpha);
+            }
+          }
+          if (isItem) drawItemMark(boardCtx, visRow, c, mb ? mb.urgency : 0, cellAlpha);
+          if (isJewel) drawGemMark(boardCtx, visRow, c, Jewels.gemType(rawCell), cellAlpha);
+          if (isBomb) drawBombMark(boardCtx, visRow, c, cellAlpha);
+          if (stackActive && rawCell === 'danger') drawStackDanger(boardCtx, visRow, c, phase);
           if (flashing) {
             boardCtx.save();
             boardCtx.globalAlpha = 0.7;
@@ -7304,8 +7310,8 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
     if (activeCells) {
       activeCells.forEach(([r, c], idx) => {
         if (r - hiddenOffset >= 0) {
-          // Falling piece stays clean — no Inferno fire until it locks.
-          drawCell(boardCtx, r - hiddenOffset, c, activeColor, 1, true);
+          // Falling piece: full material + studio FX; no Inferno fire until lock.
+          drawCell(boardCtx, r - hiddenOffset, c, activeColor, 1, true, true);
           if (activeBombIndex === idx) drawBombMark(boardCtx, r - hiddenOffset, c, 1);
         }
       });
