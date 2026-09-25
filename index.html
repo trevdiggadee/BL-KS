@@ -1227,11 +1227,15 @@ body.mode-stackattack .board-frame::after {
   animation: stack-scan 1.1s linear infinite;
 }
 body.mode-inferno .board-frame {
-  animation: inferno-frame 1.15s ease-in-out infinite;
+  /* Static heat rim — no continuous animation (saves composite cost). */
+  box-shadow:
+    0 0 0 1px rgba(255,110,30,.14),
+    0 0 28px rgba(255,55,10,.10),
+    inset 0 0 24px rgba(255,60,10,.05);
 }
 body.mode-inferno .hud-bar,
 body.mode-inferno .game-controls {
-  filter: saturate(1.18);
+  filter: saturate(1.08);
 }
 @keyframes stack-frame-pulse {
   0%,100% { box-shadow:0 0 0 1px rgba(255,70,50,.13),0 0 28px rgba(255,55,30,.10); }
@@ -5643,7 +5647,7 @@ const Particles = (() => {
 
 const Effects = (() => {
   let shakeMagnitude = 0;
-  let shakeDecay = 0.85;
+  let shakeDecay = 0.82;
   let flashAlpha = 0;
   let flashColor = '255,255,255';
   let animationsEnabled = true;
@@ -5657,8 +5661,22 @@ const Effects = (() => {
 
   function flash(color = '255,255,255', alpha = 0.35) {
     if (!animationsEnabled) return;
-    flashColor = color;
-    flashAlpha = Math.max(flashAlpha, alpha);
+    // Normalize rgba(...) strings so the overlay always gets "r,g,b".
+    if (typeof color === 'string' && color.indexOf('rgb') === 0) {
+      const m = color.match(/([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
+      if (m) {
+        flashColor = `${m[1]},${m[2]},${m[3]}`;
+        if (arguments.length < 2) {
+          const a = color.match(/,\s*([\d.]+)\s*\)\s*$/);
+          if (a) alpha = parseFloat(a[1]);
+        }
+      } else {
+        flashColor = color;
+      }
+    } else {
+      flashColor = color;
+    }
+    flashAlpha = Math.max(flashAlpha, Math.min(0.5, alpha));
   }
 
   function getShakeOffset() {
@@ -5670,9 +5688,10 @@ const Effects = (() => {
   }
 
   function getFlashOverlayStyle() {
-    if (flashAlpha < 0.01) { flashAlpha = 0; return null; }
+    if (flashAlpha < 0.008) { flashAlpha = 0; return null; }
     const style = `rgba(${flashColor}, ${flashAlpha.toFixed(3)})`;
-    flashAlpha *= 0.88;
+    // Fast decay — orange flashes clear in ~6–8 frames at 60fps.
+    flashAlpha *= 0.68;
     return style;
   }
 
@@ -6814,9 +6833,25 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
       cyan: 0, amber: 1, violet: 2, green: 3,
       magenta: 4, blue: 5, orange: 6
     };
-    const typeIndex = typeof color === 'number'
-      ? color
-      : (TYPE_INDEX[color] ?? 0);
+    // Prefer an explicit type index, then a color name ('cyan'), then try to
+    // reverse-map a hex that colorFor() may have already resolved.
+    let typeIndex = 0;
+    if (typeof color === 'number') {
+      typeIndex = color;
+    } else if (TYPE_INDEX[color] !== undefined) {
+      typeIndex = TYPE_INDEX[color];
+    } else if (typeof color === 'string' && color.startsWith('#')) {
+      const HEX_TO_NAME = {
+        '#4cf3ff': 'cyan', '#ffc94c': 'amber', '#9b6bff': 'violet', '#3cffb0': 'green',
+        '#ff3ea5': 'magenta', '#4c8cff': 'blue', '#ff8a3c': 'orange',
+        '#5ad1ff': 'cyan', '#ffd23f': 'amber', '#b48cff': 'violet', '#5fe37a': 'green',
+        '#ff5f7e': 'magenta', '#5a86ff': 'blue', '#ff9a4d': 'orange',
+        '#00f0ff': 'cyan', '#ffea00': 'amber', '#a742ff': 'violet', '#00ffab': 'green',
+        '#d400ff': 'magenta', '#4361ff': 'blue', '#ff5e9e': 'orange'
+      };
+      const name = HEX_TO_NAME[color.toLowerCase()];
+      if (name) typeIndex = TYPE_INDEX[name];
+    }
 
     // ALWAYS use the Block Studio material renderer.  In particular, never
     // fall back to a flat color: that was the source of the solid-colored
@@ -6841,12 +6876,18 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
   }
 
   // Motion trail for the falling piece (soft after-images).
+  // Uses the same Block Studio material as the live piece — never a flat solid.
   let pieceTrail = [];
-  function recordTrail(cells, color) {
+  function recordTrail(cells, colorName) {
     if (!cells || !cells.length) return;
+    // Prefer a color *name* ('cyan') so the material renderer can use it.
+    // If a hex was passed (legacy), fall back to 'cyan'.
+    const name = (typeof colorName === 'string' && !colorName.startsWith('#'))
+      ? colorName
+      : 'cyan';
     pieceTrail.push({
       cells: cells.map(([r, c]) => [r, c]),
-      color: color || '#4cf3ff',
+      colorName: name,
       life: 1,
     });
     if (pieceTrail.length > 10) pieceTrail.shift();
@@ -6857,20 +6898,14 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
     const hiddenOffset = (typeof Board !== 'undefined' ? Board.HIDDEN_ROWS : 2);
     pieceTrail.forEach((seg) => {
       seg.life *= 0.82;
-      const a = seg.life * 0.28;
+      const a = seg.life * 0.32;
       if (a < 0.03) return;
-      ctx.save();
-      ctx.globalAlpha = a;
       seg.cells.forEach(([r, c]) => {
-        const y = (r - hiddenOffset) * cellSize;
-        if (y < -cellSize) return;
-        ctx.fillStyle = seg.color;
-        ctx.shadowColor = seg.color;
-        ctx.shadowBlur = cellSize * 0.25;
-        const pad = cellSize * 0.12;
-        ctx.fillRect(c * cellSize + pad, y + pad, cellSize - pad * 2, cellSize - pad * 2);
+        const row = r - hiddenOffset;
+        if (row < -1) return;
+        // Same material path as the live falling block — no solid fillRect.
+        drawCell(ctx, row, c, seg.colorName, a, false);
       });
-      ctx.restore();
     });
     pieceTrail = pieceTrail.filter((s) => s.life > 0.06);
   }
@@ -7082,56 +7117,82 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
     ];
   }
 
+  /**
+   * Inferno fire on locked stack only — visible but diffuse.
+   * Cheap drawing (no shadowBlur) so full boards stay smooth.
+   * Flames sit around the block edges so empty cells stay readable.
+   */
   function drawInfernoFire(ctx, row, col, baseColor, stackHeight, alpha = 1) {
     if (row < 0) return;
     const x = col * cellSize, y = row * cellSize, s = cellSize;
-    const [fireDark, fireHot, fireCore] = infernoFirePalette(baseColor);
-    // Stack height drives fire scale. More blocks in a column = larger fire.
-    const heightBoost = Math.min(1.9, 0.72 + stackHeight * 0.075);
-    const flameH = s * (0.34 + heightBoost * 0.16);
-    const pulse = 0.94 + 0.06 * Math.sin(col * 1.37 + row * 0.73);
+    const t = visualTime;
+    const phase = t * 6 + col * 1.5 + row * 0.8;
+    const flicker = 0.85 + 0.15 * Math.sin(phase);
 
     ctx.save();
-    ctx.globalAlpha = alpha;
     ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = alpha * flicker;
 
-    // Wide heat halo around the WHOLE block — the block itself remains clean.
-    const halo = ctx.createRadialGradient(x+s*.5,y+s*.56,0,x+s*.5,y+s*.56,s*(0.62+heightBoost*.22));
-    halo.addColorStop(0, fireHot + '80');
-    halo.addColorStop(.45, fireDark + '42');
-    halo.addColorStop(1, fireDark + '00');
-    ctx.fillStyle = halo;
-    ctx.fillRect(x-s*.3,y-s*.32,s*1.6,s*1.65);
+    // Warm under-glow (stays on the cell so empty space stays dark)
+    const cx = x + s * 0.5, cy = y + s * 0.7;
+    const under = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.7);
+    under.addColorStop(0, 'rgba(255,120,30,0.55)');
+    under.addColorStop(0.45, 'rgba(230,60,10,0.28)');
+    under.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = under;
+    ctx.fillRect(x - s * 0.1, y + s * 0.15, s * 1.2, s * 1.0);
 
-    // Outer flame crown rising ABOVE the block, not inside it.
-    const baseY = y + s*.12;
-    const topY = y - flameH;
-    ctx.shadowColor = fireHot;
-    ctx.shadowBlur = s*(0.18 + heightBoost*.12);
-    const flame = ctx.createLinearGradient(0,topY,0,baseY);
-    flame.addColorStop(0, fireCore + 'cc');
-    flame.addColorStop(.42, fireHot + 'dd');
-    flame.addColorStop(1, fireDark + 'ee');
-    ctx.fillStyle = flame;
-    ctx.beginPath();
-    ctx.moveTo(x+s*.12,baseY);
-    ctx.bezierCurveTo(x+s*.06,y-s*(.04+heightBoost*.05),x+s*.22,y-s*heightBoost*.18,x+s*.31,topY+s*.06);
-    ctx.bezierCurveTo(x+s*.38,topY+s*.20,x+s*.42,y-s*heightBoost*.12,x+s*.50,topY);
-    ctx.bezierCurveTo(x+s*.61,topY+s*.17,x+s*.63,y-s*heightBoost*.13,x+s*.72,topY+s*.10);
-    ctx.bezierCurveTo(x+s*.82,y-s*heightBoost*.05,x+s*.94,y+s*.02,x+s*.88,baseY);
-    ctx.closePath();
-    ctx.fill();
+    // Flame tongues rising from the TOP of the block (clearly visible)
+    const rise = s * (0.45 + Math.min(0.25, stackHeight * 0.015));
+    for (let i = 0; i < 3; i++) {
+      const u = 0.2 + i * 0.3;
+      const tipX = x + s * u + Math.sin(phase + i * 1.4) * s * 0.06;
+      const baseY = y + s * 0.15;
+      const tipY = y - rise * (0.55 + 0.25 * Math.sin(phase * 1.15 + i));
+      const halfW = s * (0.12 + 0.04 * Math.sin(phase * 1.2 + i));
 
-    // Stable ember sparks: positions are deterministic, so their colors stay
-    // with the block instead of changing randomly every frame.
-    ctx.shadowBlur = s*.18;
-    ctx.fillStyle = fireCore;
-    const sparks = Math.min(5, 2 + Math.floor(stackHeight/5));
-    for(let i=0;i<sparks;i++){
-      const sx=x+s*(.16+(((i*37+col*11+row*7)%67)/100));
-      const sy=topY+s*(.04+(((i*19+col*5)%55)/100));
-      const rr=Math.max(0.8,s*(.018+i*.004));
-      ctx.beginPath(); ctx.arc(sx,sy,rr,0,Math.PI*2); ctx.fill();
+      const g = ctx.createLinearGradient(tipX, baseY, tipX, tipY);
+      g.addColorStop(0, 'rgba(200,40,0,0.85)');
+      g.addColorStop(0.35, 'rgba(255,100,20,0.75)');
+      g.addColorStop(0.7, 'rgba(255,190,60,0.55)');
+      g.addColorStop(1, 'rgba(255,245,180,0)');
+
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(tipX - halfW, baseY);
+      ctx.quadraticCurveTo(tipX - halfW * 0.4, (baseY + tipY) * 0.5, tipX, tipY);
+      ctx.quadraticCurveTo(tipX + halfW * 0.4, (baseY + tipY) * 0.5, tipX + halfW, baseY);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Soft side heat (doesn't spill far into empty cells)
+    for (const side of [-1, 1]) {
+      const sx = x + (side < 0 ? 0 : s);
+      const sy = y + s * (0.45 + 0.12 * Math.sin(phase * 0.9 + side));
+      const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, s * 0.32);
+      sg.addColorStop(0, 'rgba(255,110,25,0.4)');
+      sg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sg;
+      ctx.beginPath();
+      ctx.arc(sx, sy, s * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Rising embers
+    for (let i = 0; i < 5; i++) {
+      const seed = (i * 53 + col * 17 + row * 11) % 97;
+      const cycle = (t * (0.45 + (seed % 5) * 0.06) + seed * 0.01) % 1;
+      const ex = x + s * (0.15 + (seed / 97) * 0.7) + Math.sin(t * 2 + i) * s * 0.05;
+      const ey = y + s * (0.9 - cycle * 1.2);
+      const er = Math.max(0.8, s * (0.035 * (1 - cycle * 0.4)));
+      const ea = (1 - cycle) * (0.55 + 0.4 * Math.sin(t * 7 + i));
+      if (ea < 0.06) continue;
+      ctx.globalAlpha = alpha * ea;
+      ctx.fillStyle = i % 2 === 0 ? '#ffd45a' : '#fff5c8';
+      ctx.beginPath();
+      ctx.arc(ex, ey, er, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.restore();
@@ -7212,10 +7273,12 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
           // Mind Bender "Blur": the stack fades left-to-right once a second
           const cellAlpha = mb && mb.blurMs != null ? MindBender.blurAlpha(c, mb.blurMs) : 1;
           const blockColor = colorFor(cell);
-          // Inferno fire is rendered BEHIND the block so the entire block
-          // reads as a burning object rather than containing a flame texture.
+          // Pass the color *name* (e.g. 'cyan'), not the resolved hex.
+          // drawCell maps the name → type index for the Block Studio material.
+          drawCell(boardCtx, r - hiddenOffset, c, cell, cellAlpha, true);
+          // Inferno: fire only on the locked stack — surrounds the block after
+          // it is drawn so flames wrap edges / rise around it (not on falling piece).
           if (infernoActive) drawInfernoFire(boardCtx, r - hiddenOffset, c, blockColor, infernoHeights[c], cellAlpha);
-          drawCell(boardCtx, r - hiddenOffset, c, blockColor, cellAlpha, true);
           if (isItem) drawItemMark(boardCtx, r - hiddenOffset, c, mb ? mb.urgency : 0, cellAlpha);
           if (isJewel) drawGemMark(boardCtx, r - hiddenOffset, c, Jewels.gemType(rawCell), cellAlpha);
           if (isBomb) drawBombMark(boardCtx, r - hiddenOffset, c, cellAlpha);
@@ -7241,9 +7304,8 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
     if (activeCells) {
       activeCells.forEach(([r, c], idx) => {
         if (r - hiddenOffset >= 0) {
-          const activeBlockColor = colorFor(activeColor);
-          if (infernoActive) drawInfernoFire(boardCtx, r - hiddenOffset, c, activeBlockColor, Math.max(1, infernoHeights[c] || 1), 1);
-          drawCell(boardCtx, r - hiddenOffset, c, activeBlockColor, 1, true);
+          // Falling piece stays clean — no Inferno fire until it locks.
+          drawCell(boardCtx, r - hiddenOffset, c, activeColor, 1, true);
           if (activeBombIndex === idx) drawBombMark(boardCtx, r - hiddenOffset, c, 1);
         }
       });
@@ -7285,16 +7347,15 @@ function drawCell(ctx, row, col, color, alpha = 1, glow = true) {
     const totalW = w * size, totalH = h * size;
     const offX = (ctx.canvas.width - totalW) / 2;
     const offY = (ctx.canvas.height - totalH) / 2;
-    const color = colorFor(shape.color);
 
     // Use the exact same renderer as the live falling and locked board cells.
-    // This keeps hold/next previews visually identical to the selected material.
+    // Pass the color *name* (not hex) so the Block Studio material is applied.
     const previousCellSize = cellSize;
     cellSize = size;
     cells.forEach(([r, c]) => {
       ctx.save();
       ctx.translate(offX, offY);
-      drawCell(ctx, r - minR, c - minC, color, 1, true);
+      drawCell(ctx, r - minR, c - minC, shape.color, 1, true);
       ctx.restore();
     });
     cellSize = previousCellSize;
@@ -7985,6 +8046,20 @@ const Game = (() => {
     saveData.stats.totalPieces += 1;
     Audio_.sfx.lock();
 
+    // Inferno: brief ignition spark when the piece locks (few particles, tiny flash).
+    if (mode.id === 'inferno' && typeof Particles !== 'undefined') {
+      const cs = UI.cellSize;
+      const hidden = Board.HIDDEN_ROWS;
+      const fireColors = ['#ff5a1f', '#ff9f1c', '#ffd23f'];
+      lockedCells.forEach(([r, c], i) => {
+        if (r - hidden < 0) return;
+        const px = c * cs + cs / 2;
+        const py = (r - hidden) * cs + cs / 2;
+        Particles.spawnBurstAt(px, py, fireColors[i % fireColors.length], 4);
+      });
+      if (typeof Effects.flash === 'function') Effects.flash('255,100,30', 0.08);
+    }
+
     // Jewels: award red/green on Tetris, orange on T-Spin clears
     if (jewels && mode.jewels) {
       const previewFull = Board.findFullRows(grid);
@@ -8128,9 +8203,10 @@ const Game = (() => {
         '#fff1a8', '#ff3ea5', '#9b6bff', '#4cf3ff'
       ];
       Particles.spawnLineClearBurst(clearYs, Board.COLS, cellSize, fireColors, true);
-      Effects.flash('255,105,25', result.isTetris ? 0.48 : 0.32);
-      Effects.shake(result.isTetris ? 12 : 7);
-      Effects.toast(result.isTetris ? '🔥 INFERNO TETRIS' : '🔥 FIRE BURST', 'tetris', 1050);
+      // Quick, light flash — decays fast so it doesn't linger on the board.
+      Effects.flash('255,110,30', result.isTetris ? 0.28 : 0.16);
+      Effects.shake(result.isTetris ? 8 : 5);
+      Effects.toast(result.isTetris ? '🔥 INFERNO TETRIS' : '🔥 FIRE BURST', 'tetris', 900);
       try { vibrate(result.isTetris ? [55, 25, 70, 25, 90] : [35, 20, 45]); } catch (_) {}
     } else {
       Particles.spawnLineClearBurst(
@@ -8377,17 +8453,17 @@ const Game = (() => {
     if (mode.id === 'inferno' && modeEventTimer >= mode.garbageEvery) {
       modeEventTimer = 0;
       addGarbageRows(1);
-      Effects.toast('🔥 HEAT RISING', 'tetris', 900);
-      Effects.shake(6);
-      if (typeof Effects.flash === 'function') Effects.flash('rgba(255,85,20,.13)', 180);
+      Effects.toast('🔥 HEAT RISING', 'tetris', 800);
+      Effects.shake(4);
+      if (typeof Effects.flash === 'function') Effects.flash('255,85,20', 0.12);
     }
 
     if (mode.id === 'stackattack' && modeEventTimer >= mode.garbageEvery) {
       modeEventTimer = 0;
       addGarbageRows(1);
-      Effects.toast('⚠ STACK RISING', 'tetris', 1050);
-      Effects.shake(8);
-      if (typeof Effects.flash === 'function') Effects.flash('rgba(255,55,25,.16)', 220);
+      Effects.toast('⚠ STACK RISING', 'tetris', 900);
+      Effects.shake(6);
+      if (typeof Effects.flash === 'function') Effects.flash('255,55,25', 0.14);
     }
 
     UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex });
@@ -8458,7 +8534,8 @@ const Game = (() => {
     const ghost = saveData.settings.ghostPiece && active ? (() => { const d = dropDistanceGravity(active); const [dr,dc] = gravityVector(); return { ...active, row: active.row + dr*d, col: active.col + dc*d }; })() : null;
     const activeCells = state === 'playing' || state === 'clearing' ? Pieces.getCells(active) : null;
     if (state === 'playing' && activeCells && saveData.settings.animations) {
-      UI.recordTrail(activeCells, UI.resolveColor(active.color));
+      // Pass color *name* so the trail uses the Block Studio material, not a solid hex.
+      UI.recordTrail(activeCells, active.color);
     }
     UI.renderBoard({
       grid,
@@ -9579,18 +9656,13 @@ const BlockPreview = (() => {
 </style>
 
 <style id="inferno-debug-fx">
-/* Inferno board atmosphere: external heat only, never a flame texture inside blocks. */
+/* Inferno board atmosphere — static, soft heat (no pulse animation for performance). */
 body.mode-inferno .board-frame {
   box-shadow:
-    0 0 0 1px rgba(255,80,20,.22),
-    0 0 42px rgba(255,70,15,.18),
-    0 22px 70px rgba(0,0,0,.5),
-    inset 0 0 38px rgba(255,55,10,.08);
-  animation: infernoBoardPulse 2.2s ease-in-out infinite;
-}
-@keyframes infernoBoardPulse {
-  0%,100% { filter: brightness(1); }
-  50% { filter: brightness(1.045); }
+    0 0 0 1px rgba(255,90,25,.14),
+    0 0 28px rgba(255,70,15,.10),
+    0 18px 50px rgba(0,0,0,.45),
+    inset 0 0 22px rgba(255,55,10,.04);
 }
 </style>
 
