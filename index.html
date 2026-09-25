@@ -4499,44 +4499,21 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
         </section>
         <section class="selector-popup selector-popup--blocks" id="popup-blocks" role="dialog" aria-modal="true" aria-labelledby="popup-blocks-title" hidden>
           <button class="popup-close" data-popup-close="all" aria-label="Close block style selector">×</button>
-          <div class="popup-kicker">VISUAL CONFIGURATION / 02</div>
-          <h2 id="popup-blocks-title">BLOCK STUDIO</h2>
-          <p>Choose the material and finish of every falling piece.</p>
+          <h2 id="popup-blocks-title" class="block-studio-title wordmark wordmark--studio">BLØKS STUDIO</h2>
+
+          <div class="studio-texture-name" id="block-preview-style-badge">Neon</div>
 
           <div class="studio-display" id="block-preview-stage" aria-hidden="true">
-            <div class="studio-display__header"><span>LIVE MATERIAL PREVIEW</span><b id="block-preview-style-badge">NEON</b></div>
             <div class="studio-display__canvas-wrap"><canvas id="block-preview-canvas" width="420" height="190"></canvas></div>
           </div>
 
-          <div class="block-studio-section-label"><span>MATERIALS (12)</span><span>SELECT STYLE</span></div>
-          <div class="block-materials-grid" id="block-style-choices">
-            <button class="style-chip is-selected" data-block-style="neon"><span class="style-chip__preview style-preview--neon"></span><span class="style-chip__label">NEON</span><small>Electric glow</small></button>
-            <button class="style-chip" data-block-style="glass"><span class="style-chip__preview style-preview--glass"></span><span class="style-chip__label">GLASS</span><small>Clear glass</small></button>
-            <button class="style-chip" data-block-style="ice"><span class="style-chip__preview style-preview--ice"></span><span class="style-chip__label">ICE</span><small>Frozen crystal</small></button>
-            <button class="style-chip" data-block-style="pixel"><span class="style-chip__preview style-preview--pixel"></span><span class="style-chip__label">PIXEL</span><small>8-bit</small></button>
-            <button class="style-chip" data-block-style="metal"><span class="style-chip__preview style-preview--metal"></span><span class="style-chip__label">METAL</span><small>Machined</small></button>
-            <button class="style-chip" data-block-style="vapor"><span class="style-chip__preview style-preview--vapor"></span><span class="style-chip__label">VAPOR</span><small>Gradient</small></button>
-            <button class="style-chip" data-block-style="holo"><span class="style-chip__preview style-preview--holo"></span><span class="style-chip__label">HOLO</span><small>Prismatic</small></button>
-            <button class="style-chip" data-block-style="retro"><span class="style-chip__preview style-preview--retro"></span><span class="style-chip__label">RETRO</span><small>Arcade</small></button>
-            <button class="style-chip" data-block-style="pastel"><span class="style-chip__preview style-preview--pastel"></span><span class="style-chip__label">PASTEL</span><small>Soft glow</small></button>
-            <button class="style-chip" data-block-style="wood"><span class="style-chip__preview style-preview--wood"></span><span class="style-chip__label">WOOD</span><small>Natural grain</small></button>
-            <button class="style-chip" data-block-style="rainbow"><span class="style-chip__preview style-preview--rainbow"></span><span class="style-chip__label">RAINBOW</span><small>Color shift</small></button>
-            <button class="style-chip" data-block-style="dark-cyber"><span class="style-chip__preview style-preview--dark-cyber"></span><span class="style-chip__label">DARK CYBER</span><small>Black neon</small></button>
-          </div>
+          <div class="studio-controls">
+          <div class="block-studio-label">Texture</div>
+          <div class="block-materials-grid block-materials-grid--texture" id="block-style-choices"><button class="style-chip is-selected" data-block-style="neon" title="Neon" aria-label="Neon"><span class="style-chip__preview style-preview--neon"></span></button><button class="style-chip" data-block-style="glass" title="Glass" aria-label="Glass"><span class="style-chip__preview style-preview--glass"></span></button><button class="style-chip" data-block-style="ice" title="Ice" aria-label="Ice"><span class="style-chip__preview style-preview--ice"></span></button><button class="style-chip" data-block-style="pixel" title="Pixel" aria-label="Pixel"><span class="style-chip__preview style-preview--pixel"></span></button><button class="style-chip" data-block-style="metal" title="Metal" aria-label="Metal"><span class="style-chip__preview style-preview--metal"></span></button><button class="style-chip" data-block-style="vapor" title="Vapor" aria-label="Vapor"><span class="style-chip__preview style-preview--vapor"></span></button><button class="style-chip" data-block-style="holo" title="Holo" aria-label="Holo"><span class="style-chip__preview style-preview--holo"></span></button><button class="style-chip" data-block-style="retro" title="Retro" aria-label="Retro"><span class="style-chip__preview style-preview--retro"></span></button><button class="style-chip" data-block-style="pastel" title="Pastel" aria-label="Pastel"><span class="style-chip__preview style-preview--pastel"></span></button><button class="style-chip" data-block-style="wood" title="Wood" aria-label="Wood"><span class="style-chip__preview style-preview--wood"></span></button><button class="style-chip" data-block-style="rainbow" title="Rainbow" aria-label="Rainbow"><span class="style-chip__preview style-preview--rainbow"></span></button><button class="style-chip" data-block-style="dark-cyber" title="Cyber" aria-label="Cyber"><span class="style-chip__preview style-preview--dark-cyber"></span></button><button class="style-chip" data-block-style="crystal" title="Crystal" aria-label="Crystal"><span class="style-chip__preview style-preview--crystal"></span></button><button class="style-chip" data-block-style="chrome" title="Chrome" aria-label="Chrome"><span class="style-chip__preview style-preview--chrome"></span></button><button class="style-chip" data-block-style="lava" title="Lava" aria-label="Lava"><span class="style-chip__preview style-preview--lava"></span></button><button class="style-chip" data-block-style="obsidian" title="Obsidian" aria-label="Obsidian"><span class="style-chip__preview style-preview--obsidian"></span></button><button class="style-chip" data-block-style="gold" title="Gold" aria-label="Gold"><span class="style-chip__preview style-preview--gold"></span></button><button class="style-chip" data-block-style="emerald" title="Emerald" aria-label="Emerald"><span class="style-chip__preview style-preview--emerald"></span></button><button class="style-chip" data-block-style="ruby" title="Ruby" aria-label="Ruby"><span class="style-chip__preview style-preview--ruby"></span></button><button class="style-chip" data-block-style="coral" title="Coral" aria-label="Coral"><span class="style-chip__preview style-preview--coral"></span></button><button class="style-chip" data-block-style="midnight" title="Midnight" aria-label="Midnight"><span class="style-chip__preview style-preview--midnight"></span></button><button class="style-chip" data-block-style="toxic" title="Toxic" aria-label="Toxic"><span class="style-chip__preview style-preview--toxic"></span></button><button class="style-chip" data-block-style="marble" title="Marble" aria-label="Marble"><span class="style-chip__preview style-preview--marble"></span></button><button class="style-chip" data-block-style="magma" title="Magma" aria-label="Magma"><span class="style-chip__preview style-preview--magma"></span></button><button class="style-chip" data-block-style="honeycomb" title="Honeycomb" aria-label="Honeycomb"><span class="style-chip__preview style-preview--honeycomb"></span></button><button class="style-chip" data-block-style="carbon" title="Carbon" aria-label="Carbon"><span class="style-chip__preview style-preview--carbon"></span></button><button class="style-chip" data-block-style="denim" title="Denim" aria-label="Denim"><span class="style-chip__preview style-preview--denim"></span></button><button class="style-chip" data-block-style="brick" title="Brick" aria-label="Brick"><span class="style-chip__preview style-preview--brick"></span></button><button class="style-chip" data-block-style="circuit" title="Circuit" aria-label="Circuit"><span class="style-chip__preview style-preview--circuit"></span></button><button class="style-chip" data-block-style="candy" title="Candy" aria-label="Candy"><span class="style-chip__preview style-preview--candy"></span></button><button class="style-chip" data-block-style="paper" title="Paper" aria-label="Paper"><span class="style-chip__preview style-preview--paper"></span></button><button class="style-chip" data-block-style="aurora" title="Aurora" aria-label="Aurora"><span class="style-chip__preview style-preview--aurora"></span></button></div>
 
-          <div class="block-studio-section-label block-studio-section-label--fx"><span>VISUAL FX</span><span>APPLIES IN-GAME</span></div>
-          <div class="block-fx-grid" id="block-fx-grid">
-            <button class="block-fx-card is-active" data-preview-fx="glow"><span>Glow Edge</span><i></i></button>
-            <button class="block-fx-card is-active" data-preview-fx="shadow"><span>Shadow</span><i></i></button>
-            <button class="block-fx-card is-active" data-preview-fx="sparkle"><span>Sparkles</span><i></i></button>
-            <button class="block-fx-card" data-preview-fx="pulse"><span>Pulse FX</span><i></i></button>
-            <button class="block-fx-card" data-preview-fx="fire"><span>Fire FX</span><i></i></button>
-            <button class="block-fx-card" data-preview-fx="smoke"><span>Smoke</span><i></i></button>
-            <button class="block-fx-card" data-preview-fx="frost"><span>Frost</span><i></i></button>
-            <button class="block-fx-card" data-preview-fx="lightning"><span>Lightning</span><i></i></button>
-            <button class="block-fx-card" data-preview-fx="chromatic"><span>Chromatic</span><i></i></button>
+          <div class="block-studio-label">Effects</div>
+          <div class="block-fx-grid block-fx-grid--texture" id="block-fx-grid"><button class="block-fx-card is-active" data-preview-fx="glow" title="glow" aria-label="glow"><span class="block-fx-card__swatch fx-swatch--glow"></span></button><button class="block-fx-card is-active" data-preview-fx="shadow" title="shadow" aria-label="shadow"><span class="block-fx-card__swatch fx-swatch--shadow"></span></button><button class="block-fx-card is-active" data-preview-fx="sparkle" title="sparkle" aria-label="sparkle"><span class="block-fx-card__swatch fx-swatch--sparkle"></span></button><button class="block-fx-card" data-preview-fx="pulse" title="pulse" aria-label="pulse"><span class="block-fx-card__swatch fx-swatch--pulse"></span></button><button class="block-fx-card" data-preview-fx="fire" title="fire" aria-label="fire"><span class="block-fx-card__swatch fx-swatch--fire"></span></button><button class="block-fx-card" data-preview-fx="smoke" title="smoke" aria-label="smoke"><span class="block-fx-card__swatch fx-swatch--smoke"></span></button><button class="block-fx-card" data-preview-fx="lightning" title="lightning" aria-label="lightning"><span class="block-fx-card__swatch fx-swatch--lightning"></span></button><button class="block-fx-card" data-preview-fx="chromatic" title="chromatic" aria-label="chromatic"><span class="block-fx-card__swatch fx-swatch--chromatic"></span></button><button class="block-fx-card" data-preview-fx="shimmer" title="shimmer" aria-label="shimmer"><span class="block-fx-card__swatch fx-swatch--shimmer"></span></button><button class="block-fx-card" data-preview-fx="ripple" title="ripple" aria-label="ripple"><span class="block-fx-card__swatch fx-swatch--ripple"></span></button><button class="block-fx-card" data-preview-fx="plasma" title="plasma" aria-label="plasma"><span class="block-fx-card__swatch fx-swatch--plasma"></span></button><button class="block-fx-card" data-preview-fx="stars" title="stars" aria-label="stars"><span class="block-fx-card__swatch fx-swatch--stars"></span></button><button class="block-fx-card" data-preview-fx="aura" title="aura" aria-label="aura"><span class="block-fx-card__swatch fx-swatch--aura"></span></button><button class="block-fx-card" data-preview-fx="glitch" title="glitch" aria-label="glitch"><span class="block-fx-card__swatch fx-swatch--glitch"></span></button><button class="block-fx-card" data-preview-fx="comet" title="comet" aria-label="comet"><span class="block-fx-card__swatch fx-swatch--comet"></span></button><button class="block-fx-card" data-preview-fx="dust" title="dust" aria-label="dust"><span class="block-fx-card__swatch fx-swatch--dust"></span></button><button class="block-fx-card" data-preview-fx="wave" title="wave" aria-label="wave"><span class="block-fx-card__swatch fx-swatch--wave"></span></button><button class="block-fx-card" data-preview-fx="scan" title="scan" aria-label="scan"><span class="block-fx-card__swatch fx-swatch--scan"></span></button><button class="block-fx-card" data-preview-fx="flicker" title="flicker" aria-label="flicker"><span class="block-fx-card__swatch fx-swatch--flicker"></span></button><button class="block-fx-card" data-preview-fx="orbit" title="orbit" aria-label="orbit"><span class="block-fx-card__swatch fx-swatch--orbit"></span></button><button class="block-fx-card" data-preview-fx="mist" title="mist" aria-label="mist"><span class="block-fx-card__swatch fx-swatch--mist"></span></button><button class="block-fx-card" data-preview-fx="ring" title="ring" aria-label="ring"><span class="block-fx-card__swatch fx-swatch--ring"></span></button><button class="block-fx-card" data-preview-fx="edge" title="edge" aria-label="edge"><span class="block-fx-card__swatch fx-swatch--edge"></span></button><button class="block-fx-card" data-preview-fx="spark" title="spark" aria-label="spark"><span class="block-fx-card__swatch fx-swatch--spark"></span></button></div>
           </div>
-          <div class="block-bloom-row"><span>BLOOM</span><input id="block-bloom-slider" type="range" min="0" max="2" step="0.1" value="1"><b id="block-bloom-value">1.0×</b></div>
         </section>
         <section class="selector-popup selector-popup--mode" id="popup-mode" role="dialog" aria-modal="true" aria-labelledby="popup-mode-title" hidden>
           <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
@@ -6681,7 +6658,7 @@ const UI = (() => {
     // Shared FX state: whatever the Block Studio popup toggles ON here is
     // the single source of truth for both the studio preview and real
     // gameplay blocks below — nothing is preview-only anymore.
-    const fx = { glow:true, shadow:true, pulse:false, sparkle:true, fire:false, smoke:false, frost:false, lightning:false, chromatic:false };
+    const fx = { glow:true, shadow:true, pulse:false, sparkle:true, fire:false, smoke:false, lightning:false, chromatic:false, shimmer:false, ripple:false, plasma:false, stars:false, aura:false, glitch:false, comet:false, dust:false, wave:false, scan:false, flicker:false, orbit:false, mist:false, ring:false, edge:false, spark:false };
     let fxBloom = 1;
     function setFx(k, v) { if (k in fx) fx[k] = v; }
     function setBloom(v) { fxBloom = v; }
@@ -6822,7 +6799,233 @@ const UI = (() => {
       ctx.restore();
     }
 
-    // Shared style renderer: the live Block Studio preview and in-game board both
+    
+    function fxShimmer(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const sweep = ((t * 0.55 + row * 0.1 + col * 0.07) % 1.4) - 0.2;
+      const x0 = sweep * size * 1.2;
+      const g = ctx.createLinearGradient(x0, 0, x0 + size * 0.35, size);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.5, 'rgba(255,255,255,0.28)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+      ctx.restore();
+    }
+    function fxRipple(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const phase = (t * 1.4 + row * 0.3 + col * 0.25) % 1;
+      const r = size * (0.15 + phase * 0.55);
+      const a = (1 - phase) * 0.35;
+      ctx.strokeStyle = `rgba(120,220,255,${a})`;
+      ctx.lineWidth = Math.max(1, size * 0.03);
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, r, 0, Math.PI * 2);
+      ctx.stroke();
+      const r2 = size * (0.08 + ((phase + 0.4) % 1) * 0.5);
+      const a2 = (1 - ((phase + 0.4) % 1)) * 0.22;
+      ctx.strokeStyle = `rgba(180,240,255,${a2})`;
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, r2, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    function fxPlasma(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 2; i++) {
+        const cx = size * (0.35 + 0.3 * i + 0.08 * Math.sin(t * 2.2 + i + row));
+        const cy = size * (0.4 + 0.2 * Math.cos(t * 1.8 + col + i));
+        const rad = size * (0.28 + 0.06 * Math.sin(t * 3 + i));
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+        g.addColorStop(0, i ? 'rgba(255,80,200,0.22)' : 'rgba(80,200,255,0.25)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+    function fxStars(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 4; i++) {
+        const seed = i * 17 + row * 3 + col * 5;
+        const tw = Math.max(0, Math.sin(t * 4 + seed));
+        if (tw < 0.15) continue;
+        const sx = size * (0.18 + ((seed * 13) % 70) / 100);
+        const sy = size * (0.18 + ((seed * 29) % 70) / 100);
+        const rad = size * (0.04 + 0.03 * tw);
+        ctx.globalAlpha = tw * 0.85;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(sx, sy, rad, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = Math.max(0.5, size * 0.01);
+        ctx.beginPath();
+        ctx.moveTo(sx - rad * 1.8, sy); ctx.lineTo(sx + rad * 1.8, sy);
+        ctx.moveTo(sx, sy - rad * 1.8); ctx.lineTo(sx, sy + rad * 1.8);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+
+    function fxAura(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const a = 0.12 + 0.1 * Math.sin(t * 2.2 + row + col);
+      const g = ctx.createRadialGradient(size/2, size/2, size*0.25, size/2, size/2, size*0.62);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.7, `rgba(160,220,255,${a})`);
+      g.addColorStop(1, 'rgba(120,180,255,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(size/2, size/2, size*0.62, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+    function fxGlitch(ctx, size, t, row, col) {
+      const slice = ((t * 7 + row * 1.3 + col) % 1);
+      if (slice > 0.35) return;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.35;
+      const y = size * slice;
+      ctx.fillStyle = '#ff2d6b';
+      ctx.fillRect(0, y, size, Math.max(1, size * 0.06));
+      ctx.fillStyle = '#00e5ff';
+      ctx.fillRect(size * 0.05, y + size * 0.04, size * 0.9, Math.max(1, size * 0.04));
+      ctx.restore();
+    }
+    function fxComet(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const p = (t * 0.7 + row * 0.15 + col * 0.1) % 1;
+      const x = p * size * 1.2 - size * 0.1;
+      const y = size * 0.3 + Math.sin(p * Math.PI) * size * 0.25;
+      const g = ctx.createLinearGradient(x - size * 0.35, y, x, y);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.7, 'rgba(180,230,255,0.35)');
+      g.addColorStop(1, 'rgba(255,255,255,0.8)');
+      ctx.strokeStyle = g;
+      ctx.lineWidth = Math.max(1.2, size * 0.04);
+      ctx.beginPath();
+      ctx.moveTo(x - size * 0.35, y + size * 0.08);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.beginPath(); ctx.arc(x, y, size * 0.05, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+    function fxDust(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 5; i++) {
+        const seed = i * 11 + row * 4 + col * 7;
+        const px = size * ((0.15 + ((seed * 13) % 70) / 100 + t * 0.04 * (i % 3 + 1)) % 0.9);
+        const py = size * ((0.1 + ((seed * 29) % 80) / 100 + t * 0.03 * ((i + 1) % 2 + 1)) % 0.9);
+        const a = 0.25 + 0.35 * Math.abs(Math.sin(t * 2 + seed));
+        ctx.globalAlpha = a;
+        ctx.fillStyle = 'rgba(255,240,200,0.9)';
+        ctx.fillRect(px, py, Math.max(1, size * 0.035), Math.max(1, size * 0.035));
+      }
+      ctx.restore();
+    }
+
+
+    function fxWave(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const y = size * (0.5 + 0.2 * Math.sin(t * 2.5 + row + col * 0.5));
+      const g = ctx.createLinearGradient(0, y - size * 0.15, 0, y + size * 0.15);
+      g.addColorStop(0, 'rgba(100,200,255,0)');
+      g.addColorStop(0.5, 'rgba(120,210,255,0.3)');
+      g.addColorStop(1, 'rgba(100,200,255,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, y - size * 0.15, size, size * 0.3);
+      ctx.restore();
+    }
+    function fxScan(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const y = ((t * 0.4 + row * 0.05) % 1) * size;
+      ctx.fillStyle = 'rgba(80,220,255,0.28)';
+      ctx.fillRect(0, y, size, Math.max(1.5, size * 0.04));
+      ctx.restore();
+    }
+    function fxFlicker(ctx, size, t, row, col) {
+      const a = 0.08 + 0.2 * Math.max(0, Math.sin(t * 11 + row * 3 + col * 2));
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = `rgba(255,255,255,${a})`;
+      ctx.fillRect(0, 0, size, size);
+      ctx.restore();
+    }
+    function fxOrbit(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const ang = t * 2.2 + row * 0.4 + col * 0.3;
+      const r = size * 0.32;
+      const ox = size / 2 + Math.cos(ang) * r;
+      const oy = size / 2 + Math.sin(ang) * r;
+      const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, size * 0.12);
+      g.addColorStop(0, 'rgba(255,255,255,0.85)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(ox, oy, size * 0.12, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+    function fxMist(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 2; i++) {
+        const cx = size * (0.3 + 0.4 * i + 0.05 * Math.sin(t + i));
+        const cy = size * (0.55 + 0.1 * Math.cos(t * 0.8 + i + col));
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.35);
+        g.addColorStop(0, 'rgba(200,220,255,0.18)');
+        g.addColorStop(1, 'rgba(200,220,255,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(cx, cy, size * 0.35, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+    function fxRing(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const a = 0.2 + 0.15 * Math.sin(t * 2 + row + col);
+      ctx.strokeStyle = `rgba(180,220,255,${a})`;
+      ctx.lineWidth = Math.max(1, size * 0.04);
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size * 0.32, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    function fxEdge(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const a = 0.25 + 0.15 * Math.sin(t * 3 + col);
+      ctx.strokeStyle = `rgba(0,240,255,${a})`;
+      ctx.lineWidth = Math.max(1.2, size * 0.05);
+      roundRect(ctx, size * 0.06, size * 0.06, size * 0.88, size * 0.88, size * 0.14);
+      ctx.stroke();
+      ctx.restore();
+    }
+    function fxSpark(ctx, size, t, row, col) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 3; i++) {
+        const seed = i * 19 + row * 5 + col * 3;
+        const tw = Math.max(0, Math.sin(t * 6 + seed));
+        if (tw < 0.2) continue;
+        const sx = size * (0.2 + ((seed * 7) % 60) / 100);
+        const sy = size * (0.2 + ((seed * 11) % 60) / 100);
+        ctx.globalAlpha = tw;
+        ctx.fillStyle = '#ffeaa0';
+        ctx.fillRect(sx, sy, Math.max(1, size * 0.04), Math.max(1, size * 0.04));
+      }
+      ctx.restore();
+    }
+
+// Shared style renderer: the live Block Studio preview and in-game board both
 // call this function, so a selected material is rendered consistently in play.
   // Hoisted — avoid reallocating every cell every frame.
   const TYPE_INDEX = {
@@ -6863,11 +7066,26 @@ const UI = (() => {
       ctx.translate(x, y);
       if (fx.chromatic) fxChromatic(ctx, cellSize);
       if (fx.pulse) fxPulse(ctx, cellSize, t, row, col);
-      if (fx.frost) fxFrost(ctx, cellSize, t, row, col);
       if (fx.fire) fxFire(ctx, cellSize, t, row, col);
       if (fx.smoke) fxSmoke(ctx, cellSize, t, row, col);
       if (fx.lightning) fxLightning(ctx, cellSize, t, row, col);
       if (fx.sparkle) fxSparkle(ctx, cellSize, t, row, col);
+      if (fx.shimmer) fxShimmer(ctx, cellSize, t, row, col);
+      if (fx.ripple) fxRipple(ctx, cellSize, t, row, col);
+      if (fx.plasma) fxPlasma(ctx, cellSize, t, row, col);
+      if (fx.stars) fxStars(ctx, cellSize, t, row, col);
+      if (fx.aura) fxAura(ctx, cellSize, t, row, col);
+      if (fx.glitch) fxGlitch(ctx, cellSize, t, row, col);
+      if (fx.comet) fxComet(ctx, cellSize, t, row, col);
+      if (fx.dust) fxDust(ctx, cellSize, t, row, col);
+      if (fx.wave) fxWave(ctx, cellSize, t, row, col);
+      if (fx.scan) fxScan(ctx, cellSize, t, row, col);
+      if (fx.flicker) fxFlicker(ctx, cellSize, t, row, col);
+      if (fx.orbit) fxOrbit(ctx, cellSize, t, row, col);
+      if (fx.mist) fxMist(ctx, cellSize, t, row, col);
+      if (fx.ring) fxRing(ctx, cellSize, t, row, col);
+      if (fx.edge) fxEdge(ctx, cellSize, t, row, col);
+      if (fx.spark) fxSpark(ctx, cellSize, t, row, col);
       ctx.restore();
     }
   }
@@ -7509,7 +7727,7 @@ const UI = (() => {
     showGameOver, setModeHud, updateStartStats, showAchievementPopup,
     clearColorCache, recordTrail, resetTrail, resolveColor: colorFor, setMindBender, resetMindBenderHud,
     setFx, getBloom, setBloom, fx,
-    fxSparkle, fxFire, fxSmoke, fxFrost, fxLightning, fxPulse, fxChromatic,
+    fxSparkle, fxFire, fxSmoke, fxFrost, fxLightning, fxPulse, fxChromatic, fxShimmer, fxRipple, fxPlasma, fxStars, fxAura, fxGlitch, fxComet, fxDust, fxWave, fxScan, fxFlicker, fxOrbit, fxMist, fxRing, fxEdge, fxSpark,
     get holdCtx() { return holdCtx; },
     get nextCtx() { return nextCtx; },
     get cellSize() { return cellSize; },
@@ -8700,7 +8918,7 @@ const BlockPreview = (() => {
 
   // Same 12 materials/order as the #block-style-choices chips, so index
   // lookups always line up with document.documentElement.dataset.blockStyle.
-  const STYLE_KEYS = ['neon','glass','ice','pixel','metal','vapor','holo','retro','pastel','wood','rainbow','dark-cyber'];
+  const STYLE_KEYS = ['neon','glass','ice','pixel','metal','vapor','holo','retro','pastel','wood','rainbow','dark-cyber','crystal','chrome','lava','obsidian','gold','emerald','ruby','coral','midnight','toxic','marble','magma','honeycomb','carbon','denim','brick','circuit','candy','paper','aurora'];
   const STYLES = [
     { mode:'neon',     colors:['#00fff2','#fff400','#ff00e6','#39ff14','#ff8800','#0084ff','#b026ff'] },
     { mode:'glass',    colors:['#7fd4ff','#a0f0d0','#c8b6ff','#ffb6d9','#ffe08a','#9ad0ff','#b6ffda'] },
@@ -8708,12 +8926,32 @@ const BlockPreview = (() => {
     { mode:'pixel',    colors:['#ff3b30','#ff9500','#34c759','#5856d6','#af52de','#007aff','#ff2d55'] },
     { mode:'metal',    colors:['#d1d5db','#f59e0b','#9ca3af','#e5e7eb','#6b7280','#f3f4f6','#fcd34d'] },
     { mode:'diag',     colors:['#ff71ce','#01cdfe','#05ffa1','#b967ff','#fffb96','#ff71ce','#01cdfe'] },
-    { mode:'holo',     colors:['#ff9ce8','#9cffe8','#e89cff','#ffe89c','#9ce8ff','#e8ff9c','#ff9c9c'] },
+    { mode:'minecraft',colors:['#7cba3d','#8b5a2b','#7a7a7a','#5a9e3a','#c4a35a','#4a7c2a','#9b6b3a'] },
     { mode:'nes',      colors:['#00f0f0','#f0f000','#a000f0','#00f000','#f00000','#0000f0','#f0a000'] },
     { mode:'pastel',   colors:['#ffb3d1','#b3ecff','#d9b3ff','#b3ffca','#ffe4a3','#ffc4b3','#b3c4ff'] },
     { mode:'wood',     colors:['#8b5a2b','#a97442','#6b3f1d','#c68642','#5c3a21','#9c6b3e','#7a4a25'] },
     { mode:'rainbow',  colors:['#ff0000','#ff8800','#ffee00','#00ff40','#00c8ff','#4000ff','#a000ff'] },
-    { mode:'flatdark', colors:['#ff2079','#00f0ff','#faff00','#ff2079','#00f0ff','#faff00','#ff2079'] }
+    { mode:'flatdark', colors:['#ff2079','#00f0ff','#faff00','#ff2079','#00f0ff','#faff00','#ff2079'] },
+    { mode:'crystal',  colors:['#e8fbff','#72eaff','#a8d8ff','#d0f0ff','#9ce0ff','#c8f4ff','#80d0f8'] },
+    { mode:'chrome',   colors:['#f0f4f8','#c0c8d0','#e8eef4','#a8b0b8','#d8e0e8','#b8c0c8','#f8fafc'] },
+    { mode:'lava',     colors:['#ff6b1a','#ff3b00','#ffaa00','#ff5500','#ffcc33','#ee2200','#ff8800'] },
+    { mode:'obsidian', colors:['#2a2a32','#3d3d48','#1a1a22','#4a4a58','#12121a','#353540','#0e0e14'] },
+    { mode:'gold',     colors:['#ffd700','#ffec8b','#daa520','#ffe55c','#b8860b','#ffef99','#f0c420'] },
+    { mode:'emerald',  colors:['#10b981','#34d399','#059669','#6ee7b7','#047857','#a7f3d0','#14b8a6'] },
+    { mode:'ruby',     colors:['#e11d48','#fb7185','#be123c','#fda4af','#9f1239','#fecdd3','#f43f5e'] },
+    { mode:'coral',    colors:['#ff7f50','#ff9a7a','#ff6347','#ffb09a','#e85d4c','#ffc4b0','#ff8c69'] },
+    { mode:'midnight', colors:['#1e3a5f','#2a4a6f','#0f2744','#3d5a80','#162d4a','#4a6fa5','#0c1e36'] },
+    { mode:'toxic',    colors:['#a3e635','#bef264','#84cc16','#d9f99d','#65a30d','#ecfccb','#c6ff3d'] },
+    { mode:'marble',   colors:['#f5f5f4','#e7e5e4','#d6d3d1','#a8a29e','#fafaf9','#cfcbc7','#e5e2df'] },
+    { mode:'magma',    colors:['#7f1d1d','#991b1b','#450a0a','#b91c1c','#3f0a0a','#dc2626','#1c0a0a'] },
+    { mode:'honeycomb',colors:['#f5c542','#e8b020','#ffd56a','#d4a017','#f0c040','#c9950c','#ffe08a'] },
+    { mode:'carbon',   colors:['#2a2a2e','#3a3a40','#1c1c20','#4a4a52','#121216','#333338','#0e0e10'] },
+    { mode:'denim',    colors:['#3b6ea5','#2d5a8a','#4a7ab5','#1e4a75','#5a8ac5','#2a5580','#6a9ad0'] },
+    { mode:'brick',    colors:['#b55239','#9a4030','#c46848','#8a3828','#d07858','#7a3020','#a84838'] },
+    { mode:'circuit',  colors:['#00ff88','#00cc66','#33ffaa','#00994d','#66ffcc','#00b359','#99ffdd'] },
+    { mode:'candy',    colors:['#ff6bcb','#ff8ad8','#ff4db8','#ffa6e0','#ff2ea6','#ffc0ea','#ff1493'] },
+    { mode:'paper',    colors:['#f4f0e6','#ebe6da','#fffaf0','#ddd6c8','#f8f4ec','#d0c8b8','#efe9dc'] },
+    { mode:'aurora',   colors:['#5fffb0','#70e0ff','#c080ff','#ff90d0','#90ffa0','#60d0ff','#e0a0ff'] }
   ];
 
   class Particle {
@@ -8847,6 +9085,355 @@ const BlockPreview = (() => {
         }
         break;
       }
+
+      case 'crystal': {
+        const g = ctx.createLinearGradient(x, y, x + size, y + size);
+        g.addColorStop(0, shade(color, 70));
+        g.addColorStop(0.45, color);
+        g.addColorStop(1, shade(color, -20));
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 8);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x + pad + 4, y + size * 0.55);
+        ctx.lineTo(x + size * 0.45, y + pad + 3);
+        ctx.lineTo(x + size - pad - 2, y + size * 0.4);
+        ctx.stroke();
+        break;
+      }
+      case 'chrome': {
+        const g = ctx.createLinearGradient(x, y, x, y + size);
+        g.addColorStop(0, '#ffffff');
+        g.addColorStop(0.22, shade(color, 40));
+        g.addColorStop(0.5, color);
+        g.addColorStop(0.78, shade(color, -30));
+        g.addColorStop(1, '#e8eef4');
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 6);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillRect(x + pad + 2, y + pad + 2, innerSize - 4, innerSize * 0.18);
+        break;
+      }
+      case 'lava': {
+        // Solid base so the cell is never empty if gradients fail
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = color || '#ff6b1a';
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 7);
+        ctx.fill();
+        const flicker = 0.5 + 0.5 * Math.sin((t || 0) * 6 + (row || 0) * 2 + (col || 0));
+        const hi = Math.round(50 + flicker * 30);
+        const g = ctx.createRadialGradient(
+          x + size * 0.5, y + size * 0.75, 1,
+          x + size * 0.5, y + size * 0.25, size * 0.75
+        );
+        g.addColorStop(0, shade(color || '#ff6b1a', hi));
+        g.addColorStop(0.4, color || '#ff5500');
+        g.addColorStop(1, shade(color || '#ff6b1a', -40));
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 7);
+        ctx.fill();
+        // Hot highlight
+        ctx.fillStyle = 'rgba(255, 230, 120, 0.35)';
+        roundRect(ctx, x + pad + 3, y + pad + 3, innerSize - 6, innerSize * 0.28, 4);
+        ctx.fill();
+        break;
+      }
+      case 'obsidian': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 5);
+        ctx.fill();
+        const g = ctx.createLinearGradient(x, y, x + size, y + size);
+        g.addColorStop(0, 'rgba(255,255,255,0.12)');
+        g.addColorStop(0.5, 'rgba(255,255,255,0)');
+        g.addColorStop(1, 'rgba(0,0,0,0.35)');
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 5);
+        ctx.fill();
+        break;
+      }
+
+      case 'gold': {
+        const g = ctx.createLinearGradient(x, y, x + size, y + size);
+        g.addColorStop(0, shade(color, 60));
+        g.addColorStop(0.35, color);
+        g.addColorStop(0.65, shade(color, -25));
+        g.addColorStop(1, shade(color, 40));
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 7);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.fillRect(x + pad + 2, y + pad + 2, innerSize - 4, innerSize * 0.15);
+        break;
+      }
+      case 'emerald': {
+        const g = ctx.createRadialGradient(x + size*0.35, y + size*0.3, 2, x + size*0.5, y + size*0.5, size*0.55);
+        g.addColorStop(0, shade(color, 50));
+        g.addColorStop(1, shade(color, -30));
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 8);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 1.5;
+        roundRect(ctx, x + pad + 2, y + pad + 2, innerSize - 4, innerSize - 4, 6);
+        ctx.stroke();
+        break;
+      }
+      case 'ruby': {
+        const g = ctx.createRadialGradient(x + size*0.4, y + size*0.35, 2, x + size*0.5, y + size*0.55, size*0.55);
+        g.addColorStop(0, shade(color, 45));
+        g.addColorStop(1, shade(color, -40));
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 8);
+        ctx.fill();
+        break;
+      }
+      case 'coral': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 9);
+        ctx.fill();
+        ctx.fillStyle = shade(color, 30);
+        roundRect(ctx, x + pad + 3, y + pad + 3, innerSize * 0.4, innerSize * 0.35, 5);
+        ctx.fill();
+        break;
+      }
+      case 'midnight': {
+        const g = ctx.createLinearGradient(x, y, x, y + size);
+        g.addColorStop(0, shade(color, 25));
+        g.addColorStop(1, shade(color, -35));
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 6);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(120,180,255,0.15)';
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize * 0.4, 6);
+        ctx.fill();
+        break;
+      }
+      case 'toxic': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 7);
+        ctx.fill();
+        const g = ctx.createRadialGradient(x + size*0.5, y + size*0.5, 2, x + size*0.5, y + size*0.5, size*0.45);
+        g.addColorStop(0, 'rgba(255,255,180,0.35)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x + size*0.5, y + size*0.5, size*0.45, 0, Math.PI*2); ctx.fill();
+        break;
+      }
+      case 'marble': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 7);
+        ctx.fill();
+        ctx.strokeStyle = shade(color, -40);
+        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.45;
+        ctx.beginPath();
+        ctx.moveTo(x + pad, y + size * 0.35);
+        ctx.quadraticCurveTo(x + size * 0.4, y + size * 0.2, x + size - pad, y + size * 0.45);
+        ctx.moveTo(x + pad, y + size * 0.65);
+        ctx.quadraticCurveTo(x + size * 0.55, y + size * 0.8, x + size - pad, y + size * 0.55);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        break;
+      }
+      case 'magma': {
+        ctx.fillStyle = color || '#7f1d1d';
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 6);
+        ctx.fill();
+        const g = ctx.createRadialGradient(x + size*0.5, y + size*0.65, 1, x + size*0.5, y + size*0.3, size*0.6);
+        g.addColorStop(0, '#ff6b1a');
+        g.addColorStop(0.5, color || '#991b1b');
+        g.addColorStop(1, shade(color || '#7f1d1d', -20));
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 6);
+        ctx.fill();
+        break;
+      }
+
+      case 'honeycomb': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 6);
+        ctx.fill();
+        ctx.strokeStyle = shade(color, -40);
+        ctx.lineWidth = 1.2;
+        const hx = x + size / 2, hy = y + size / 2, hr = size * 0.22;
+        for (let a = 0; a < 6; a++) {
+          const ang = a * Math.PI / 3;
+          const x1 = hx + Math.cos(ang) * hr, y1 = hy + Math.sin(ang) * hr;
+          const x2 = hx + Math.cos(ang + Math.PI / 3) * hr, y2 = hy + Math.sin(ang + Math.PI / 3) * hr;
+          ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        }
+        break;
+      }
+      case 'carbon': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 4);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 1;
+        for (let i = -2; i < 6; i++) {
+          ctx.beginPath();
+          ctx.moveTo(x + pad + i * 8, y + pad);
+          ctx.lineTo(x + pad + i * 8 + innerSize, y + pad + innerSize);
+          ctx.stroke();
+        }
+        break;
+      }
+      case 'denim': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 5);
+        ctx.fill();
+        ctx.strokeStyle = shade(color, -30);
+        ctx.lineWidth = 0.8;
+        for (let i = 0; i < 6; i++) {
+          ctx.beginPath();
+          ctx.moveTo(x + pad, y + pad + 4 + i * 7);
+          ctx.lineTo(x + size - pad, y + pad + 4 + i * 7);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = shade(color, 25);
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.moveTo(x + pad + 5 + i * 8, y + pad);
+          ctx.lineTo(x + pad + 5 + i * 8, y + size - pad);
+          ctx.stroke();
+        }
+        break;
+      }
+      case 'brick': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 3);
+        ctx.fill();
+        ctx.strokeStyle = shade(color, -50);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x + pad, y + pad + innerSize * 0.45, innerSize, 1.5);
+        ctx.beginPath();
+        ctx.moveTo(x + pad + innerSize * 0.5, y + pad);
+        ctx.lineTo(x + pad + innerSize * 0.5, y + pad + innerSize * 0.45);
+        ctx.moveTo(x + pad + innerSize * 0.25, y + pad + innerSize * 0.45);
+        ctx.lineTo(x + pad + innerSize * 0.25, y + size - pad);
+        ctx.moveTo(x + pad + innerSize * 0.75, y + pad + innerSize * 0.45);
+        ctx.lineTo(x + pad + innerSize * 0.75, y + size - pad);
+        ctx.stroke();
+        break;
+      }
+      case 'circuit': {
+        // Matrix digital-rain / code panel
+        ctx.fillStyle = '#020a06';
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 3);
+        ctx.fill();
+        ctx.font = `${Math.max(5, size * 0.16)}px monospace`;
+        ctx.textBaseline = 'top';
+        const glyphs = '01アイウｴｵカキクｹｺ';
+        for (let row = 0; row < 5; row++) {
+          for (let col = 0; col < 4; col++) {
+            const bright = ((row * 3 + col * 7 + Math.floor((t || 0) * 4) + type) % 5) === 0;
+            ctx.fillStyle = bright ? '#b6ffc8' : (color || '#00ff88');
+            ctx.globalAlpha = bright ? 0.95 : 0.35 + ((row + col) % 3) * 0.15;
+            const ch = glyphs[(row * 4 + col + Math.floor((t || 0) * 2) + type) % glyphs.length];
+            ctx.fillText(ch, x + pad + 2 + col * (innerSize / 4), y + pad + 2 + row * (innerSize / 5));
+          }
+        }
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = 'rgba(0,255,136,0.35)';
+        ctx.lineWidth = 1;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 3);
+        ctx.stroke();
+        break;
+      }
+      case 'candy': {
+        const g = ctx.createLinearGradient(x, y, x + size, y + size);
+        g.addColorStop(0, shade(color, 40));
+        g.addColorStop(0.5, color);
+        g.addColorStop(1, shade(color, -20));
+        ctx.fillStyle = g;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 10);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        roundRect(ctx, x + pad + 4, y + pad + 4, innerSize * 0.35, innerSize * 0.25, 4);
+        ctx.fill();
+        break;
+      }
+      case 'paper': {
+        ctx.fillStyle = color;
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 3);
+        ctx.fill();
+        ctx.strokeStyle = shade(color, -25);
+        ctx.lineWidth = 0.7;
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(x + pad + 4, y + pad + 8 + i * 9);
+          ctx.lineTo(x + size - pad - 4, y + pad + 8 + i * 9);
+          ctx.stroke();
+        }
+        break;
+      }
+      case 'aurora': {
+        // Plasma — swirling hot/cool blobs
+        ctx.fillStyle = '#12081c';
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 7);
+        ctx.fill();
+        ctx.save();
+        ctx.beginPath();
+        roundRect(ctx, x + pad, y + pad, innerSize, innerSize, 7);
+        ctx.clip();
+        for (let i = 0; i < 3; i++) {
+          const cx = x + size * (0.25 + 0.25 * i + 0.08 * Math.sin((t || 0) * 1.8 + i + type));
+          const cy = y + size * (0.35 + 0.2 * Math.cos((t || 0) * 1.4 + i * 1.3 + col));
+          const rad = size * (0.32 + 0.08 * Math.sin((t || 0) * 2 + i));
+          const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+          const c1 = style.colors[(type + i) % 7];
+          g.addColorStop(0, c1);
+          g.addColorStop(0.45, style.colors[(type + i + 2) % 7]);
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.globalAlpha = 0.75;
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(x + size * 0.4, y + size * 0.35, size * 0.12, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        break;
+      }
+
+      case 'minecraft': {
+        // Classic Minecraft-style pixel block (grass-top / dirt sides vibe by type)
+        const px = Math.max(2, Math.floor(size / 8));
+        const cols = Math.ceil(innerSize / px);
+        const rows = Math.ceil(innerSize / px);
+        const top = shade(color, 35);
+        const mid = color;
+        const bot = shade(color, -40);
+        for (let ry = 0; ry < rows; ry++) {
+          for (let cx = 0; cx < cols; cx++) {
+            const n = ((cx * 17 + ry * 31 + type * 13) % 5);
+            let c = mid;
+            if (ry === 0) c = top;
+            else if (ry >= rows - 1) c = bot;
+            else if (n === 0) c = shade(mid, 20);
+            else if (n === 1) c = shade(mid, -25);
+            ctx.fillStyle = c;
+            const x0 = x + pad + cx * px;
+            const y0 = y + pad + ry * px;
+            ctx.fillRect(x0, y0, px, px);
+          }
+        }
+        // Hard pixel edge
+        ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x + pad + 0.5, y + pad + 0.5, innerSize - 1, innerSize - 1);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x + pad + 1, y + size - pad - 1);
+        ctx.lineTo(x + pad + 1, y + pad + 1);
+        ctx.lineTo(x + size - pad - 1, y + pad + 1);
+        ctx.stroke();
+        break;
+      }
       case 'diag': {
         const g = ctx.createLinearGradient(x, y, x + size, y + size);
         const next = style.colors[(type + 1) % 7];
@@ -8926,7 +9513,10 @@ const BlockPreview = (() => {
   loadPreset();
 
   function render(t) {
-    ctx.clearRect(0, 0, boardW, boardH);
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
 
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
     ctx.lineWidth = 1;
@@ -8949,11 +9539,26 @@ const BlockPreview = (() => {
         ctx.translate(x, y);
         if (UI.fx.chromatic) UI.fxChromatic(ctx, cellSize);
         if (UI.fx.pulse) UI.fxPulse(ctx, cellSize, t, r, c);
-        if (UI.fx.frost) UI.fxFrost(ctx, cellSize, t, r, c);
         if (UI.fx.fire) UI.fxFire(ctx, cellSize, t, r, c);
         if (UI.fx.smoke) UI.fxSmoke(ctx, cellSize, t, r, c);
         if (UI.fx.lightning) UI.fxLightning(ctx, cellSize, t, r, c);
         if (UI.fx.sparkle) UI.fxSparkle(ctx, cellSize, t, r, c);
+        if (UI.fx.shimmer) UI.fxShimmer(ctx, cellSize, t, r, c);
+        if (UI.fx.ripple) UI.fxRipple(ctx, cellSize, t, r, c);
+        if (UI.fx.plasma) UI.fxPlasma(ctx, cellSize, t, r, c);
+        if (UI.fx.stars) UI.fxStars(ctx, cellSize, t, r, c);
+        if (UI.fx.aura) UI.fxAura(ctx, cellSize, t, r, c);
+        if (UI.fx.glitch) UI.fxGlitch(ctx, cellSize, t, r, c);
+        if (UI.fx.comet) UI.fxComet(ctx, cellSize, t, r, c);
+        if (UI.fx.dust) UI.fxDust(ctx, cellSize, t, r, c);
+        if (UI.fx.wave) UI.fxWave(ctx, cellSize, t, r, c);
+        if (UI.fx.scan) UI.fxScan(ctx, cellSize, t, r, c);
+        if (UI.fx.flicker) UI.fxFlicker(ctx, cellSize, t, r, c);
+        if (UI.fx.orbit) UI.fxOrbit(ctx, cellSize, t, r, c);
+        if (UI.fx.mist) UI.fxMist(ctx, cellSize, t, r, c);
+        if (UI.fx.ring) UI.fxRing(ctx, cellSize, t, r, c);
+        if (UI.fx.edge) UI.fxEdge(ctx, cellSize, t, r, c);
+        if (UI.fx.spark) UI.fxSpark(ctx, cellSize, t, r, c);
         ctx.restore();
       }
     }
@@ -8968,14 +9573,26 @@ const BlockPreview = (() => {
   function resizeCanvas() {
     if (!canvas) return;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const cw = canvas.clientWidth || 420, ch = canvas.clientHeight || 190;
-    cellSize = Math.max(8, Math.floor(Math.min(cw / COLS, ch / ROWS)));
-    boardW = cellSize * COLS; boardH = cellSize * ROWS;
-    const targetW = Math.floor(boardW * dpr), targetH = Math.floor(boardH * dpr);
+    const cw = Math.max(1, canvas.clientWidth || 420);
+    const ch = Math.max(1, canvas.clientHeight || Math.round(cw * ROWS / COLS));
+    // Largest square cells that fit fully — no clipping top or bottom.
+    const pad = 2; // small inset so edges aren't flush-clipped
+    cellSize = Math.max(8, Math.floor(Math.min(
+      (cw - pad * 2) / COLS,
+      (ch - pad * 2) / ROWS
+    )));
+    boardW = cellSize * COLS;
+    boardH = cellSize * ROWS;
+    const targetW = Math.floor(cw * dpr);
+    const targetH = Math.floor(ch * dpr);
     if (canvas.width !== targetW || canvas.height !== targetH) {
-      canvas.width = targetW; canvas.height = targetH;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.width = targetW;
+      canvas.height = targetH;
     }
+    // Center horizontally; top-align with tiny pad (no dead gap, no cut-off).
+    const ox = ((cw - boardW) / 2) * dpr;
+    const oy = pad * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, ox, oy);
   }
 
   let isDragging = false;
@@ -8985,7 +9602,10 @@ const BlockPreview = (() => {
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     const x = clientX - rect.left, y = clientY - rect.top;
-    const col = Math.floor(x / cellSize), row = Math.floor(y / cellSize);
+    const ox = (rect.width - boardW) / 2;
+    const oy = 2;
+    const col = Math.floor((x - ox) / cellSize);
+    const row = Math.floor((y - oy) / cellSize);
     if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
 
     const idx = row * COLS + col;
@@ -9070,7 +9690,7 @@ const BlockPreview = (() => {
 
   const VISUAL_KEY = 'neonblock-visuals-v2';
   const DEFAULT_VISUALS = { blockStyle: 'neon', theme: 'neon', gameMode: 'standard',
-    fx: { glow:true, shadow:true, pulse:false, sparkle:true, fire:false, smoke:false, frost:false, lightning:false, chromatic:false },
+    fx: { glow:true, shadow:true, pulse:false, sparkle:true, fire:false, smoke:false, lightning:false, chromatic:false, shimmer:false, ripple:false, plasma:false, stars:false, aura:false, glitch:false, comet:false, dust:false, wave:false, scan:false, flicker:false, orbit:false, mist:false, ring:false, edge:false, spark:false },
     bloom: 1 };
 
   function loadVisuals() {
@@ -9105,11 +9725,23 @@ const BlockPreview = (() => {
     const modeLabel = document.getElementById('mode-current');
     if (themeLabel) themeLabel.textContent = (v.theme || 'neon').toUpperCase();
     if (blockLabel) {
-      const names = { neon:'NEON', glass:'GLASS', ice:'ICE', pixel:'PIXEL', metal:'METAL', vapor:'VAPOR', holo:'HOLO', retro:'RETRO', pastel:'PASTEL', wood:'WOOD', rainbow:'RAINBOW', 'dark-cyber':'DARK CYBER', traditional:'CLASSIC', fire:'FIRE', 'neon-outline':'NEON', crystals:'CRYSTALS', crystal:'CRYSTALS', chrome:'CRYSTALS', voxel:'PIXEL' };
+      const names = { neon:'NEON', glass:'GLASS', ice:'ICE', pixel:'PIXEL', metal:'METAL', vapor:'VAPOR', holo:'HOLO', retro:'RETRO', pastel:'PASTEL', wood:'WOOD', rainbow:'RAINBOW', 'dark-cyber':'DARK CYBER', traditional:'CLASSIC', fire:'FIRE', 'neon-outline':'NEON', crystals:'CRYSTALS', crystal:'CRYSTAL', chrome:'CHROME', voxel:'PIXEL', lava:'LAVA', obsidian:'OBSIDIAN', gold:'GOLD', emerald:'EMERALD', ruby:'RUBY', coral:'CORAL', midnight:'MIDNIGHT', toxic:'TOXIC', marble:'MARBLE', magma:'MAGMA', honeycomb:'HONEYCOMB', carbon:'CARBON', denim:'DENIM', brick:'BRICK', circuit:'CIRCUIT', candy:'CANDY', paper:'PAPER', aurora:'AURORA' };
       blockLabel.textContent = names[v.blockStyle] || (v.blockStyle || 'CLASSIC').toUpperCase();
     }
     const previewBadge = document.getElementById('block-preview-style-badge');
-    if (previewBadge) { const names = { neon:'NEON', glass:'GLASS', ice:'ICE', pixel:'PIXEL', metal:'METAL', vapor:'VAPOR', holo:'HOLO', retro:'RETRO', pastel:'PASTEL', wood:'WOOD', rainbow:'RAINBOW', 'dark-cyber':'DARK CYBER', traditional:'CLASSIC', fire:'FIRE', 'neon-outline':'NEON', crystals:'CRYSTALS' }; previewBadge.textContent = names[v.blockStyle] || (v.blockStyle || 'NEON').toUpperCase(); }
+    if (previewBadge) {
+      const names = {
+        neon:'Neon', glass:'Glass', ice:'Ice', pixel:'Pixel', metal:'Metal', vapor:'Vapor',
+        holo:'Minecraft', retro:'Retro', pastel:'Pastel', wood:'Wood', rainbow:'Rainbow',
+        'dark-cyber':'Dark Cyber', traditional:'Classic', fire:'Fire', 'neon-outline':'Neon Outline',
+        crystals:'Crystals', crystal:'Crystal', chrome:'Chrome', lava:'Lava', obsidian:'Obsidian',
+        gold:'Gold', emerald:'Emerald', ruby:'Ruby', coral:'Coral', midnight:'Midnight',
+        toxic:'Toxic', marble:'Marble', magma:'Magma', honeycomb:'Honeycomb', carbon:'Carbon',
+        denim:'Denim', brick:'Brick', circuit:'Circuit', candy:'Candy', paper:'Paper', aurora:'Aurora'
+      };
+      const key = v.blockStyle || 'neon';
+      previewBadge.textContent = names[key] || key.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
     if (modeLabel) modeLabel.textContent = (mode?.name || v.gameMode || 'standard').toUpperCase();
 
     // FX + bloom are gameplay state now, not preview-only — push them into
@@ -10180,5 +10812,1204 @@ html[data-theme="cyber"] .selector-popup {
 .style-preview--rainbow{background:linear-gradient(90deg,#f00,#f80,#ff0,#0f4,#0cf,#40f,#a0f)!important;}
 .style-preview--dark-cyber{background:linear-gradient(135deg,#ff2079,#070b12 30%,#00f0ff 65%,#0b1018)!important;border:1px solid #00f0ff!important;box-shadow:0 0 9px #00f0ff!important;}
 @media(max-width:380px){.studio-display{height:172px!important}.block-materials-grid{gap:5px!important}.selector-popup .block-materials-grid .style-chip{height:58px!important;min-height:58px!important}.selector-popup .block-materials-grid .style-chip__preview{width:34px!important;height:20px!important}}
+
+
+/* ===== Block Studio icon redesign ===== */
+.selector-popup--blocks .block-materials-grid--icons {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+.selector-popup--blocks .block-materials-grid--icons .style-chip {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  min-height: 76px !important;
+  height: auto !important;
+  padding: 8px 4px 7px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(200, 160, 255, 0.28) !important;
+  background: linear-gradient(160deg, rgba(40, 28, 72, 0.95), rgba(12, 14, 36, 0.98)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 0 rgba(0,0,0,0.35) !important;
+  color: #e8e0ff !important;
+  cursor: pointer !important;
+  transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.selector-popup--blocks .block-materials-grid--icons .style-chip:active {
+  transform: translateY(2px) scale(0.97) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 0 rgba(0,0,0,0.4) !important;
+}
+.selector-popup--blocks .block-materials-grid--icons .style-chip.is-selected {
+  border-color: rgba(220, 180, 255, 0.95) !important;
+  background: linear-gradient(155deg, rgba(90, 50, 160, 0.95), rgba(30, 20, 70, 0.98)) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 0 18px rgba(180, 100, 255, 0.45), inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 0 rgba(20, 8, 40, 0.8) !important;
+  color: #fff !important;
+}
+.selector-popup--blocks .block-materials-grid--icons .style-chip__preview {
+  width: 36px !important;
+  height: 24px !important;
+  border-radius: 7px !important;
+  margin: 0 !important;
+}
+.selector-popup--blocks .block-materials-grid--icons .style-chip__icon {
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  opacity: 0.92 !important;
+  filter: drop-shadow(0 0 6px rgba(200, 160, 255, 0.35));
+}
+.selector-popup--blocks .block-materials-grid--icons .style-chip.is-selected .style-chip__icon {
+  filter: drop-shadow(0 0 8px rgba(255, 220, 255, 0.55));
+}
+.selector-popup--blocks .block-materials-grid--icons .style-chip__label {
+  font: 800 0.58rem/1 var(--font-mono) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+  color: inherit !important;
+}
+.selector-popup--blocks .block-materials-grid--icons .style-chip small {
+  display: none !important;
+}
+
+/* Effects as icon tiles */
+.selector-popup--blocks .block-fx-grid--icons {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.selector-popup--blocks .block-fx-grid--icons .block-fx-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  min-height: 58px !important;
+  padding: 8px 4px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(180, 150, 255, 0.22) !important;
+  background: linear-gradient(160deg, rgba(28, 22, 55, 0.9), rgba(10, 12, 28, 0.95)) !important;
+  color: rgba(200, 190, 230, 0.75) !important;
+  font: 700 0.55rem/1 var(--font-mono) !important;
+  letter-spacing: 0.03em !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+  transition: transform 0.12s ease, border-color 0.15s, color 0.15s, background 0.15s !important;
+  cursor: pointer !important;
+}
+.selector-popup--blocks .block-fx-grid--icons .block-fx-card i { display: none !important; }
+.selector-popup--blocks .block-fx-grid--icons .block-fx-card__icon {
+  font-size: 1.15rem !important;
+  line-height: 1 !important;
+  opacity: 0.85 !important;
+}
+.selector-popup--blocks .block-fx-grid--icons .block-fx-card__name {
+  font: 700 0.55rem/1 var(--font-mono) !important;
+  letter-spacing: 0.03em !important;
+}
+.selector-popup--blocks .block-fx-grid--icons .block-fx-card.is-active {
+  border-color: rgba(200, 160, 255, 0.75) !important;
+  background: linear-gradient(155deg, rgba(70, 40, 130, 0.9), rgba(25, 18, 55, 0.95)) !important;
+  color: #fff !important;
+  box-shadow: 0 0 14px rgba(160, 100, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+}
+.selector-popup--blocks .block-fx-grid--icons .block-fx-card.is-active .block-fx-card__icon {
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 6px rgba(220, 180, 255, 0.5));
+}
+.selector-popup--blocks .block-fx-grid--icons .block-fx-card:active {
+  transform: scale(0.96) !important;
+}
+
+.selector-popup--blocks .block-bloom-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 10px !important;
+  padding: 9px 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(200, 160, 255, 0.25) !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+  font: 700 0.65rem/1 var(--font-mono) !important;
+  color: rgba(220, 210, 255, 0.85) !important;
+  letter-spacing: 0.06em !important;
+}
+.selector-popup--blocks .block-bloom-row__icon {
+  font-size: 0.95rem !important;
+  opacity: 0.9 !important;
+}
+.selector-popup--blocks .block-bloom-row input {
+  flex: 1 !important;
+  accent-color: #c080ff !important;
+}
+.selector-popup--blocks .block-bloom-row b {
+  color: #e0b0ff !important;
+  min-width: 32px !important;
+  text-align: right !important;
+  font-size: 0.7rem !important;
+}
+
+.selector-popup--blocks .block-studio-section-label {
+  margin: 12px 2px 8px !important;
+  font: 800 0.55rem/1 var(--font-mono) !important;
+  letter-spacing: 0.14em !important;
+  color: rgba(180, 170, 210, 0.7) !important;
+}
+.selector-popup--blocks .block-studio-section-label span:last-child {
+  color: #d0a0ff !important;
+  letter-spacing: 0.1em !important;
+}
+
+@media (max-width: 380px) {
+  .selector-popup--blocks .block-materials-grid--icons .style-chip {
+    min-height: 70px !important;
+    padding: 6px 2px !important;
+  }
+  .selector-popup--blocks .block-materials-grid--icons .style-chip__preview {
+    width: 30px !important;
+    height: 20px !important;
+  }
+  .selector-popup--blocks .block-fx-grid--icons .block-fx-card {
+    min-height: 52px !important;
+  }
+}
+
+
+/* ===== Block Studio: texture-only compact UI ===== */
+.selector-popup--blocks .block-studio-title,
+.selector-popup--blocks h2.wordmark--studio {
+  margin: 0 40px 12px 0 !important;
+  font-family: var(--font-mono) !important;
+  font-weight: 800 !important;
+  font-size: clamp(1.35rem, 6vw, 1.85rem) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  line-height: 1 !important;
+  color: var(--text) !important;
+  text-shadow:
+    0 0 6px rgba(255,255,255,0.25),
+    0 0 22px color-mix(in srgb, var(--accent) calc(var(--glow-strength) * 100%), transparent),
+    0 0 48px color-mix(in srgb, #c080ff 50%, transparent) !important;
+  transform: skewX(-4deg) !important;
+}
+.selector-popup--blocks .popup-kicker,
+.selector-popup--blocks > p,
+.selector-popup--blocks .block-studio-section-label,
+.selector-popup--blocks .studio-display__header {
+  display: none !important;
+}
+.selector-popup--blocks .studio-display {
+  margin: 0 0 10px !important;
+  min-height: 0 !important;
+}
+.selector-popup--blocks .studio-display__canvas-wrap {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+.selector-popup--blocks .studio-display canvas {
+  width: 100% !important;
+  height: 120px !important;
+  display: block !important;
+}
+
+/* Materials: pure texture tiles */
+.selector-popup--blocks .block-materials-grid--texture {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  margin: 0 0 10px !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  border: 2px solid rgba(255,255,255,0.12) !important;
+  background: rgba(0,0,0,0.35) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 0 rgba(0,0,0,0.3) !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  transition: transform 0.1s ease, border-color 0.12s, box-shadow 0.12s !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip__preview {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip__icon,
+.selector-popup--blocks .block-materials-grid--texture .style-chip__label,
+.selector-popup--blocks .block-materials-grid--texture .style-chip small {
+  display: none !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip.is-selected {
+  border-color: #fff !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.4), 0 0 16px rgba(180,120,255,0.55), inset 0 0 12px rgba(255,255,255,0.12) !important;
+  transform: scale(1.04) !important;
+  z-index: 1 !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip:active {
+  transform: scale(0.96) !important;
+}
+
+/* Effects: pure swatch tiles, 6×2 = 12 */
+.selector-popup--blocks .block-fx-grid--texture {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  max-height: none !important;
+  overflow: visible !important;
+  margin: 0 0 8px !important;
+}
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card {
+  display: block !important;
+  position: relative !important;
+  aspect-ratio: 1 / 1 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  border: 2px solid rgba(255,255,255,0.1) !important;
+  background: rgba(0,0,0,0.4) !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+  transition: transform 0.1s ease, border-color 0.12s, box-shadow 0.12s !important;
+}
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card__swatch {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+}
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card__icon,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card__name,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card span:not(.block-fx-card__swatch),
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card i {
+  display: none !important;
+}
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card.is-active {
+  border-color: rgba(220, 180, 255, 0.95) !important;
+  box-shadow: 0 0 12px rgba(160,100,255,0.4), inset 0 0 10px rgba(255,255,255,0.1) !important;
+}
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card:active {
+  transform: scale(0.95) !important;
+}
+
+/* FX swatch visuals */
+.fx-swatch--glow { background: radial-gradient(circle at 50% 50%, #fff 0%, #a0e0ff 35%, #2060a0 100%); box-shadow: inset 0 0 12px #4cf3ff; }
+.fx-swatch--shadow { background: linear-gradient(145deg, #4a5060, #12151c 60%, #000); }
+.fx-swatch--sparkle { background: radial-gradient(circle at 30% 30%, #fff 0 8%, transparent 9%), radial-gradient(circle at 70% 55%, #fff 0 6%, transparent 7%), radial-gradient(circle at 45% 75%, #fff 0 5%, transparent 6%), linear-gradient(160deg, #1a2040, #0a0c18); }
+.fx-swatch--pulse { background: radial-gradient(circle, transparent 40%, #fff 42%, transparent 48%, #88f 55%, transparent 70%), #12162a; }
+.fx-swatch--fire { background: linear-gradient(180deg, #fff2a0, #ff8a20 40%, #c02000 90%); }
+.fx-swatch--smoke { background: radial-gradient(circle at 40% 60%, #888 0%, #333 40%, #111 100%); }
+.fx-swatch--lightning { background: linear-gradient(160deg, #0a1020, #1a3050); background-image: linear-gradient(160deg, #0a1020, #1a3050), linear-gradient(25deg, transparent 45%, #aef 47%, transparent 49%, transparent 55%, #8cf 57%, transparent 59%); }
+.fx-swatch--chromatic { background: linear-gradient(90deg, #ff2d6b, transparent 40%, transparent 60%, #00e5ff); background-color: #121018; }
+.fx-swatch--shimmer { background: linear-gradient(120deg, #1a1e30 0%, #fff 45%, #1a1e30 55%, #88cfff 100%); background-size: 200% 100%; }
+.fx-swatch--ripple { background: radial-gradient(circle, transparent 25%, #6cf 28%, transparent 32%, transparent 45%, #4af 48%, transparent 52%), #0c1424; }
+.fx-swatch--plasma { background: radial-gradient(circle at 35% 40%, #f0c 0%, transparent 45%), radial-gradient(circle at 65% 60%, #0cf 0%, transparent 45%), #12081c; }
+.fx-swatch--stars { background: radial-gradient(circle at 25% 30%, #fff 0 2px, transparent 3px), radial-gradient(circle at 70% 55%, #fff 0 1.5px, transparent 2.5px), radial-gradient(circle at 50% 75%, #fff 0 1px, transparent 2px), #060810; }
+
+.selector-popup--blocks .block-bloom-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 4px !important;
+  padding: 6px 8px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: rgba(0,0,0,0.25) !important;
+}
+.selector-popup--blocks .block-bloom-row input { flex: 1 !important; accent-color: #c080ff !important; }
+.selector-popup--blocks .block-bloom-row b { color: #d0b0ff !important; font: 700 0.65rem var(--font-mono) !important; min-width: 28px !important; text-align: right !important; }
+.selector-popup--blocks .block-bloom-row__icon,
+.selector-popup--blocks .block-bloom-row > span:not([id]) { display: none !important; }
+
+@media (max-width: 380px) {
+  .selector-popup--blocks .studio-display canvas { height: 100px !important; }
+  .selector-popup--blocks .block-materials-grid--texture,
+  .selector-popup--blocks .block-fx-grid--texture { gap: 5px !important; }
+}
+
+
+/* ===== Block Studio full-screen + theme pulse glow ===== */
+.selector-popups.is-open:has(#popup-blocks:not([hidden])) {
+  padding: 0 !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+.selector-popup--blocks:not([hidden]) {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 100dvh !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)) !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  border: none !important;
+  /* Theme-colored pulsing outer glow */
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent),
+    inset 0 0 40px color-mix(in srgb, var(--accent) 12%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--accent-2) 35%, transparent),
+    0 0 28px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 60px color-mix(in srgb, var(--accent-2) 30%, transparent),
+    0 0 100px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+  animation: block-studio-glow-pulse 2.4s ease-in-out infinite !important;
+}
+@keyframes block-studio-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent),
+      inset 0 0 36px color-mix(in srgb, var(--accent) 10%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--accent-2) 30%, transparent),
+      0 0 22px color-mix(in srgb, var(--accent) 35%, transparent),
+      0 0 48px color-mix(in srgb, var(--accent-2) 22%, transparent),
+      0 0 80px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, var(--accent) 85%, white 10%),
+      inset 0 0 50px color-mix(in srgb, var(--accent) 18%, transparent),
+      0 0 0 2px color-mix(in srgb, var(--accent-2) 55%, transparent),
+      0 0 36px color-mix(in srgb, var(--accent) 60%, transparent),
+      0 0 72px color-mix(in srgb, var(--accent-2) 40%, transparent),
+      0 0 120px color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+}
+.selector-popup--blocks .block-studio-title,
+.selector-popup--blocks h2.wordmark--studio {
+  /* Shift title ~5% to the right */
+  margin-left: 5% !important;
+  margin-right: 40px !important;
+  margin-bottom: 14px !important;
+  text-align: left !important;
+}
+.selector-popup--blocks .block-studio-label {
+  display: block !important;
+  margin: 10px 2px 6px !important;
+  font: 800 0.62rem/1 var(--font-mono) !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: color-mix(in srgb, var(--accent) 75%, #c8d4e8) !important;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent) !important;
+}
+.selector-popup--blocks .studio-display {
+  margin-bottom: 8px !important;
+}
+.selector-popup--blocks .studio-display canvas {
+  height: min(28vh, 200px) !important;
+}
+.selector-popup--blocks .block-materials-grid--texture,
+.selector-popup--blocks .block-fx-grid--texture {
+  max-width: min(720px, 100%) !important;
+}
+.selector-popup--blocks .popup-close {
+  z-index: 5 !important;
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent) !important;
+}
+
+
+/* ===== Studio size (90% width, 80% height), centered title, labels ===== */
+.selector-popups.is-open:has(#popup-blocks:not([hidden])) {
+  padding: 12px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.selector-popup--blocks:not([hidden]) {
+  width: 90vw !important;
+  max-width: 90vw !important;
+  height: 80dvh !important;
+  max-height: 80dvh !important;
+  min-height: 0 !important;
+  border-radius: 20px !important;
+  margin: 0 auto !important;
+  padding: 18px 16px 14px !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  border: none !important;
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent),
+    inset 0 0 40px color-mix(in srgb, var(--accent) 12%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--accent-2) 35%, transparent),
+    0 0 28px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 60px color-mix(in srgb, var(--accent-2) 30%, transparent),
+    0 0 100px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+  animation: block-studio-glow-pulse 2.4s ease-in-out infinite !important;
+}
+.selector-popup--blocks .block-studio-title,
+.selector-popup--blocks h2.wordmark--studio {
+  margin: 0 40px 12px 0 !important;
+  margin-left: 0 !important;
+  text-align: center !important;
+  width: 100% !important;
+  display: block !important;
+}
+.selector-popup--blocks .block-studio-label {
+  display: block !important;
+  margin: 12px 0 6px !important;
+  font: 800 0.62rem/1 var(--font-mono) !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: color-mix(in srgb, var(--accent) 75%, #c8d4e8) !important;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent) !important;
+  text-align: left !important;
+}
+.selector-popup--blocks .block-materials-grid--texture,
+.selector-popup--blocks .block-fx-grid--texture {
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  max-width: 100% !important;
+  gap: 6px !important;
+}
+.selector-popup--blocks .studio-display canvas {
+  height: min(18vh, 140px) !important;
+}
+.style-preview--crystal {
+  background: linear-gradient(135deg, #fff, #72eaff 30%, #7c5cff 70%, #eaffff) !important;
+  box-shadow: 0 0 10px #70eaff !important;
+}
+.style-preview--chrome {
+  background: linear-gradient(180deg, #fff 5%, #a8b8c8 25%, #fff 45%, #5a6a7c 65%, #fff 90%) !important;
+  border: 1px solid #fff !important;
+}
+.style-preview--lava {
+  background: linear-gradient(160deg, #fff2a6, #ff7b22 40%, #c02000) !important;
+  box-shadow: 0 0 10px #ff5a1f !important;
+}
+.style-preview--obsidian {
+  background: linear-gradient(145deg, #3a3a48, #12121a 50%, #2a2a35) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+.fx-swatch--aura { background: radial-gradient(circle, transparent 30%, #8cf 55%, transparent 70%), #0c1428; }
+.fx-swatch--glitch { background: linear-gradient(180deg, #120818 40%, #ff2d6b 42%, #120818 48%, #00e5ff 52%, #120818 58%); }
+.fx-swatch--comet { background: linear-gradient(120deg, #060810, #060810 40%, #aef 70%, #fff); }
+.fx-swatch--dust { background: radial-gradient(circle at 30% 40%, #ffe8a0 0 2px, transparent 3px), radial-gradient(circle at 70% 60%, #ffe8a0 0 1.5px, transparent 2.5px), #1a1810; }
+@media (max-width: 480px) {
+  .selector-popup--blocks .block-materials-grid--texture,
+  .selector-popup--blocks .block-fx-grid--texture {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+
+/* ===== No-scroll studio: compact tiles, fit in 80dvh ===== */
+.selector-popup--blocks:not([hidden]) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+  height: 80dvh !important;
+  max-height: 80dvh !important;
+  padding: 12px 12px 10px !important;
+}
+.selector-popup--blocks .block-studio-title,
+.selector-popup--blocks h2.wordmark--studio {
+  margin: 0 36px 6px 0 !important;
+  margin-left: 0 !important;
+  font-size: clamp(1.05rem, 4.2vw, 1.45rem) !important;
+  flex-shrink: 0 !important;
+}
+.selector-popup--blocks .studio-display {
+  margin: 0 0 4px !important;
+  flex-shrink: 0 !important;
+  min-height: 0 !important;
+}
+.selector-popup--blocks .studio-display__canvas-wrap {
+  border-radius: 10px !important;
+}
+.selector-popup--blocks .studio-display canvas {
+  height: min(12vh, 96px) !important;
+  max-height: 96px !important;
+}
+.selector-popup--blocks .block-studio-label {
+  margin: 6px 0 4px !important;
+  font-size: 0.55rem !important;
+  letter-spacing: 0.16em !important;
+  flex-shrink: 0 !important;
+}
+.selector-popup--blocks .block-materials-grid--texture,
+.selector-popup--blocks .block-fx-grid--texture {
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  margin: 0 0 2px !important;
+  flex-shrink: 0 !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card {
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 7px !important;
+  border-width: 1.5px !important;
+  min-height: 0 !important;
+  max-height: min(7.2vw, 42px) !important;
+  height: min(7.2vw, 42px) !important;
+  width: 100% !important;
+  aspect-ratio: auto !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip.is-selected {
+  transform: scale(1.06) !important;
+}
+.selector-popup--blocks .block-bloom-row {
+  margin-top: 2px !important;
+  padding: 4px 8px !important;
+  flex-shrink: 0 !important;
+  border-radius: 8px !important;
+}
+.selector-popup--blocks .popup-close {
+  top: 8px !important;
+  right: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+@media (max-width: 520px) {
+  .selector-popup--blocks .block-materials-grid--texture,
+  .selector-popup--blocks .block-fx-grid--texture {
+    grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+  }
+  .selector-popup--blocks .block-materials-grid--texture .style-chip,
+  .selector-popup--blocks .block-fx-grid--texture .block-fx-card {
+    max-height: min(9vw, 36px) !important;
+    height: min(9vw, 36px) !important;
+    border-radius: 5px !important;
+  }
+  .selector-popup--blocks .studio-display canvas {
+    height: min(10vh, 72px) !important;
+  }
+}
+@media (max-height: 640px) {
+  .selector-popup--blocks .studio-display canvas {
+    height: 64px !important;
+  }
+  .selector-popup--blocks .block-materials-grid--texture .style-chip,
+  .selector-popup--blocks .block-fx-grid--texture .block-fx-card {
+    max-height: 32px !important;
+    height: 32px !important;
+  }
+  .selector-popup--blocks .block-studio-label {
+    margin: 4px 0 3px !important;
+  }
+}
+
+
+/* ===== Studio layout: 50% preview, 50% controls (proportional) ===== */
+.selector-popup--blocks:not([hidden]) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+  height: 80dvh !important;
+  max-height: 80dvh !important;
+  width: 90vw !important;
+  max-width: 90vw !important;
+  padding: 12px 14px 12px !important;
+  box-sizing: border-box !important;
+}
+.selector-popup--blocks .block-studio-title,
+.selector-popup--blocks h2.wordmark--studio {
+  flex: 0 0 auto !important;
+  margin: 0 40px 8px 0 !important;
+  margin-left: 0 !important;
+  text-align: center !important;
+  width: 100% !important;
+  font-size: clamp(1.1rem, 4vw, 1.5rem) !important;
+}
+.selector-popup--blocks .popup-close {
+  flex: 0 0 auto !important;
+}
+
+/* Live preview = half of remaining space after title */
+.selector-popup--blocks .studio-display {
+  flex: 1 1 50% !important;
+  min-height: 0 !important;
+  margin: 0 0 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.selector-popup--blocks .studio-display__canvas-wrap {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+}
+.selector-popup--blocks .studio-display canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  flex: 1 1 auto !important;
+  object-fit: contain !important;
+}
+
+/* Controls region = other half */
+.selector-popup--blocks .block-studio-label {
+  flex: 0 0 auto !important;
+  margin: 4px 0 5px !important;
+  font: 800 0.58rem/1 var(--font-mono) !important;
+  letter-spacing: 0.16em !important;
+}
+.selector-popup--blocks .block-materials-grid--texture {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  gap: 6px !important;
+  margin: 0 0 4px !important;
+  align-content: stretch !important;
+}
+.selector-popup--blocks .block-fx-grid--texture {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  gap: 6px !important;
+  margin: 0 0 4px !important;
+  align-content: stretch !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 28px !important;
+  aspect-ratio: auto !important;
+  border-radius: 8px !important;
+  border-width: 2px !important;
+}
+.selector-popup--blocks .block-bloom-row {
+  flex: 0 0 auto !important;
+  margin-top: 2px !important;
+  padding: 6px 10px !important;
+}
+
+/* Wrapper: labels+grids share the lower 50% via a flex group */
+.selector-popup--blocks .studio-controls {
+  flex: 1 1 50% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+
+/* ===== Active texture tile: no text, no blue underline, texture stays visible ===== */
+.selector-popup--blocks .block-materials-grid--texture .style-chip.is-selected::after,
+.selector-popup--blocks .block-materials-grid--texture .style-chip.is-selected::before,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card.is-active::after,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card.is-active::before {
+  content: none !important;
+  display: none !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip,
+.selector-popup--blocks .block-materials-grid--texture .style-chip.is-selected {
+  background: transparent !important;
+  background-image: none !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip.is-selected {
+  border: 2.5px solid #fff !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.35),
+    0 0 14px color-mix(in srgb, var(--accent) 55%, transparent) !important;
+  outline: none !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip__label,
+.selector-popup--blocks .block-materials-grid--texture .style-chip small,
+.selector-popup--blocks .block-materials-grid--texture .style-chip__icon {
+  display: none !important;
+  visibility: hidden !important;
+  font-size: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip__preview {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: inherit !important;
+  z-index: 0 !important;
+}
+/* Ensure dark textures stay visible */
+.style-preview--obsidian {
+  background: linear-gradient(145deg, #5a5a6a 0%, #2a2a38 40%, #0e0e16 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.5) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+}
+.style-preview--chrome {
+  background: linear-gradient(180deg, #ffffff 0%, #c8d0d8 25%, #ffffff 48%, #6a7888 72%, #e8eef4 100%) !important;
+  border: 1px solid rgba(255,255,255,0.8) !important;
+}
+.style-preview--crystal {
+  background: linear-gradient(135deg, #ffffff, #9aeeff 35%, #a090ff 75%, #e8ffff) !important;
+  box-shadow: 0 0 10px rgba(100, 220, 255, 0.5) !important;
+}
+.style-preview--lava {
+  background: linear-gradient(160deg, #ffe08a, #ff6a18 45%, #b01000) !important;
+  box-shadow: 0 0 10px rgba(255, 80, 20, 0.55) !important;
+}
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card.is-active {
+  border: 2.5px solid #fff !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent) !important;
+  background: rgba(0,0,0,0.25) !important;
+}
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card__name,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card__icon,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card > span:not(.block-fx-card__swatch) {
+  display: none !important;
+}
+
+
+/* Force Lava texture chip to always show a bright molten swatch */
+.selector-popup--blocks .block-materials-grid--texture .style-chip .style-preview--lava,
+.style-preview--lava {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background:
+    radial-gradient(ellipse at 50% 75%, #fff5a0 0%, #ff9a20 28%, #ff3b00 62%, #7a0a00 100%) !important;
+  background-color: #ff5500 !important;
+  box-shadow:
+    inset 0 0 8px rgba(255, 200, 80, 0.45),
+    0 0 12px rgba(255, 80, 20, 0.55) !important;
+  border: none !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip[data-block-style="lava"] {
+  background: #ff5500 !important;
+  background-image: none !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip[data-block-style="lava"] .style-preview--lava {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* +8 texture previews */
+.style-preview--gold { background: linear-gradient(135deg, #fff6c0, #ffd700 40%, #b8860b 85%) !important; box-shadow: 0 0 10px rgba(255,200,50,0.5) !important; }
+.style-preview--emerald { background: linear-gradient(135deg, #a7f3d0, #10b981 45%, #047857) !important; box-shadow: 0 0 10px rgba(16,185,129,0.4) !important; }
+.style-preview--ruby { background: linear-gradient(135deg, #fecdd3, #e11d48 45%, #9f1239) !important; box-shadow: 0 0 10px rgba(225,29,72,0.45) !important; }
+.style-preview--coral { background: linear-gradient(145deg, #ffc4b0, #ff7f50 50%, #e85d4c) !important; }
+.style-preview--midnight { background: linear-gradient(160deg, #3d5a80, #1e3a5f 50%, #0c1e36) !important; box-shadow: inset 0 1px 0 rgba(150,200,255,0.2) !important; }
+.style-preview--toxic { background: linear-gradient(135deg, #ecfccb, #a3e635 40%, #65a30d) !important; box-shadow: 0 0 10px rgba(163,230,53,0.4) !important; }
+.style-preview--marble { background: linear-gradient(135deg, #fafaf9, #e7e5e4 40%, #a8a29e) !important; border: 1px solid rgba(255,255,255,0.5) !important; }
+.style-preview--magma { background: radial-gradient(ellipse at 50% 70%, #ff6b1a, #991b1b 50%, #1c0a0a) !important; box-shadow: 0 0 10px rgba(255,80,20,0.45) !important; }
+
+/* +8 effect swatches */
+.fx-swatch--wave { background: linear-gradient(180deg, #0a1528 40%, #4af 48%, #0a1528 56%); }
+.fx-swatch--scan { background: linear-gradient(180deg, #0a1020 35%, #5cf 38%, #0a1020 42%); }
+.fx-swatch--flicker { background: radial-gradient(circle, #fff 0%, #1a1a28 60%); }
+.fx-swatch--orbit { background: radial-gradient(circle at 70% 30%, #fff 0 3px, transparent 4px), #0c1424; }
+.fx-swatch--mist { background: radial-gradient(circle at 40% 50%, rgba(200,220,255,0.5), transparent 60%), #121820; }
+.fx-swatch--ring { background: radial-gradient(circle, transparent 35%, #9cf 40%, transparent 48%), #0c1020; }
+.fx-swatch--edge { background: linear-gradient(#0a1828, #0a1828) padding-box, linear-gradient(135deg, #0ff, #f0f) border-box; border: 2px solid transparent; }
+.fx-swatch--spark { background: radial-gradient(circle at 30% 40%, #ffeaa0 0 2px, transparent 3px), radial-gradient(circle at 70% 65%, #ffeaa0 0 1.5px, transparent 2.5px), #1a1810; }
+
+/* Keep 8-column grids; 24 tiles = 3 rows */
+.selector-popup--blocks .block-materials-grid--texture,
+.selector-popup--blocks .block-fx-grid--texture {
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+}
+
+
+/* ===== Studio: bigger title, tight preview under title, large tiles, no bloom ===== */
+.selector-popup--blocks .block-studio-title,
+.selector-popup--blocks h2.wordmark--studio {
+  font-size: clamp(1.21rem, 4.62vw, 1.65rem) !important; /* +10% */
+  margin: 0 40px 10px 0 !important;
+  margin-left: 0 !important;
+  text-align: center !important;
+  width: 100% !important;
+  flex: 0 0 auto !important;
+}
+
+/* Preview sits directly under title; aspect matches 8×4 board (2:1) — no dead bars */
+.selector-popup--blocks .studio-display {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  margin: 0 0 10px !important;
+  aspect-ratio: 2 / 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: block !important;
+}
+.selector-popup--blocks .studio-display__canvas-wrap {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 2 / 1 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: rgba(0,0,0,0.35) !important;
+}
+.selector-popup--blocks .studio-display canvas,
+.selector-popup--blocks #block-preview-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  display: block !important;
+  object-fit: fill !important;
+}
+
+/* Controls fill remaining height; tiles grow to match preview cell size (~width/8) */
+.selector-popup--blocks .studio-controls {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.selector-popup--blocks .block-studio-label {
+  flex: 0 0 auto !important;
+  margin: 6px 0 6px !important;
+}
+.selector-popup--blocks .block-materials-grid--texture,
+.selector-popup--blocks .block-fx-grid--texture {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  gap: 6px !important;
+  margin: 0 0 6px !important;
+  align-content: stretch !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 8px !important;
+}
+
+/* Hide bloom UI if any residual */
+.selector-popup--blocks .block-bloom-row,
+.selector-popup--blocks .block-studio-label:has(+ .block-bloom-row) {
+  display: none !important;
+}
+
+
+/* ===== 1:1 texture/effect tiles matching preview cell size; no vertical stretch ===== */
+.selector-popup--blocks:not([hidden]) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.selector-popup--blocks .block-studio-title,
+.selector-popup--blocks h2.wordmark--studio {
+  flex: 0 0 auto !important;
+}
+
+/* Preview: width-driven 2:1 box (8×4 square cells). Not flexed taller. */
+.selector-popup--blocks .studio-display {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 0 10px !important;
+  aspect-ratio: 2 / 1 !important; /* COLS/ROWS = 8/4 */
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+}
+.selector-popup--blocks .studio-display__canvas-wrap {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 2 / 1 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  line-height: 0 !important;
+}
+.selector-popup--blocks .studio-display canvas,
+.selector-popup--blocks #block-preview-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  object-fit: contain !important; /* keep square cells; letterbox only if box wrong */
+  image-rendering: auto !important;
+}
+
+/* Controls: natural height from square tiles — do not stretch rows */
+.selector-popup--blocks .studio-controls {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+.selector-popup--blocks .block-studio-label {
+  flex: 0 0 auto !important;
+  margin: 8px 0 6px !important;
+}
+
+/* Same 8-column track as the preview → same cell width; force 1:1 squares */
+.selector-popup--blocks .block-materials-grid--texture,
+.selector-popup--blocks .block-fx-grid--texture {
+  display: grid !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin: 0 0 8px !important;
+  flex: 0 0 auto !important;
+  align-content: start !important;
+}
+
+.selector-popup--blocks .block-materials-grid--texture .style-chip,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card {
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  aspect-ratio: 1 / 1 !important; /* true squares */
+  border-radius: 8px !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  align-self: start !important;
+}
+
+.selector-popup--blocks .block-materials-grid--texture .style-chip__preview,
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card__swatch {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* ===== Preview top-flush +25% cells; texture lower; effects bottom-anchored ===== */
+.selector-popup--blocks:not([hidden]) {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.selector-popup--blocks .block-studio-title,
+.selector-popup--blocks h2.wordmark--studio {
+  flex: 0 0 auto !important;
+  margin-bottom: 8px !important;
+}
+
+/* Preview tight under title; top-aligned content (no black bar above blocks) */
+.selector-popup--blocks .studio-display {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  aspect-ratio: 2 / 1 !important;
+  height: auto !important;
+  margin: 0 0 0 !important;
+  overflow: hidden !important;
+  background: rgba(0,0,0,0.35) !important;
+  border-radius: 12px !important;
+}
+.selector-popup--blocks .studio-display__canvas-wrap {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  border-radius: 12px !important;
+  line-height: 0 !important;
+  display: block !important;
+}
+.selector-popup--blocks .studio-display canvas,
+.selector-popup--blocks #block-preview-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  object-fit: fill !important;
+  vertical-align: top !important;
+}
+
+/* Controls fill the rest: texture pushed down ~10%, effects pinned to bottom */
+.selector-popup--blocks .studio-controls {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* ~10% of controls height as space above texture */
+.selector-popup--blocks .studio-controls > .block-studio-label:first-of-type {
+  margin-top: 10% !important;
+  margin-bottom: 6px !important;
+  flex: 0 0 auto !important;
+}
+
+.selector-popup--blocks .block-materials-grid--texture {
+  flex: 0 0 auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+.selector-popup--blocks .block-materials-grid--texture .style-chip {
+  aspect-ratio: 1 / 1 !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Spacer pushes effects to the bottom */
+.selector-popup--blocks .studio-controls::after {
+  content: none !important;
+}
+
+/* Effects label + grid anchored to bottom */
+.selector-popup--blocks .block-studio-label + .block-materials-grid--texture + .block-studio-label {
+  margin-top: auto !important;
+  margin-bottom: 6px !important;
+  flex: 0 0 auto !important;
+}
+.selector-popup--blocks .block-fx-grid--texture {
+  flex: 0 0 auto !important;
+  display: grid !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin: 0 0 4px !important;
+}
+.selector-popup--blocks .block-fx-grid--texture .block-fx-card {
+  aspect-ratio: 1 / 1 !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+
+.style-preview--honeycomb { background: repeating-linear-gradient(60deg, #f5c542, #f5c542 4px, #d4a017 4px, #d4a017 8px), #e8b020 !important; }
+.style-preview--carbon { background: repeating-linear-gradient(45deg, #2a2a2e 0 3px, #1c1c20 3px 6px) !important; }
+.style-preview--denim { background: repeating-linear-gradient(0deg, #3b6ea5 0 2px, #2d5a8a 2px 4px) !important; }
+.style-preview--brick { background: linear-gradient(#b55239 48%, #7a3020 50%, #b55239 52%), #9a4030 !important; }
+.style-preview--circuit { background: linear-gradient(90deg, #0a1a12 40%, #00ff88 42%, #0a1a12 44%), #0a1a12 !important; box-shadow: inset 0 0 8px #00ff88 !important; }
+.style-preview--candy { background: linear-gradient(135deg, #ffc0ea, #ff6bcb 50%, #ff1493) !important; }
+.style-preview--paper { background: repeating-linear-gradient(0deg, #f4f0e6 0 6px, #ddd6c8 6px 7px) !important; }
+.style-preview--aurora { background: linear-gradient(135deg, #5fffb0, #70e0ff, #c080ff, #ff90d0) !important; }
+
+/* 32 textures: 8 columns × 4 rows */
+.selector-popup--blocks .block-materials-grid--texture {
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+}
+
+
+/* ===== Preview +20% height; centered Texture / Effects labels ===== */
+.selector-popup--blocks .studio-display {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  /* was 2/1 (8×4); +20% height → 2 / 1.2 */
+  aspect-ratio: 2 / 1.2 !important;
+  height: auto !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  background: rgba(0,0,0,0.35) !important;
+  border-radius: 12px !important;
+}
+.selector-popup--blocks .studio-display__canvas-wrap {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 2 / 1.2 !important;
+  overflow: hidden !important;
+  border-radius: 12px !important;
+  line-height: 0 !important;
+}
+
+.selector-popup--blocks .block-studio-label {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-bottom: 6px !important;
+  font: 800 0.62rem/1 var(--font-mono) !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: color-mix(in srgb, var(--accent) 75%, #c8d4e8) !important;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent) !important;
+}
+.selector-popup--blocks .studio-controls > .block-studio-label:first-of-type {
+  margin-top: 10% !important;
+  text-align: center !important;
+}
+.selector-popup--blocks .block-studio-label + .block-materials-grid--texture + .block-studio-label {
+  margin-top: auto !important;
+  text-align: center !important;
+  font: 800 0.62rem/1 var(--font-mono) !important;
+  letter-spacing: 0.18em !important;
+}
+
+
+/* Texture name above live preview — bold, flowing */
+.selector-popup--blocks .studio-texture-name {
+  flex: 0 0 auto !important;
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  margin: 0 0 8px !important;
+  padding: 0 8px !important;
+  font-family: var(--font-ui, system-ui, sans-serif) !important;
+  font-weight: 800 !important;
+  font-size: clamp(1.05rem, 4.2vw, 1.45rem) !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1.15 !important;
+  color: #fff !important;
+  text-shadow:
+    0 0 12px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 0 28px color-mix(in srgb, var(--accent-2) 35%, transparent),
+    0 2px 8px rgba(0, 0, 0, 0.45) !important;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 80%, #fff),
+    #fff 45%,
+    color-mix(in srgb, var(--accent-2) 75%, #fff)
+  ) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 40%, transparent));
+}
+
+
+.style-preview--holo {
+  background:
+    linear-gradient(#7cba3d 0 28%, #5a8f2a 28% 32%, #8b5a2b 32% 100%) !important;
+  image-rendering: pixelated !important;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.5) !important;
+  border-radius: 2px !important;
+}
+.style-preview--circuit {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,255,136,0.15) 3px 4px),
+    repeating-linear-gradient(90deg, transparent 0 5px, rgba(0,255,136,0.12) 5px 6px),
+    #020a06 !important;
+  box-shadow: inset 0 0 10px rgba(0,255,136,0.35) !important;
+}
+.style-preview--aurora {
+  background:
+    radial-gradient(circle at 30% 40%, #ff90d0 0%, transparent 45%),
+    radial-gradient(circle at 70% 60%, #70e0ff 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, #5fffb0 0%, #12081c 70%) !important;
+  box-shadow: 0 0 12px rgba(120, 200, 255, 0.4) !important;
+}
+
+/* Texture & Effects labels +25% */
+.selector-popup--blocks .block-studio-label {
+  font-size: 0.775rem !important; /* 0.62 * 1.25 */
+  letter-spacing: 0.18em !important;
+}
 
 </style>
