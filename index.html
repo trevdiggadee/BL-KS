@@ -6389,7 +6389,7 @@ const MindBender = (() => {
 const Input = (() => {
   const handlers = {
     left: () => {}, right: () => {}, rotateCW: () => {}, rotateCCW: () => {},
-    softDropStart: () => {}, softDropEnd: () => {}, hardDrop: () => {},
+    softDropStart: () => {}, softDropEnd: () => {}, softDropStep: () => {}, hardDrop: () => {},
     hold: () => {}, pause: () => {}, confirmTap: () => {},
   };
 
@@ -6523,6 +6523,8 @@ const Input = (() => {
     let startX = 0, startY = 0, lastX = 0, lastY = 0;
     let tracking = false, moved = false, hardDropped = false;
     let cellThreshold = 20;
+    let verticalProgress = 0;
+    let gestureStartTime = 0;
     const TAP_MAX_MOVE = 9;
 
     function finish(e) {
@@ -6530,18 +6532,23 @@ const Input = (() => {
       tracking = false;
       handlers.softDropEnd();
 
-      const totalDx = (e?.clientX ?? lastX) - startX;
-      const totalDy = (e?.clientY ?? lastY) - startY;
+      const x = e?.clientX ?? lastX;
+      const y = e?.clientY ?? lastY;
+      const totalDx = x - startX;
+      const totalDy = y - startY;
+      const elapsed = Math.max(1, performance.now() - gestureStartTime);
 
       if (!moved && !hardDropped) {
         handlers.rotateCW();
-      } else if (!hardDropped) {
-        // Upward flick = hold. Downward flicks are handled immediately in
-        // pointermove so the action never waits for finger release.
-        if (totalDy < -Math.max(28, cellThreshold) &&
-            Math.abs(totalDy) > Math.abs(totalDx)) {
-          handlers.hold();
-        }
+      } else if (!hardDropped && totalDy < -Math.max(28, cellThreshold) &&
+                 Math.abs(totalDy) > Math.abs(totalDx)) {
+        handlers.hold();
+      } else if (!hardDropped && totalDy > 0 &&
+                 totalDy >= cellThreshold * 1.45 && elapsed <= 260 &&
+                 Math.abs(totalDy) > Math.abs(totalDx) &&
+                 typeof handlers.hardDrop === 'function') {
+        // Only a deliberate fast downward flick becomes a hard drop.
+        handlers.hardDrop();
       }
 
       if (e?.pointerId != null) {
@@ -6551,26 +6558,33 @@ const Input = (() => {
 
     el.addEventListener('pointerdown', (e) => {
       if (e.isPrimary === false) return;
+      // Only start a board gesture while an actual game is running.
+      if (typeof Game !== 'undefined' && Game.state && Game.state !== 'playing') return;
       e.preventDefault();
 
       tracking = true;
       moved = false;
       hardDropped = false;
+      verticalProgress = 0;
+      gestureStartTime = performance.now();
       startX = lastX = e.clientX;
       startY = lastY = e.clientY;
 
-      // ~55% of one board cell feels responsive without making tiny finger
-      // jitter move pieces. Clamp it for very small/large boards.
       const rect = el.getBoundingClientRect();
       const cols = (typeof Board !== 'undefined' && Board.COLS) ? Board.COLS : 10;
       const cell = rect.width / cols;
-      cellThreshold = Math.max(14, Math.min(24, cell * 0.55));
+      cellThreshold = Math.max(12, Math.min(22, cell * 0.48));
 
       try { el.setPointerCapture(e.pointerId); } catch (_) {}
     }, { passive: false });
 
     el.addEventListener('pointermove', (e) => {
       if (!tracking || e.isPrimary === false) return;
+      if (typeof Game !== 'undefined' && Game.state !== 'playing') {
+        tracking = false;
+        handlers.softDropEnd();
+        return;
+      }
       e.preventDefault();
 
       const x = e.clientX, y = e.clientY;
@@ -6579,13 +6593,11 @@ const Input = (() => {
       const totalDx = x - startX;
       const totalDy = y - startY;
 
-      if (Math.abs(totalDx) > TAP_MAX_MOVE || Math.abs(totalDy) > TAP_MAX_MOVE) {
-        moved = true;
-      }
+      if (Math.abs(totalDx) > TAP_MAX_MOVE || Math.abs(totalDy) > TAP_MAX_MOVE) moved = true;
 
-      // Horizontal movement: one board column per threshold crossed.
-      if (Math.abs(dx) >= cellThreshold && Math.abs(dx) > Math.abs(dy)) {
-        const steps = Math.min(4, Math.floor(Math.abs(dx) / cellThreshold));
+      // Horizontal: consume movement incrementally so slow swipes remain responsive.
+      if (Math.abs(totalDx) > Math.abs(totalDy) && Math.abs(dx) >= Math.max(7, cellThreshold * 0.55)) {
+        const steps = Math.min(3, Math.floor(Math.abs(dx) / Math.max(7, cellThreshold * 0.55)));
         const move = dx > 0 ? handlers.right : handlers.left;
         for (let i = 0; i < steps; i++) move();
         lastX = x;
@@ -6593,22 +6605,24 @@ const Input = (() => {
         return;
       }
 
-      if (Math.abs(totalDy) > Math.abs(totalDx) && totalDy > 0) {
-        // A downward swipe now reacts after roughly one cell instead of the
-        // previous 88px requirement. This is the key iPhone responsiveness fix.
-        const hardDropThreshold = Math.max(32, cellThreshold * 1.65);
-        if (!hardDropped && totalDy >= hardDropThreshold) {
-          hardDropped = true;
+      // Downward drag: move the active piece one row for roughly each 0.45 cell.
+      // This makes the piece visibly follow the finger instead of waiting for gravity.
+      if (totalDy > 0 && totalDy > Math.abs(totalDx) * 0.85) {
+        const stepSize = Math.max(10, cellThreshold * 0.45);
+        verticalProgress += Math.max(0, dy);
+        let steps = Math.min(4, Math.floor(verticalProgress / stepSize));
+        if (steps > 0) {
+          verticalProgress -= steps * stepSize;
+          for (let i = 0; i < steps; i++) {
+            handlers.softDropStart();
+            if (typeof handlers.softDropStep === 'function') handlers.softDropStep();
+          }
           handlers.softDropEnd();
-          handlers.hardDrop();
-          return;
-        }
-
-        // Before hard-drop fires, keep the piece responsive to the finger.
-        if (totalDy >= Math.max(16, cellThreshold * 0.7)) {
-          handlers.softDropStart();
         }
       }
+
+      lastX = x;
+      lastY = y;
     }, { passive: false });
 
     el.addEventListener('pointerup', finish, { passive: false });
@@ -9130,8 +9144,21 @@ const Game = (() => {
       right: () => tryMoveActive(0, 1),
       rotateCW: () => rotateActive(1),
       rotateCCW: () => rotateActive(-1),
-      softDropStart, softDropEnd,
-      hardDrop,
+      softDropStart: () => { if (state === 'playing') softDropStart(); },
+      softDropEnd: () => softDropEnd(),
+      softDropStep: () => {
+        if (state !== 'playing' || !active) return;
+        const moved = moveGravity(active);
+        if (moved) {
+          active = moved;
+          isLocking = false;
+          lockTimer = 0;
+          lastMoveWasRotation = false;
+        } else {
+          isLocking = true;
+        }
+      },
+      hardDrop: () => { if (state === 'playing') hardDrop(); },
       hold: holdPiece,
       pause: togglePause,
     });
@@ -10356,9 +10383,11 @@ const ThemeFx = (() => {
         if (Game.state === 'playing') Game.togglePause();
       }
     });
+    // Do not auto-pause on window blur. iOS Safari can emit blur during
+    // touch/focus transitions while the player is still in the game.
+    // visibilitychange is the reliable signal for actually leaving the app.
     window.addEventListener('blur', () => {
       Input.reset();
-      if (Game.state === 'playing') Game.togglePause();
     });
   }
 
