@@ -7565,6 +7565,75 @@ const UI = (() => {
   }
 
   /**
+   * Inferno block skin: replaces the chosen material with a charcoal/coal
+   * fill (dark, slightly mottled like soot) cut through by a couple of
+   * glowing lava cracks. Used for every locked cell once Inferno is active,
+   * regardless of which Block Studio material the player picked — the
+   * theme owns the block look once it's settled into the stack.
+   */
+  function drawInfernoCharcoal(ctx, row, col, alpha = 1) {
+    if (row < 0) return;
+    const x = col * cellSize, y = row * cellSize, s = cellSize;
+    const t = visualTime;
+    const pad = Math.max(1, s * 0.05), inner = s - pad * 2, rad = s * 0.14;
+    // Stable per-cell seed so the mottling/crack shape doesn't jitter frame
+    // to frame — only the glow intensity flickers via `flicker`.
+    const seed = col * 7.13 + row * 3.71;
+    const flicker = 0.82 + 0.18 * Math.sin(t * 5 + seed);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    const g = ctx.createLinearGradient(x, y, x + s, y + s);
+    g.addColorStop(0, '#332c26');
+    g.addColorStop(0.5, '#18140f');
+    g.addColorStop(1, '#0a0806');
+    ctx.fillStyle = g;
+    roundRect(ctx, x + pad, y + pad, inner, inner, rad);
+    ctx.fill();
+
+    ctx.save();
+    roundRect(ctx, x + pad, y + pad, inner, inner, rad);
+    ctx.clip();
+
+    // Soot mottling + a faint ash highlight — static positions per cell.
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    [[0.28, 0.32, 0.24], [0.72, 0.58, 0.3], [0.42, 0.78, 0.2]].forEach(([sx, sy, sr]) => {
+      ctx.beginPath(); ctx.arc(x + s * sx, y + s * sy, s * sr, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.beginPath(); ctx.arc(x + s * 0.35, y + s * 0.22, s * 0.18, 0, Math.PI * 2); ctx.fill();
+
+    // Glowing lava cracks running through the charcoal.
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 2; i++) {
+      const baseY = y + s * (0.32 + i * 0.36) + Math.sin(seed + i) * s * 0.04;
+      ctx.beginPath();
+      ctx.moveTo(x, baseY);
+      ctx.quadraticCurveTo(x + s * 0.3, baseY + Math.sin(seed + i + 1) * s * 0.1, x + s * 0.55, baseY - s * 0.05);
+      ctx.quadraticCurveTo(x + s * 0.78, baseY - s * 0.12, x + s, baseY + Math.sin(seed + i + 2) * s * 0.06);
+      ctx.lineWidth = Math.max(1.5, s * 0.06);
+      ctx.strokeStyle = `rgba(255,120,30,${0.55 * flicker})`;
+      ctx.shadowColor = 'rgba(255,100,20,0.9)';
+      ctx.shadowBlur = s * 0.12 * flicker;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = Math.max(0.6, s * 0.02);
+      ctx.strokeStyle = `rgba(255,225,150,${0.85 * flicker})`;
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = `rgba(255,90,20,${0.4 * flicker})`;
+    ctx.lineWidth = 1;
+    roundRect(ctx, x + pad + 0.5, y + pad + 0.5, inner - 1, inner - 1, rad);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /**
    * Inferno fire on locked stack only — visible but diffuse.
    * Cheap drawing (no shadowBlur) so full boards stay smooth.
    * Flames sit around the block edges so empty cells stay readable.
@@ -7721,8 +7790,14 @@ const UI = (() => {
           const cellAlpha = mb && mb.blurMs != null ? MindBender.blurAlpha(c, mb.blurMs) : 1;
           const blockColor = colorFor(cell);
           const visRow = r - hiddenOffset;
-          // Locked stack: material only, no per-cell FX (sparkle/pulse) — huge FPS win.
-          drawCell(boardCtx, visRow, c, cell, cellAlpha, false, false);
+          if (infernoActive) {
+            // Inferno owns the block look once it's locked: charcoal + lava
+            // cracks instead of the chosen material, on every settled cell.
+            drawInfernoCharcoal(boardCtx, visRow, c, cellAlpha);
+          } else {
+            // Locked stack: material only, no per-cell FX (sparkle/pulse) — huge FPS win.
+            drawCell(boardCtx, visRow, c, cell, cellAlpha, false, false);
+          }
           // Inferno: fire only on the TOP cell of each column (surface), not every buried block.
           if (infernoActive && infernoHeights[c] > 0) {
             const topVis = Board.TOTAL_ROWS - hiddenOffset - infernoHeights[c];
