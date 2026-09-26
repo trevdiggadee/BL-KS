@@ -8,8 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BLØKS">
 <meta name="description" content="BLØKS — a premium neon arcade falling-block puzzle game. Free to play, offline-ready, no account needed.">
-<link rel="icon" href="App-Badge.png">
-<link rel="apple-touch-icon" href="App-Badge.png">
 <title>BLØKS</title>
 
 
@@ -1928,11 +1926,11 @@ html, body, #app { min-height:100%; background:#030611; }
    REFERENCE MENU REDESIGN — fantasy neon BLØKS landing screen
    Inspired by the supplied BLØKS menu reference image.
    ============================================================ */
-/* Menu background photo — swap the image by replacing MenuBG.JPG in the repo,
-   no CSS edits needed. Dark overlay gradients on top keep the dock/text readable. */
 .start-screen{background:
-  linear-gradient(180deg,rgba(2,6,16,.15) 0%,rgba(2,6,16,.05) 40%,rgba(2,6,16,.55) 100%),
-  url('MenuBG.JPG') center/cover no-repeat;}
+  radial-gradient(ellipse at 50% 27%,rgba(70,180,255,.22),transparent 35%),
+  radial-gradient(ellipse at 22% 45%,rgba(0,224,255,.17),transparent 30%),
+  radial-gradient(ellipse at 78% 43%,rgba(255,54,213,.18),transparent 30%),
+  linear-gradient(180deg,#031a47 0%,#061e4d 34%,#081532 58%,#020817 100%);}
 .start-screen::before{content:"";position:absolute;inset:0;pointer-events:none;background:
  radial-gradient(circle at 14% 18%,rgba(90,205,255,.9) 0 1px,transparent 2px),
  radial-gradient(circle at 83% 12%,rgba(255,255,255,.8) 0 1px,transparent 2px),
@@ -4375,23 +4373,19 @@ body.mode-zen .mode-hud__mb {
   min-height: 100% !important;
   height: 100% !important;
   justify-content: flex-end !important;
-  padding-bottom: max(4px, env(safe-area-inset-bottom)) !important;
+  padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
   box-sizing: border-box !important;
 }
 #screen-start .menu-dock {
   position: relative !important;
   margin: 0 auto 0 auto !important;
   margin-top: auto !important;
-  margin-bottom: 0 !important;
+  margin-bottom: max(8px, env(safe-area-inset-bottom)) !important;
   order: 99 !important;
   flex-shrink: 0 !important;
   align-self: center !important;
   z-index: 50 !important;
   width: min(94vw, 420px) !important;
-  /* Shift the whole six-tab dock (THEME/BLOCKS/MODE + STATS/ACHIEVEMENTS/SETTINGS)
-     down by 25% of its own height so it sits lower and closes the empty
-     black gap that used to sit below it, above the home indicator. */
-  transform: translateY(25%) !important;
 }
 /* Keep hero art full-bleed behind, not pushing dock up */
 #screen-start .hero-stage {
@@ -5905,7 +5899,7 @@ const Modes = (() => {
     standard: { id:'standard', name:'STANDARD', icon:'◆', desc:'Classic endless NEONBLOCK.', gravity:1, score:1 },
     zen: { id:'zen', name:'JEWELS', icon:'💎', desc:'Cascade mode with Red, Orange & Green gems. Beat the clock.', gravity:0.85, score:1, jewels:true, timeLimit:60000 },
     blitz: { id:'blitz', name:'MIND BENDER', icon:'🌀', desc:'Clear flashing item blocks to raise the multiplier and trigger wild effects.', gravity:1.0, score:1.0, mindBender:true },
-    inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'Every block burns with living flame. Clear lines through the fire before the heat overwhelms you.', gravity:1.12, score:1.25, garbageEvery:12500 },
+    inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'Every block burns with living flame. Clear lines through the fire before the heat overwhelms you.', gravity:1.12, score:1.25, garbageEvery:10000 },
     bomb: { id:'bomb', name:'BOMB BLOCKS', icon:'💣', desc:'Some pieces contain bombs. Clear a bomb line to blast nearby blocks.', gravity:1.0, score:1.2, bombChance:0.55 },
     stackattack: { id:'stackattack', name:'STACK ATTACK', icon:'⬆', desc:'Rising danger rows build pressure from below. Hold the stack back before it reaches the top.', gravity:0.81, score:1.3, garbageEvery:11719 },
   };
@@ -7801,12 +7795,13 @@ const UI = (() => {
             // cracks instead of the chosen material, on every settled cell.
             drawInfernoCharcoal(boardCtx, visRow, c, cellAlpha);
           } else {
-            // Locked stack: chosen Block Studio FX (sparkle/pulse/etc.) now render
-            // here too, not just on the falling piece.
+            // Locked stack: material + the studio's chosen FX layers too, so
+            // a finished block keeps whatever look the player picked, not
+            // just the piece while it's still falling.
             drawCell(boardCtx, visRow, c, cell, cellAlpha, false, true);
           }
-          // Inferno: fire on every settled block in the column, not just the surface.
-          if (infernoActive) {
+          // Inferno: every settled block stays alight, not just the surface.
+          if (infernoActive && infernoHeights[c] > 0) {
             drawInfernoFire(boardCtx, visRow, c, blockColor, infernoHeights[c], cellAlpha);
           }
           if (isItem) drawItemMark(boardCtx, visRow, c, mb ? mb.urgency : 0, cellAlpha);
@@ -9164,6 +9159,16 @@ const Game = (() => {
   }
 
   function startCountdown(selectedMode = 'standard') {
+    // Whatever button was clicked/tapped to get here (Play, Play Again, a
+    // mode pill, ...) keeps keyboard focus after the click. If it's a
+    // <button>, the browser treats a later Space/Enter press as "activate
+    // the focused button" natively — so hitting Space to hard-drop in game
+    // was re-clicking that button and calling startCountdown() again,
+    // restarting the run out from under the player. Drop focus so gameplay
+    // key presses can't land on a leftover menu button.
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
     mode = Modes.get(selectedMode);
     // Force selected theme + block style onto gameplay immediately
     try {
