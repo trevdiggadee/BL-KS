@@ -5564,6 +5564,8 @@ const Audio_ = (() => {
 const Particles = (() => {
   let particles = [], shocks = [], beams = [], bombRings = [], clearRings = [];
   const MAX_PARTICLES = 180;
+  const MAX_CLEAR_RINGS = 80;
+  function pushClearRing(r){ if(clearRings.length < MAX_CLEAR_RINGS) clearRings.push(r); }
   const style = () => document.documentElement.dataset.blockStyle || 'neon';
 
   function hexToRgb(hex) {
@@ -5588,7 +5590,7 @@ const Particles = (() => {
     rows.forEach((y,idx)=>{
       const cy=y+cellSize/2, color=palette[idx%palette.length];
       shocks.push({y:cy,width:boardWidth,height:6,maxHeight:tier===4?62:tier===3?48:tier===2?38:30,life:1,color,kind:st});
-      clearRings.push({x:cx,y:cy,r:cellSize*.08,maxR:cellSize*(tier===4?3.8:tier===3?3.0:tier===2?2.4:1.8),life:1,decay:tier===4?.025:tier===3?.032:.045,color,width:tier===4?4:tier>=3?3:2,kind:'clear'});
+      pushClearRing({x:cx,y:cy,r:cellSize*.08,maxR:cellSize*(tier===4?3.8:tier===3?3.0:tier===2?2.4:1.8),life:1,decay:tier===4?.025:tier===3?.032:.045,color,width:tier===4?4:tier>=3?3:2,kind:'clear'});
 
       // Pieces of the cleared line explode outward instead of simply fading.
       for(let i=0;i<cols;i+=step){
@@ -5607,18 +5609,18 @@ const Particles = (() => {
     if(tier===2){
       // Double = crossing shockwave / twin detonation.
       for(const y of rows){
-        clearRings.push({x:cx*.58,y:y+cellSize/2,r:2,maxR:cellSize*1.5,life:.9,decay:.05,color:palette[0],width:2,kind:'clear'});
-        clearRings.push({x:cx*1.42,y:y+cellSize/2,r:2,maxR:cellSize*1.5,life:.9,decay:.05,color:palette[1%palette.length],width:2,kind:'clear'});
+        pushClearRing({x:cx*.58,y:y+cellSize/2,r:2,maxR:cellSize*1.5,life:.9,decay:.05,color:palette[0],width:2,kind:'clear'});
+        pushClearRing({x:cx*1.42,y:y+cellSize/2,r:2,maxR:cellSize*1.5,life:.9,decay:.05,color:palette[1%palette.length],width:2,kind:'clear'});
       }
     } else if(tier===3){
       // Triple = vertical energy lance plus three concentric bursts.
       beams.push({x:cx,yTop:0,yBottom:boardHeight,color:palette[2%palette.length],width:Math.max(4,cellSize*.18),life:1,kind:st});
-      for(const y of rows) clearRings.push({x:cx,y:y+cellSize/2,r:2,maxR:cellSize*3.8,life:1,decay:.035,color:palette[1%palette.length],width:3,kind:'clear'});
+      for(const y of rows) pushClearRing({x:cx,y:y+cellSize/2,r:2,maxR:cellSize*3.8,life:1,decay:.035,color:palette[1%palette.length],width:3,kind:'clear'});
     } else if(tier>=4){
       // Tetris = full-board supernova: giant center rings, cross beams and a
       // dense second wave of spectral/electric shards.
-      clearRings.push({x:cx,y:boardHeight*.48,r:cellSize*.15,maxR:Math.max(boardWidth,boardHeight)*.72,life:1,decay:.018,color:'#ffffff',width:6,kind:'clear'});
-      clearRings.push({x:cx,y:boardHeight*.48,r:cellSize*.08,maxR:Math.max(boardWidth,boardHeight)*.42,life:1,decay:.028,color:palette[0],width:3,kind:'clear'});
+      pushClearRing({x:cx,y:boardHeight*.48,r:cellSize*.15,maxR:Math.max(boardWidth,boardHeight)*.72,life:1,decay:.018,color:'#ffffff',width:6,kind:'clear'});
+      pushClearRing({x:cx,y:boardHeight*.48,r:cellSize*.08,maxR:Math.max(boardWidth,boardHeight)*.42,life:1,decay:.028,color:palette[0],width:3,kind:'clear'});
       beams.push({x:cx,yTop:0,yBottom:boardHeight,color:'#ffffff',width:Math.max(6,cellSize*.28),life:1,kind:'super'});
       for(let n=0;n<36;n++){
         const a=Math.random()*Math.PI*2, radius=cellSize*(.3+Math.random()*1.5);
@@ -8356,6 +8358,8 @@ const Game = (() => {
   let sessionStartTs = 0;
   let countdownValue = 3;
   let countdownTimer = null;
+  let countdownStartTimer = null;
+  let countdownToken = 0;
   let awaitingTopOutCheck = false;
 
   // Mind Bender + spin tracking
@@ -9151,6 +9155,7 @@ const Game = (() => {
   }
 
   function stopLoop() {
+    cancelCountdown();
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null;
     lastTs = 0;
@@ -9158,7 +9163,18 @@ const Game = (() => {
     Storage.save(saveData);
   }
 
+  function cancelCountdown() {
+    countdownToken += 1;
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    if (countdownStartTimer) { clearTimeout(countdownStartTimer); countdownStartTimer = null; }
+    UI.setOverlay('overlay-countdown', false);
+  }
+
   function startCountdown(selectedMode = 'standard') {
+    cancelCountdown();
+    // Never allow two animation loops to coexist.
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; lastTs = 0; }
+    const myToken = countdownToken;
     mode = Modes.get(selectedMode);
     // Force selected theme + block style onto gameplay immediately
     try {
@@ -9192,12 +9208,20 @@ const Game = (() => {
     UI.setOverlay('overlay-pause', false);
     Audio_.resume();
     countdownTimer = setInterval(() => {
+      if (myToken !== countdownToken || state !== 'countdown') {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        return;
+      }
       countdownValue -= 1;
       if (countdownValue <= 0) {
         UI.setCountdown(0);
         Audio_.sfx.go();
         clearInterval(countdownTimer);
-        setTimeout(() => {
+        countdownTimer = null;
+        countdownStartTimer = setTimeout(() => {
+          countdownStartTimer = null;
+          if (myToken !== countdownToken || state !== 'countdown') return;
           UI.setOverlay('overlay-countdown', false);
           beginPlaying();
         }, 260);
@@ -9209,6 +9233,8 @@ const Game = (() => {
   }
 
   function beginPlaying() {
+    if (state !== 'countdown') return;
+    cancelCountdown();
     try {
       const v = JSON.parse(localStorage.getItem('neonblock-visuals-v2') || '{}');
       if (v.theme) document.documentElement.setAttribute('data-theme', v.theme);
