@@ -6445,7 +6445,7 @@ const MindBender = (() => {
 const Input = (() => {
   const handlers = {
     left: () => {}, right: () => {}, rotateCW: () => {}, rotateCCW: () => {},
-    softDropStart: () => {}, softDropEnd: () => {}, hardDrop: () => {},
+    softDropStart: () => {}, softDropEnd: () => {}, softDropStep: () => {}, hardDrop: () => {},
     hold: () => {}, pause: () => {}, confirmTap: () => {},
   };
 
@@ -6577,21 +6577,21 @@ const Input = (() => {
 
     let startX = 0, startY = 0, lastX = 0, lastY = 0;
     let tracking = false, moved = false, hardDropped = false;
-    let axis = null, horizontalRemainder = 0, verticalRemainder = 0;
-    let threshold = 16, startedAt = 0, pointerId = null;
+    let axis = null, consumedX = 0, consumedY = 0;
+    let threshold = 8, startedAt = 0, pointerId = null;
 
-    const TAP_MAX = 10;
-    const AXIS_LOCK = 6;
-    const H_STEP = 14;
-    const V_STEP = 10;
+    const TAP_MAX = 9;
+    const AXIS_LOCK = 5;
+    const H_STEP = 8;
+    const V_STEP = 8;
 
     function reset() {
       tracking = false;
       moved = false;
       hardDropped = false;
       axis = null;
-      horizontalRemainder = 0;
-      verticalRemainder = 0;
+      consumedX = 0;
+      consumedY = 0;
       pointerId = null;
       handlers.softDropEnd();
     }
@@ -6602,8 +6602,8 @@ const Input = (() => {
       moved = false;
       hardDropped = false;
       axis = null;
-      horizontalRemainder = 0;
-      verticalRemainder = 0;
+      consumedX = 0;
+      consumedY = 0;
       pointerId = id;
       startedAt = performance.now();
       startX = lastX = x;
@@ -6612,7 +6612,7 @@ const Input = (() => {
       const rect = el.getBoundingClientRect();
       const cols = (typeof Board !== 'undefined' && Board.COLS) ? Board.COLS : 10;
       const cell = rect.width / cols;
-      threshold = Math.max(9, Math.min(18, cell * 0.34));
+      threshold = Math.max(7, Math.min(14, cell * 0.22));
       return true;
     }
 
@@ -6623,42 +6623,37 @@ const Input = (() => {
         return;
       }
 
-      const dx = x - lastX;
-      const dy = y - lastY;
       const totalDx = x - startX;
       const totalDy = y - startY;
+      const absX = Math.abs(totalDx), absY = Math.abs(totalDy);
 
-      if (Math.abs(totalDx) > TAP_MAX || Math.abs(totalDy) > TAP_MAX) moved = true;
+      if (absX > TAP_MAX || absY > TAP_MAX) moved = true;
 
-      // Lock the gesture to its dominant direction once the finger has
-      // travelled a few pixels. This stops diagonal movement from starving
-      // either left/right input.
-      if (!axis && (Math.abs(totalDx) >= AXIS_LOCK || Math.abs(totalDy) >= AXIS_LOCK)) {
-        axis = Math.abs(totalDx) >= Math.abs(totalDy) ? 'x' : 'y';
+      if (!axis && (absX >= AXIS_LOCK || absY >= AXIS_LOCK)) {
+        axis = absX >= absY ? 'x' : 'y';
       }
 
       if (axis === 'x') {
-        horizontalRemainder += dx;
-        let steps = Math.floor(Math.abs(horizontalRemainder) / H_STEP);
+        // Use total travel minus already-consumed travel. This is much more
+        // reliable on iOS where touchmove events can arrive in uneven bursts.
+        const available = totalDx - consumedX;
+        const steps = Math.min(10, Math.floor(Math.abs(available) / H_STEP));
         if (steps > 0) {
-          const dir = horizontalRemainder > 0 ? handlers.right : handlers.left;
-          // Consume every complete horizontal travel unit. Collision rules
-          // decide how far the piece can actually move.
-          steps = Math.min(steps, 8);
+          const dir = available > 0 ? handlers.right : handlers.left;
           for (let i = 0; i < steps; i++) dir();
-          horizontalRemainder += horizontalRemainder > 0 ? -steps * H_STEP : steps * H_STEP;
+          consumedX += (available > 0 ? 1 : -1) * steps * H_STEP;
+          moved = true;
         }
       } else if (axis === 'y') {
-        verticalRemainder += dy;
-        if (verticalRemainder > 0) {
-          let steps = Math.floor(verticalRemainder / V_STEP);
-          steps = Math.min(steps, 8);
+        const available = totalDy - consumedY;
+        if (available > 0) {
+          const steps = Math.min(10, Math.floor(available / V_STEP));
           if (steps > 0) {
-            verticalRemainder -= steps * V_STEP;
             for (let i = 0; i < steps; i++) {
               if (typeof handlers.softDropStep === 'function') handlers.softDropStep();
-              else handlers.softDropStart();
             }
+            consumedY += steps * V_STEP;
+            moved = true;
           }
         }
       }
@@ -6672,24 +6667,30 @@ const Input = (() => {
       const totalDx = x - startX;
       const totalDy = y - startY;
       const elapsed = performance.now() - startedAt;
+      const absX = Math.abs(totalDx), absY = Math.abs(totalDy);
+
+      // Process the final few pixels even if Safari didn't send a final
+      // touchmove event before touchend.
+      moveTo(x, y);
 
       tracking = false;
       handlers.softDropEnd();
 
-      if (!moved && !hardDropped) {
+      if (!moved && !hardDropped && absX < TAP_MAX && absY < TAP_MAX) {
         handlers.rotateCW();
-      } else if (!hardDropped && axis === 'y' && totalDy < -Math.max(24, threshold) &&
-                 Math.abs(totalDy) > Math.abs(totalDx) && elapsed < 700) {
+      } else if (!hardDropped && totalDy < -Math.max(22, threshold * 2) &&
+                 absY > absX && elapsed < 700) {
         handlers.hold();
-      } else if (!hardDropped && axis === 'y' && totalDy > Math.max(48, threshold * 3) &&
-                 elapsed < 500 && typeof handlers.hardDrop === 'function') {
+      } else if (!hardDropped && totalDy > Math.max(34, threshold * 3) &&
+                 absY > absX && elapsed < 700 && typeof handlers.hardDrop === 'function') {
         handlers.hardDrop();
+        hardDropped = true;
       }
 
       pointerId = null;
       axis = null;
-      horizontalRemainder = 0;
-      verticalRemainder = 0;
+      consumedX = 0;
+      consumedY = 0;
     }
 
     // Native touch path for iPhone/iPad.
@@ -6701,8 +6702,8 @@ const Input = (() => {
 
     el.addEventListener('touchmove', (e) => {
       if (!tracking || !e.touches || e.touches.length !== 1) return;
-      const t = e.touches[0];
       e.preventDefault();
+      const t = e.touches[0];
       moveTo(t.clientX, t.clientY);
     }, { passive: false });
 
@@ -6715,8 +6716,7 @@ const Input = (() => {
 
     el.addEventListener('touchcancel', () => reset(), { passive: true });
 
-    // Pointer path for desktop/mouse/pen. Ignore touch pointers so iOS does
-    // not feed the same gesture through both APIs.
+    // Pointer path for desktop/mouse/pen. Touch is handled exclusively above.
     el.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'touch' || e.isPrimary === false) return;
       if (begin(e.clientX, e.clientY, e.pointerId)) {
@@ -8983,6 +8983,19 @@ const Game = (() => {
 
   function softDropStart() { softDropActive = true; }
   function softDropEnd() { softDropActive = false; }
+  function softDropStep() {
+    if (state !== 'playing') return;
+    const moved = moveGravity(active);
+    if (moved) {
+      active = moved;
+      lastMoveWasRotation = false;
+      score += Scoring.softDropPoints(1);
+      isLocking = false;
+      lockTimer = 0;
+    } else {
+      isLocking = true;
+    }
+  }
 
   function togglePause() {
     if (state === 'playing') {
@@ -9231,7 +9244,7 @@ const Game = (() => {
       right: () => tryMoveActive(0, 1),
       rotateCW: () => rotateActive(1),
       rotateCCW: () => rotateActive(-1),
-      softDropStart, softDropEnd,
+      softDropStart, softDropEnd, softDropStep,
       hardDrop,
       hold: holdPiece,
       pause: togglePause,
