@@ -97,6 +97,82 @@ html[data-theme="ember"] {
   --glow-strength: 0.75;
 }
 
+/* Texture-matched themes */
+html[data-theme="matrix"] {
+  --bg: #010805; --bg-1: #021008; --bg-2: #031a0c;
+  --accent: #00ff88; --accent-2: #b6ffc8;
+  --cyan: #00ff88; --magenta: #39ff14; --amber: #c8ff00; --green: #00ff88;
+  --violet: #66ffaa; --blue: #00cc66; --orange: #88ff44;
+  --glow-strength: 0.7;
+}
+html[data-theme="minecraft"] {
+  --bg: #1a1a1e; --bg-1: #222228; --bg-2: #2a2a32;
+  --accent: #7cba3d; --accent-2: #8b5a2b;
+  --cyan: #5a9e3a; --magenta: #c4a35a; --amber: #e0c060; --green: #7cba3d;
+  --violet: #6b8f4a; --blue: #5a7a9a; --orange: #c47a3a;
+  --glow-strength: 0.25;
+}
+html[data-theme="lava"] {
+  --bg: #120404; --bg-1: #1a0806; --bg-2: #220c08;
+  --accent: #ff6b1a; --accent-2: #ff3b00;
+  --cyan: #ffaa00; --magenta: #ff3b00; --amber: #ffcc33; --green: #ff8800;
+  --violet: #ff5500; --blue: #ff6b1a; --orange: #ff8a3c;
+  --glow-strength: 0.8;
+}
+html[data-theme="plasma"] {
+  --bg: #0a0614; --bg-1: #12081c; --bg-2: #1a0c28;
+  --accent: #c080ff; --accent-2: #70e0ff;
+  --cyan: #70e0ff; --magenta: #ff90d0; --amber: #e0a0ff; --green: #5fffb0;
+  --violet: #c080ff; --blue: #60d0ff; --orange: #ff90d0;
+  --glow-strength: 0.75;
+}
+
+html[data-theme="frost"] {
+  --bg: #071018; --bg-1: #0a1824; --bg-2: #0e2230;
+  --accent: #7ec8ff; --accent-2: #c8f0ff;
+  --cyan: #7ec8ff; --magenta: #a8d8ff; --amber: #e0f0ff; --green: #a0e8d0;
+  --violet: #b0d0ff; --blue: #5a9fff; --orange: #90c8e8;
+  --glow-strength: 0.4;
+}
+
+
+html[data-theme="forest"] {
+  --bg: #0a120c; --bg-1: #0e1a12; --bg-2: #142218;
+  --accent: #6bcf6b; --accent-2: #c4a35a;
+  --cyan: #7dcf8a; --magenta: #a08060; --amber: #d4b06a; --green: #5aaf5a;
+  --violet: #7a9a6a; --blue: #6a8a7a; --orange: #c49050;
+  --glow-strength: 0.35;
+}
+
+html[data-theme="candy"] {
+  --bg: #1a0a14; --bg-1: #220e1a; --bg-2: #2a1220;
+  --accent: #ff6bcb; --accent-2: #ffc0ea;
+  --cyan: #ffa6e0; --magenta: #ff2ea6; --amber: #ffb0d8; --green: #ff8ad8;
+  --violet: #ff6bcb; --blue: #ff4db8; --orange: #ff9ad0;
+  --glow-strength: 0.55;
+}
+
+/* Matrix digital-rain background layer */
+#theme-fx-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+html[data-theme="matrix"] #theme-fx-canvas {
+  opacity: 0.55;
+}
+html[data-theme="plasma"] #theme-fx-canvas {
+  opacity: 0.35;
+}
+body > .app,
+body > .screen,
+#app, .app-shell, main {
+  position: relative;
+  z-index: 1;
+}
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -4399,6 +4475,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 </style>
 </head>
 <body>
+<canvas id="theme-fx-canvas" aria-hidden="true"></canvas>
 
 <div id="app">
 
@@ -4488,13 +4565,19 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
         <section class="selector-popup selector-popup--theme" id="popup-theme" role="dialog" aria-modal="true" aria-labelledby="popup-theme-title" hidden>
           <button class="popup-close" data-popup-close="all" aria-label="Close theme selector">×</button>
           <div class="popup-kicker">VISUAL CONFIGURATION / 01</div><h2 id="popup-theme-title">CHOOSE YOUR THEME</h2><p>Set the atmosphere of your arena.</p>
-          <div class="theme-pills theme-pills--six" id="quick-theme-choices">
-            <button class="theme-pill is-selected" data-theme-choice="neon"><i class="theme-dot" style="background:#4cf3ff"></i>NEON</button>
-            <button class="theme-pill" data-theme-choice="classic"><i class="theme-dot" style="background:#5ad1ff"></i>CLASSIC</button>
-            <button class="theme-pill" data-theme-choice="cyber"><i class="theme-dot" style="background:#00f0ff"></i>CYBER</button>
-            <button class="theme-pill" data-theme-choice="arcade"><i class="theme-dot" style="background:#ffcf3f"></i>ARCADE</button>
-            <button class="theme-pill" data-theme-choice="midnight"><i class="theme-dot" style="background:#7ea6ff"></i>NIGHT</button>
-            <button class="theme-pill" data-theme-choice="ember"><i class="theme-dot" style="background:#ff6b3d"></i>EMBER</button>
+          <div class="theme-pills theme-pills--textures" id="quick-theme-choices">
+            <button class="theme-pill is-selected" data-theme-choice="neon" title="Neon"><span class="theme-pill__icon" aria-hidden="true">⚡</span><span class="theme-pill__name">Neon</span><span class="theme-pill__match">Neon · Vapor</span></button>
+            <button class="theme-pill" data-theme-choice="matrix" title="Matrix"><span class="theme-pill__icon" aria-hidden="true">カタ</span><span class="theme-pill__name">Matrix</span><span class="theme-pill__match">Circuit</span></button>
+            <button class="theme-pill" data-theme-choice="minecraft" title="Craft"><span class="theme-pill__icon" aria-hidden="true">▣</span><span class="theme-pill__name">Craft</span><span class="theme-pill__match">Minecraft</span></button>
+            <button class="theme-pill" data-theme-choice="lava" title="Lava"><span class="theme-pill__icon" aria-hidden="true">♨</span><span class="theme-pill__name">Lava</span><span class="theme-pill__match">Lava · Magma</span></button>
+            <button class="theme-pill" data-theme-choice="plasma" title="Plasma"><span class="theme-pill__icon" aria-hidden="true">✧</span><span class="theme-pill__name">Plasma</span><span class="theme-pill__match">Aurora</span></button>
+            <button class="theme-pill" data-theme-choice="candy" title="Candy"><span class="theme-pill__icon" aria-hidden="true">✿</span><span class="theme-pill__name">Candy</span><span class="theme-pill__match">Candy · Pastel</span></button>
+            <button class="theme-pill" data-theme-choice="frost" title="Frost"><span class="theme-pill__icon" aria-hidden="true">❄</span><span class="theme-pill__name">Frost</span><span class="theme-pill__match">Ice · Glass</span></button>
+            <button class="theme-pill" data-theme-choice="cyber" title="Cyber"><span class="theme-pill__icon" aria-hidden="true">◈</span><span class="theme-pill__name">Cyber</span><span class="theme-pill__match">Dark Cyber</span></button>
+            <button class="theme-pill" data-theme-choice="arcade" title="Arcade"><span class="theme-pill__icon" aria-hidden="true">▶</span><span class="theme-pill__name">Arcade</span><span class="theme-pill__match">Retro · Pixel</span></button>
+            <button class="theme-pill" data-theme-choice="midnight" title="Night"><span class="theme-pill__icon" aria-hidden="true">☾</span><span class="theme-pill__name">Night</span><span class="theme-pill__match">Midnight · Obsidian</span></button>
+            <button class="theme-pill" data-theme-choice="ember" title="Ember"><span class="theme-pill__icon" aria-hidden="true">✦</span><span class="theme-pill__name">Ember</span><span class="theme-pill__match">Ruby · Coral</span></button>
+            <button class="theme-pill" data-theme-choice="forest" title="Forest"><span class="theme-pill__icon" aria-hidden="true">▤</span><span class="theme-pill__name">Forest</span><span class="theme-pill__match">Wood · Paper</span></button>
           </div>
         </section>
         <section class="selector-popup selector-popup--blocks" id="popup-blocks" role="dialog" aria-modal="true" aria-labelledby="popup-blocks-title" hidden>
@@ -4713,12 +4796,18 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 
       <div class="section-heading">THEME</div>
       <div class="theme-swatches" id="theme-swatches">
-        <button class="theme-swatch" data-theme-choice="neon" style="background:#0d0f18;color:#4cf3ff;">NEON</button>
-        <button class="theme-swatch" data-theme-choice="classic" style="background:#101527;color:#5ad1ff;">CLASSIC</button>
-        <button class="theme-swatch" data-theme-choice="cyber" style="background:#0d0828;color:#00f0ff;">CYBER</button>
-        <button class="theme-swatch" data-theme-choice="arcade" style="background:#200a0f;color:#ffcf3f;">ARCADE</button>
-        <button class="theme-swatch" data-theme-choice="midnight" style="background:#0b0f1f;color:#7ea6ff;">NIGHT</button>
-        <button class="theme-swatch" data-theme-choice="ember" style="background:#220e14;color:#ff6b3d;">EMBER</button>
+        <button class="theme-swatch" data-theme-choice="neon" style="background:#0d0f18;color:#4cf3ff;">⚡ NEON</button>
+        <button class="theme-swatch" data-theme-choice="matrix" style="background:#010805;color:#00ff88;">カタ MATRIX</button>
+        <button class="theme-swatch" data-theme-choice="minecraft" style="background:#1a1a1e;color:#7cba3d;">▣ CRAFT</button>
+        <button class="theme-swatch" data-theme-choice="lava" style="background:#120404;color:#ff6b1a;">♨ LAVA</button>
+        <button class="theme-swatch" data-theme-choice="plasma" style="background:#0a0614;color:#c080ff;">✧ PLASMA</button>
+        <button class="theme-swatch" data-theme-choice="candy" style="background:#1a0a14;color:#ff6bcb;">✿ CANDY</button>
+        <button class="theme-swatch" data-theme-choice="frost" style="background:#071018;color:#7ec8ff;">❄ FROST</button>
+        <button class="theme-swatch" data-theme-choice="cyber" style="background:#0d0828;color:#00f0ff;">◈ CYBER</button>
+        <button class="theme-swatch" data-theme-choice="arcade" style="background:#200a0f;color:#ffcf3f;">▶ ARCADE</button>
+        <button class="theme-swatch" data-theme-choice="midnight" style="background:#0b0f1f;color:#7ea6ff;">☾ NIGHT</button>
+        <button class="theme-swatch" data-theme-choice="ember" style="background:#220e14;color:#ff6b3d;">✦ EMBER</button>
+        <button class="theme-swatch" data-theme-choice="forest" style="background:#0a120c;color:#6bcf6b;">▤ FOREST</button>
       </div>
 
       <div class="section-heading">DATA</div>
@@ -7702,20 +7791,83 @@ const UI = (() => {
     const count = 54;
     ambientStars = Array.from({length: count}, (_,i) => ({ x: Math.random(), y: Math.random(), r: .35+Math.random()*2.2, s:.00025+Math.random()*.0009, p:Math.random()*Math.PI*2, drift:Math.random()*2 }));
     const tick = (t) => {
-      const w=c.width/dpr,h=c.height/dpr; const st=document.documentElement.dataset.blockStyle||'neon';
+      const w=c.width/dpr,h=c.height/dpr;
+      const theme = document.documentElement.getAttribute('data-theme') || document.documentElement.dataset.theme || 'neon';
+      const st = document.documentElement.getAttribute('data-block-style') || document.documentElement.dataset.blockStyle || 'neon';
       ambientCtx.clearRect(0,0,w,h);
-      const accent=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-      const g=ambientCtx.createRadialGradient(w*.5,h*.42,0,w*.5,h*.5,Math.max(w,h)*.8);
-      g.addColorStop(0,'rgba(80,180,255,.10)'); g.addColorStop(1,'rgba(0,0,0,0)'); ambientCtx.fillStyle=g; ambientCtx.fillRect(0,0,w,h);
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#4cf3ff';
+      const accent2 = getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || accent;
+
+      // Theme-specific ambient wash (replaces fixed blue glow)
+      const hexToRgba = (hex, a) => {
+        const h = (hex || '#4cf3ff').trim().replace('#','');
+        if (h.length < 6) return `rgba(80,180,255,${a})`;
+        const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+        return `rgba(${r},${g},${b},${a})`;
+      };
+
+      if (theme === 'matrix') {
+        // Keep sparse so CSS + ThemeFx rain read clearly
+        ambientCtx.globalAlpha = 0.15;
+        ambientCtx.fillStyle = hexToRgba(accent, 0.12);
+        ambientCtx.fillRect(0, 0, w, h);
+      } else if (theme === 'lava' || theme === 'ember') {
+        const g = ambientCtx.createRadialGradient(w*.5, h*1.05, 0, w*.5, h*.5, Math.max(w,h)*.9);
+        g.addColorStop(0, hexToRgba(accent, 0.28));
+        g.addColorStop(0.45, hexToRgba(accent2, 0.1));
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ambientCtx.fillStyle = g; ambientCtx.fillRect(0,0,w,h);
+      } else if (theme === 'minecraft' || theme === 'forest') {
+        const g = ambientCtx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, hexToRgba(accent, 0.08));
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ambientCtx.fillStyle = g; ambientCtx.fillRect(0,0,w,h);
+      } else if (theme === 'plasma' || theme === 'candy') {
+        const g1 = ambientCtx.createRadialGradient(w*.25, h*.3, 0, w*.25, h*.3, Math.max(w,h)*.4);
+        g1.addColorStop(0, hexToRgba(accent, 0.18)); g1.addColorStop(1, 'rgba(0,0,0,0)');
+        ambientCtx.fillStyle = g1; ambientCtx.fillRect(0,0,w,h);
+        const g2 = ambientCtx.createRadialGradient(w*.75, h*.65, 0, w*.75, h*.65, Math.max(w,h)*.35);
+        g2.addColorStop(0, hexToRgba(accent2, 0.14)); g2.addColorStop(1, 'rgba(0,0,0,0)');
+        ambientCtx.fillStyle = g2; ambientCtx.fillRect(0,0,w,h);
+      } else if (theme === 'frost') {
+        const g = ambientCtx.createRadialGradient(w*.5, 0, 0, w*.5, h*.4, Math.max(w,h)*.7);
+        g.addColorStop(0, 'rgba(200,240,255,0.14)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        ambientCtx.fillStyle = g; ambientCtx.fillRect(0,0,w,h);
+      } else if (theme === 'cyber' || theme === 'arcade') {
+        ambientCtx.fillStyle = hexToRgba(accent, 0.06);
+        ambientCtx.fillRect(0, 0, w, h);
+        ambientCtx.strokeStyle = hexToRgba(accent, 0.08);
+        ambientCtx.lineWidth = 1;
+        for (let y = 0; y < h; y += 4) {
+          ambientCtx.beginPath(); ambientCtx.moveTo(0, y); ambientCtx.lineTo(w, y); ambientCtx.stroke();
+        }
+      } else if (theme === 'midnight') {
+        const g = ambientCtx.createRadialGradient(w*.7, h*.15, 0, w*.5, h*.5, Math.max(w,h)*.8);
+        g.addColorStop(0, hexToRgba(accent, 0.12)); g.addColorStop(1, 'rgba(0,0,0,0)');
+        ambientCtx.fillStyle = g; ambientCtx.fillRect(0,0,w,h);
+      } else {
+        // neon / classic default — accent-tinted (not fixed blue)
+        const g = ambientCtx.createRadialGradient(w*.5, h*.42, 0, w*.5, h*.5, Math.max(w,h)*.8);
+        g.addColorStop(0, hexToRgba(accent, 0.12));
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ambientCtx.fillStyle = g; ambientCtx.fillRect(0,0,w,h);
+      }
+
+      // Floating particles tinted by theme accent
       ambientStars.forEach((q,i)=>{
         q.y=(q.y+q.s)%1; q.x=(q.x+Math.sin(t*.00025+q.p)*.00012)%1; if(q.x<0)q.x+=1;
-        const a=.10+.18*(.5+.5*Math.sin(t*.002+q.p));
-        ambientCtx.globalAlpha=a; ambientCtx.fillStyle=(st==='fire'&&i%3===0)?'#ff7b22':(st==='crystal'||st==='glass')?'#dffcff':'white';
-        ambientCtx.shadowColor=st==='fire'?'#ff4b16':accent; ambientCtx.shadowBlur=st==='neon'||st==='holo'?8:4;
+        const a=.08+.16*(.5+.5*Math.sin(t*.002+q.p));
+        ambientCtx.globalAlpha=a;
+        if (theme === 'lava' || theme === 'ember') ambientCtx.fillStyle = i%3===0 ? '#ff7b22' : accent;
+        else if (theme === 'frost' || st==='glass' || st==='ice') ambientCtx.fillStyle = '#dffcff';
+        else if (theme === 'matrix') ambientCtx.fillStyle = '#00ff88';
+        else ambientCtx.fillStyle = 'white';
+        ambientCtx.shadowColor = accent;
+        ambientCtx.shadowBlur = (theme==='neon' || theme==='cyber') ? 8 : 3;
         ambientCtx.beginPath(); ambientCtx.arc(q.x*w,q.y*h,q.r,0,Math.PI*2); ambientCtx.fill();
       });
-      // fire ambient: soft particles only — no solid red bar at bottom
-      ambientCtx.globalAlpha=1; ambientRaf=requestAnimationFrame(tick);
+      ambientCtx.globalAlpha=1; ambientCtx.shadowBlur=0;
+      ambientRaf=requestAnimationFrame(tick);
     };
     ambientRaf=requestAnimationFrame(tick);
   }
@@ -8798,6 +8950,19 @@ const Game = (() => {
 
   function startCountdown(selectedMode = 'standard') {
     mode = Modes.get(selectedMode);
+    // Force selected theme + block style onto gameplay immediately
+    try {
+      const raw = localStorage.getItem('neonblock-visuals-v2');
+      const v = raw ? JSON.parse(raw) : {};
+      const theme = v.theme || document.documentElement.getAttribute('data-theme') || 'neon';
+      const blockStyle = v.blockStyle || document.documentElement.getAttribute('data-block-style') || 'neon';
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-block-style', blockStyle);
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.dataset.blockStyle = blockStyle;
+      if (typeof ThemeFx !== 'undefined') ThemeFx.sync();
+      if (typeof UI !== 'undefined' && UI.clearColorCache) UI.clearColorCache();
+    } catch (_) {}
     UI.showScreen('game');
     UI.resizeBoardCanvas();
     resetRunState();
@@ -8828,6 +8993,12 @@ const Game = (() => {
   }
 
   function beginPlaying() {
+    try {
+      const v = JSON.parse(localStorage.getItem('neonblock-visuals-v2') || '{}');
+      if (v.theme) document.documentElement.setAttribute('data-theme', v.theme);
+      if (v.blockStyle) document.documentElement.setAttribute('data-block-style', v.blockStyle);
+      if (typeof ThemeFx !== 'undefined') ThemeFx.sync();
+    } catch (_) {}
     state = 'playing';
     sessionStartTs = performance.now();
     lastTs = 0;
@@ -9685,6 +9856,102 @@ const BlockPreview = (() => {
   return { start, stop, setFx, setBloom, renderCell };
 })();
 
+/* Theme atmosphere FX — Matrix rain (and light plasma wash) */
+const ThemeFx = (() => {
+  let canvas, ctx, raf = 0, cols = [], fontSize = 14, running = false;
+  const glyphs = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789ABCDEFﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶﾗｾｿﾂ';
+
+  function ensure() {
+    canvas = document.getElementById('theme-fx-canvas');
+    if (!canvas) return false;
+    ctx = canvas.getContext('2d');
+    return true;
+  }
+
+  function resize() {
+    if (!canvas) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = window.innerWidth, h = window.innerHeight;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fontSize = Math.max(12, Math.floor(w / 48));
+    const n = Math.ceil(w / fontSize);
+    cols = Array.from({ length: n }, () => Math.random() * h);
+  }
+
+  function frame() {
+    if (!running || !ctx) return;
+    const theme = document.documentElement.dataset.theme;
+    const w = window.innerWidth, h = window.innerHeight;
+
+    if (theme === 'matrix') {
+      ctx.fillStyle = 'rgba(1, 8, 5, 0.12)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.font = `bold ${fontSize}px monospace`;
+      for (let i = 0; i < cols.length; i++) {
+        const ch = glyphs[(Math.random() * glyphs.length) | 0];
+        const x = i * fontSize;
+        const y = cols[i] * fontSize;
+        ctx.fillStyle = Math.random() > 0.9 ? '#e8ffe8' : '#00ff88';
+        ctx.globalAlpha = 0.35 + Math.random() * 0.65;
+        ctx.fillText(ch, x, y);
+        if (y > h && Math.random() > 0.975) cols[i] = 0;
+        else cols[i]++;
+      }
+      ctx.globalAlpha = 1;
+    } else if (theme === 'plasma') {
+      ctx.fillStyle = 'rgba(10, 6, 20, 0.2)';
+      ctx.fillRect(0, 0, w, h);
+      const t = performance.now() * 0.001;
+      for (let i = 0; i < 5; i++) {
+        const cx = w * (0.2 + 0.15 * i + 0.05 * Math.sin(t + i));
+        const cy = h * (0.3 + 0.2 * Math.cos(t * 0.7 + i * 1.2));
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.28);
+        g.addColorStop(0, i % 2 ? 'rgba(192,128,255,0.18)' : 'rgba(112,224,255,0.16)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.min(w, h) * 0.28, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else {
+      ctx.clearRect(0, 0, w, h);
+    }
+
+    raf = requestAnimationFrame(frame);
+  }
+
+  function sync() {
+    if (!ensure()) return;
+    const theme = document.documentElement.dataset.theme;
+    const need = theme === 'matrix' || theme === 'plasma';
+    if (need && !running) {
+      resize();
+      running = true;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(frame);
+    } else if (!need && running) {
+      running = false;
+      cancelAnimationFrame(raf);
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  window.addEventListener('resize', () => { if (running) resize(); });
+  // Observe theme attribute changes
+  const obs = new MutationObserver(sync);
+  if (document.documentElement) {
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+  document.addEventListener('DOMContentLoaded', sync);
+  setTimeout(sync, 0);
+
+  return { sync };
+})();
+
 (function bootstrap() {
   let saveData = null;
 
@@ -9698,18 +9965,38 @@ const BlockPreview = (() => {
       const v = { ...DEFAULT_VISUALS, ...(JSON.parse(localStorage.getItem(VISUAL_KEY) || '{}')) };
       v.fx = { ...DEFAULT_VISUALS.fx, ...(v.fx || {}) };
       if (!document.querySelector(`[data-block-style="${CSS.escape(v.blockStyle)}"]`)) v.blockStyle='neon';
+      const okThemes = ['neon','matrix','minecraft','lava','plasma','candy','frost','cyber','arcade','midnight','ember','forest','classic'];
+      if (!okThemes.includes(v.theme)) {
+        const legacy = { classic:'neon', arcade:'lava', midnight:'frost', ember:'lava' };
+        v.theme = legacy[v.theme] || 'neon';
+      }
       return v;
     }
     catch (_) { return { ...DEFAULT_VISUALS, fx: { ...DEFAULT_VISUALS.fx } }; }
   }
   function saveVisuals(v) { try { localStorage.setItem(VISUAL_KEY, JSON.stringify(v)); } catch (_) {} }
   function applyVisuals(v) {
-    document.documentElement.dataset.theme = v.theme;
-    document.documentElement.dataset.blockStyle = v.blockStyle;
-    UI.clearColorCache();
-    document.querySelectorAll('[data-block-style]').forEach(b => b.classList.toggle('is-selected', b.dataset.blockStyle === v.blockStyle));
-    document.querySelectorAll('[data-theme-choice]').forEach(b => b.classList.toggle('is-selected', b.dataset.themeChoice === v.theme));
-    document.querySelectorAll('[data-game-mode]').forEach(b => b.classList.toggle('is-selected', b.dataset.gameMode === v.gameMode));
+    if (!v) return;
+    const theme = v.theme || 'neon';
+    const blockStyle = v.blockStyle || 'neon';
+    const gameMode = v.gameMode || 'standard';
+    v.theme = theme; v.blockStyle = blockStyle; v.gameMode = gameMode;
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-block-style', blockStyle);
+    document.documentElement.setAttribute('data-game-mode', gameMode);
+    try { if (typeof UI !== 'undefined' && UI.clearColorCache) UI.clearColorCache(); } catch (_) {}
+    document.querySelectorAll('[data-block-style]').forEach(b => {
+      const key = b.getAttribute('data-block-style');
+      b.classList.toggle('is-selected', key === blockStyle);
+    });
+    document.querySelectorAll('[data-theme-choice]').forEach(b => {
+      const key = b.getAttribute('data-theme-choice');
+      b.classList.toggle('is-selected', key === theme);
+    });
+    document.querySelectorAll('[data-game-mode]').forEach(b => {
+      const key = b.getAttribute('data-game-mode');
+      b.classList.toggle('is-selected', key === gameMode);
+    });
     const mode = typeof Modes !== 'undefined' ? Modes.get(v.gameMode) : null;
     const desc = document.getElementById('mode-description');
     if (desc && mode) desc.textContent = mode.desc;
@@ -9723,7 +10010,10 @@ const BlockPreview = (() => {
     const themeLabel = document.getElementById('theme-current');
     const blockLabel = document.getElementById('blocks-current');
     const modeLabel = document.getElementById('mode-current');
-    if (themeLabel) themeLabel.textContent = (v.theme || 'neon').toUpperCase();
+    if (themeLabel) {
+      const tNames = { neon:'NEON', matrix:'MATRIX', minecraft:'CRAFT', lava:'LAVA', plasma:'PLASMA', candy:'CANDY', frost:'FROST', cyber:'CYBER', arcade:'ARCADE', midnight:'NIGHT', ember:'EMBER', forest:'FOREST', classic:'CLASSIC' };
+      themeLabel.textContent = tNames[v.theme] || (v.theme || 'neon').toUpperCase();
+    }
     if (blockLabel) {
       const names = { neon:'NEON', glass:'GLASS', ice:'ICE', pixel:'PIXEL', metal:'METAL', vapor:'VAPOR', holo:'HOLO', retro:'RETRO', pastel:'PASTEL', wood:'WOOD', rainbow:'RAINBOW', 'dark-cyber':'DARK CYBER', traditional:'CLASSIC', fire:'FIRE', 'neon-outline':'NEON', crystals:'CRYSTALS', crystal:'CRYSTAL', chrome:'CHROME', voxel:'PIXEL', lava:'LAVA', obsidian:'OBSIDIAN', gold:'GOLD', emerald:'EMERALD', ruby:'RUBY', coral:'CORAL', midnight:'MIDNIGHT', toxic:'TOXIC', marble:'MARBLE', magma:'MAGMA', honeycomb:'HONEYCOMB', carbon:'CARBON', denim:'DENIM', brick:'BRICK', circuit:'CIRCUIT', candy:'CANDY', paper:'PAPER', aurora:'AURORA' };
       blockLabel.textContent = names[v.blockStyle] || (v.blockStyle || 'CLASSIC').toUpperCase();
@@ -9764,7 +10054,26 @@ const BlockPreview = (() => {
     let visuals = loadVisuals();
     applyVisuals(visuals);
     document.querySelectorAll('[data-block-style]').forEach(btn => btn.addEventListener('click', () => {
-      visuals.blockStyle = btn.dataset.blockStyle; saveVisuals(visuals); applyVisuals(visuals); Audio_.sfx.uiTap();
+      visuals.blockStyle = btn.dataset.blockStyle;
+        // Pair block textures with matching atmosphere themes
+        const pair = {
+          neon: 'neon', vapor: 'neon', rainbow: 'neon',
+          circuit: 'matrix',
+          holo: 'minecraft', brick: 'minecraft',
+          lava: 'lava', magma: 'lava',
+          aurora: 'plasma', crystal: 'plasma',
+          candy: 'candy', pastel: 'candy',
+          ice: 'frost', glass: 'frost',
+          'dark-cyber': 'cyber', metal: 'cyber', carbon: 'cyber',
+          pixel: 'arcade', retro: 'arcade',
+          obsidian: 'midnight', midnight: 'midnight',
+          ruby: 'ember', coral: 'ember',
+          wood: 'forest', paper: 'forest', honeycomb: 'forest'
+        };
+        if (pair[visuals.blockStyle]) visuals.theme = pair[visuals.blockStyle];
+        saveVisuals(visuals); applyVisuals(visuals);
+        if (typeof ThemeFx !== 'undefined') ThemeFx.sync();
+        Audio_.sfx.uiTap();
       if (typeof BlockPreview !== 'undefined') BlockPreview.start();
     }));
     document.querySelectorAll('[data-preview-fx]').forEach(btn => btn.addEventListener('click', () => {
@@ -9783,9 +10092,32 @@ const BlockPreview = (() => {
       visuals.bloom = v;
       saveVisuals(visuals);
     });
-    document.querySelectorAll('[data-theme-choice]').forEach(btn => btn.addEventListener('click', () => {
-      visuals.theme = btn.dataset.themeChoice; saveVisuals(visuals); applyVisuals(visuals); Audio_.sfx.uiTap();
-    }));
+    function selectTheme(themeKey) {
+      if (!themeKey) return;
+      visuals.theme = themeKey;
+      saveVisuals(visuals);
+      applyVisuals(visuals);
+      try { if (typeof ThemeFx !== 'undefined') ThemeFx.sync(); } catch (_) {}
+      try { Audio_.sfx.uiTap(); } catch (_) {}
+    }
+    document.querySelectorAll('[data-theme-choice]').forEach(btn => {
+      btn.style.pointerEvents = 'auto';
+      btn.style.cursor = 'pointer';
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const key = btn.getAttribute('data-theme-choice') || btn.dataset.themeChoice;
+        selectTheme(key);
+      });
+    });
+    // Capture-phase backup on the theme popup itself
+    document.getElementById('popup-theme')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-theme-choice]');
+      if (!btn) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      selectTheme(btn.getAttribute('data-theme-choice'));
+    }, true);
     document.querySelectorAll('[data-game-mode]').forEach(btn => btn.addEventListener('click', () => {
       visuals.gameMode = btn.dataset.gameMode; saveVisuals(visuals); applyVisuals(visuals); Audio_.sfx.uiTap();
     }));
@@ -12010,6 +12342,248 @@ html[data-theme="cyber"] .selector-popup {
 .selector-popup--blocks .block-studio-label {
   font-size: 0.775rem !important; /* 0.62 * 1.25 */
   letter-spacing: 0.18em !important;
+}
+
+
+#app { position: relative; z-index: 1; }
+html[data-theme="matrix"] body {
+  background: #010805 !important;
+}
+.selector-popup .theme-pills {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+
+#theme-fx-canvas {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+#app, .selector-popups, .screen, button, a {
+  pointer-events: auto;
+}
+.selector-popups {
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+
+
+.selector-popup .theme-pills--textures {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+.selector-popup .theme-pills--textures .theme-pill {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  min-height: 72px !important;
+  padding: 12px 8px !important;
+  border-radius: 14px !important;
+  text-align: center !important;
+}
+.selector-popup .theme-pills--textures .theme-pill__icon {
+  font-size: 1.45rem !important;
+  line-height: 1 !important;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 50%, transparent));
+}
+.selector-popup .theme-pills--textures .theme-pill__name {
+  font: 800 0.72rem/1.1 var(--font-mono) !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+.selector-popup .theme-pills--textures .theme-pill__match {
+  font: 600 0.48rem/1 var(--font-ui) !important;
+  letter-spacing: 0.04em !important;
+  opacity: 0.55 !important;
+  text-transform: none !important;
+}
+.selector-popup .theme-pills--textures .theme-pill.is-selected .theme-pill__match {
+  opacity: 0.85 !important;
+}
+.selector-popup .theme-pills--textures .theme-dot {
+  display: none !important;
+}
+
+
+.selector-popup--theme,
+.selector-popup--theme .theme-pills,
+.selector-popup--theme .theme-pill,
+.selector-popup--theme .theme-pill * {
+  pointer-events: auto !important;
+}
+.selector-popup--theme .theme-pill {
+  position: relative !important;
+  z-index: 2 !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: rgba(255,255,255,0.15);
+}
+.selector-popup--theme .theme-pill::before {
+  pointer-events: none !important;
+}
+.selector-popup {
+  z-index: 2 !important;
+}
+.selector-backdrop {
+  z-index: 1 !important;
+}
+#theme-fx-canvas {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+
+/* ===== Unique gameplay arena backgrounds per theme ===== */
+.game-screen {
+  background: radial-gradient(120% 90% at 50% 0%, var(--bg-2) 0%, var(--bg) 60%) !important;
+}
+.game-screen::before {
+  opacity: 1 !important;
+}
+html[data-theme="neon"] .game-screen {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(76,243,255,0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(255,62,165,0.12), transparent 50%),
+    linear-gradient(180deg, #0a1020 0%, #05060a 100%) !important;
+}
+html[data-theme="neon"] .game-screen::before {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 40px, rgba(76,243,255,0.03) 40px 41px),
+    repeating-linear-gradient(90deg, transparent 0 40px, rgba(76,243,255,0.03) 40px 41px) !important;
+  animation: none !important;
+}
+html[data-theme="matrix"] .game-screen {
+  background: radial-gradient(ellipse at 50% 0%, rgba(3,26,12,0.82), rgba(1,8,5,0.88) 70%) !important;
+}
+html[data-theme="matrix"] .game-screen::before {
+  background: transparent !important;
+}
+html[data-theme="matrix"] body {
+  background: #010805 !important;
+}
+html[data-theme="minecraft"] .game-screen {
+  background:
+    linear-gradient(180deg, #5a8fcf 0%, #87b8e8 35%, #6bcf6b 36%, #5a9e3a 55%, #8b5a2b 56%, #6b4423 100%) !important;
+}
+html[data-theme="minecraft"] .game-screen::before {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 16px, rgba(0,0,0,0.06) 16px 17px),
+    repeating-linear-gradient(90deg, transparent 0 16px, rgba(0,0,0,0.06) 16px 17px) !important;
+  opacity: 0.5 !important;
+  animation: none !important;
+}
+html[data-theme="lava"] .game-screen {
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(255,60,0,0.35), transparent 50%),
+    radial-gradient(ellipse 50% 30% at 20% 90%, rgba(255,180,0,0.2), transparent 40%),
+    linear-gradient(180deg, #1a0806 0%, #120404 40%, #2a0a06 100%) !important;
+}
+html[data-theme="lava"] .game-screen::before {
+  background: radial-gradient(circle at 50% 100%, rgba(255,100,20,0.15), transparent 45%) !important;
+  animation: game-breathe 4s ease-in-out infinite alternate !important;
+}
+html[data-theme="plasma"] .game-screen {
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(192,128,255,0.22), transparent 40%),
+    radial-gradient(ellipse at 80% 60%, rgba(112,224,255,0.18), transparent 40%),
+    radial-gradient(ellipse at 50% 90%, rgba(95,255,176,0.12), transparent 35%),
+    linear-gradient(160deg, #0a0614, #1a0c28) !important;
+}
+html[data-theme="candy"] .game-screen {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,192,234,0.2), transparent 35%),
+    radial-gradient(circle at 85% 70%, rgba(255,107,203,0.15), transparent 40%),
+    linear-gradient(180deg, #2a1220, #1a0a14) !important;
+}
+html[data-theme="frost"] .game-screen {
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -5%, rgba(200,240,255,0.2), transparent 50%),
+    linear-gradient(180deg, #0e2230 0%, #071018 100%) !important;
+}
+html[data-theme="frost"] .game-screen::before {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06) 0 1px, transparent 2px),
+    radial-gradient(circle at 70% 60%, rgba(255,255,255,0.05) 0 1px, transparent 2px),
+    radial-gradient(circle at 40% 80%, rgba(255,255,255,0.04) 0 1px, transparent 2px) !important;
+  background-size: 120px 120px, 80px 80px, 100px 100px !important;
+  animation: none !important;
+}
+html[data-theme="cyber"] .game-screen {
+  background:
+    linear-gradient(180deg, #0a0620 0%, #060412 100%) !important;
+}
+html[data-theme="cyber"] .game-screen::before {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,240,255,0.04) 3px 4px),
+    linear-gradient(90deg, transparent 40%, rgba(212,0,255,0.06), transparent 60%) !important;
+  animation: none !important;
+}
+html[data-theme="arcade"] .game-screen {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,207,63,0.15), transparent 45%),
+    linear-gradient(180deg, #200a0f, #140508) !important;
+}
+html[data-theme="arcade"] .game-screen::before {
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0 2px, transparent 2px 4px) !important;
+  animation: none !important;
+  opacity: 0.6 !important;
+}
+html[data-theme="midnight"] .game-screen {
+  background:
+    radial-gradient(ellipse at 70% 15%, rgba(126,166,255,0.12), transparent 40%),
+    linear-gradient(180deg, #0b0f1f, #060812) !important;
+}
+html[data-theme="ember"] .game-screen {
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255,61,110,0.2), transparent 45%),
+    linear-gradient(180deg, #1a0a10, #12060a) !important;
+}
+html[data-theme="forest"] .game-screen {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(107,207,107,0.12), transparent 40%),
+    linear-gradient(180deg, #142218 0%, #0a120c 100%) !important;
+}
+html[data-theme="forest"] .game-screen::before {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 24px, rgba(139,90,43,0.06) 24px 25px) !important;
+  animation: none !important;
+}
+html[data-theme="classic"] .game-screen {
+  background: radial-gradient(ellipse at 50% 0%, #101527, #0a0e16) !important;
+}
+
+/* 3-column theme grid for 12 themes */
+.selector-popup .theme-pills--textures {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+.selector-popup .theme-pills--textures .theme-pill {
+  min-height: 64px !important;
+  padding: 10px 6px !important;
+}
+
+
+/* Theme must show through gameplay */
+.game-screen.screen--active {
+  background-color: var(--bg) !important;
+}
+.ambient-canvas {
+  opacity: 0.75 !important;
+  mix-blend-mode: screen !important;
+}
+html[data-theme="matrix"] .ambient-canvas {
+  opacity: 0.35 !important;
+}
+html[data-theme="minecraft"] .ambient-canvas,
+html[data-theme="forest"] .ambient-canvas {
+  opacity: 0.4 !important;
+  mix-blend-mode: soft-light !important;
+}
+html[data-theme="lava"] .ambient-canvas,
+html[data-theme="ember"] .ambient-canvas {
+  opacity: 0.85 !important;
 }
 
 </style>
