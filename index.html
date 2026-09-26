@@ -6523,49 +6523,61 @@ const Input = (() => {
     let startX = 0, startY = 0, lastX = 0, lastY = 0;
     let tracking = false, moved = false, hardDropped = false;
     let cellThreshold = 20;
+    let horizontalProgress = 0;
     let verticalProgress = 0;
+    let gestureAxis = null;
+    let pointerId = null;
     let gestureStartTime = 0;
     const TAP_MAX_MOVE = 9;
 
+    function endPointerCapture() {
+      if (pointerId != null) {
+        try { el.releasePointerCapture(pointerId); } catch (_) {}
+      }
+      pointerId = null;
+    }
+
     function finish(e) {
       if (!tracking) return;
-      tracking = false;
-      handlers.softDropEnd();
-
       const x = e?.clientX ?? lastX;
       const y = e?.clientY ?? lastY;
       const totalDx = x - startX;
       const totalDy = y - startY;
       const elapsed = Math.max(1, performance.now() - gestureStartTime);
 
+      tracking = false;
+      handlers.softDropEnd();
+
+      // A tap rotates. A clear upward flick holds. Horizontal movement is
+      // already consumed during pointermove, so release never moves again.
       if (!moved && !hardDropped) {
         handlers.rotateCW();
-      } else if (!hardDropped && totalDy < -Math.max(28, cellThreshold) &&
-                 Math.abs(totalDy) > Math.abs(totalDx)) {
+      } else if (!hardDropped && totalDy < -Math.max(24, cellThreshold) &&
+                 Math.abs(totalDy) > Math.abs(totalDx) &&
+                 elapsed <= 650) {
         handlers.hold();
       } else if (!hardDropped && totalDy > 0 &&
-                 totalDy >= cellThreshold * 1.45 && elapsed <= 260 &&
+                 totalDy >= cellThreshold * 2.0 &&
+                 elapsed <= 280 &&
                  Math.abs(totalDy) > Math.abs(totalDx) &&
                  typeof handlers.hardDrop === 'function') {
-        // Only a deliberate fast downward flick becomes a hard drop.
         handlers.hardDrop();
       }
-
-      if (e?.pointerId != null) {
-        try { el.releasePointerCapture(e.pointerId); } catch (_) {}
-      }
+      endPointerCapture();
     }
 
     el.addEventListener('pointerdown', (e) => {
       if (e.isPrimary === false) return;
-      // Only start a board gesture while an actual game is running.
-      if (typeof Game !== 'undefined' && Game.state && Game.state !== 'playing') return;
+      if (typeof Game !== 'undefined' && Game.state !== 'playing') return;
       e.preventDefault();
 
       tracking = true;
       moved = false;
       hardDropped = false;
+      horizontalProgress = 0;
       verticalProgress = 0;
+      gestureAxis = null;
+      pointerId = e.pointerId;
       gestureStartTime = performance.now();
       startX = lastX = e.clientX;
       startY = lastY = e.clientY;
@@ -6573,16 +6585,18 @@ const Input = (() => {
       const rect = el.getBoundingClientRect();
       const cols = (typeof Board !== 'undefined' && Board.COLS) ? Board.COLS : 10;
       const cell = rect.width / cols;
-      cellThreshold = Math.max(12, Math.min(22, cell * 0.48));
+      // One horizontal cell is intentionally easy to cross on a phone.
+      cellThreshold = Math.max(10, Math.min(20, cell * 0.42));
 
       try { el.setPointerCapture(e.pointerId); } catch (_) {}
     }, { passive: false });
 
     el.addEventListener('pointermove', (e) => {
-      if (!tracking || e.isPrimary === false) return;
+      if (!tracking || e.isPrimary === false || e.pointerId !== pointerId) return;
       if (typeof Game !== 'undefined' && Game.state !== 'playing') {
         tracking = false;
         handlers.softDropEnd();
+        endPointerCapture();
         return;
       }
       e.preventDefault();
@@ -6595,29 +6609,33 @@ const Input = (() => {
 
       if (Math.abs(totalDx) > TAP_MAX_MOVE || Math.abs(totalDy) > TAP_MAX_MOVE) moved = true;
 
-      // Horizontal: consume movement incrementally so slow swipes remain responsive.
-      if (Math.abs(totalDx) > Math.abs(totalDy) && Math.abs(dx) >= Math.max(7, cellThreshold * 0.55)) {
-        const steps = Math.min(3, Math.floor(Math.abs(dx) / Math.max(7, cellThreshold * 0.55)));
-        const move = dx > 0 ? handlers.right : handlers.left;
-        for (let i = 0; i < steps; i++) move();
-        lastX = x;
-        lastY = y;
-        return;
+      // Lock the gesture to its dominant axis once the finger has moved enough.
+      // This prevents tiny vertical jitter from suppressing left/right movement.
+      if (!gestureAxis && (Math.abs(totalDx) >= 7 || Math.abs(totalDy) >= 7)) {
+        gestureAxis = Math.abs(totalDx) >= Math.abs(totalDy) ? 'horizontal' : 'vertical';
       }
 
-      // Downward drag: move the active piece one row for roughly each 0.45 cell.
-      // This makes the piece visibly follow the finger instead of waiting for gravity.
-      if (totalDy > 0 && totalDy > Math.abs(totalDx) * 0.85) {
-        const stepSize = Math.max(10, cellThreshold * 0.45);
-        verticalProgress += Math.max(0, dy);
-        let steps = Math.min(4, Math.floor(verticalProgress / stepSize));
+      if (gestureAxis === 'horizontal') {
+        horizontalProgress += dx;
+        const stepSize = Math.max(8, cellThreshold * 0.72);
+        let steps = Math.floor(Math.abs(horizontalProgress) / stepSize);
         if (steps > 0) {
-          verticalProgress -= steps * stepSize;
-          for (let i = 0; i < steps; i++) {
-            handlers.softDropStart();
-            if (typeof handlers.softDropStep === 'function') handlers.softDropStep();
+          steps = Math.min(6, steps);
+          const dir = horizontalProgress > 0 ? handlers.right : handlers.left;
+          for (let i = 0; i < steps; i++) dir();
+          horizontalProgress += horizontalProgress > 0 ? -steps * stepSize : steps * stepSize;
+        }
+      } else if (gestureAxis === 'vertical') {
+        verticalProgress += dy;
+        const stepSize = Math.max(9, cellThreshold * 0.48);
+        if (verticalProgress > 0) {
+          let steps = Math.min(5, Math.floor(verticalProgress / stepSize));
+          if (steps > 0) {
+            verticalProgress -= steps * stepSize;
+            for (let i = 0; i < steps; i++) {
+              if (typeof handlers.softDropStep === 'function') handlers.softDropStep();
+            }
           }
-          handlers.softDropEnd();
         }
       }
 
@@ -6631,12 +6649,13 @@ const Input = (() => {
       tracking = false;
       hardDropped = false;
       handlers.softDropEnd();
-      try { el.releasePointerCapture(e.pointerId); } catch (_) {}
+      endPointerCapture();
     }, { passive: false });
     el.addEventListener('lostpointercapture', () => {
       if (!tracking) return;
       tracking = false;
       handlers.softDropEnd();
+      pointerId = null;
     });
   }
 
