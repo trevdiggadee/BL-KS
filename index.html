@@ -433,6 +433,8 @@ canvas#board-canvas, canvas#fx-canvas {
   position: absolute;
   top: 0; left: 0;
   display: block;
+  pointer-events: none;
+  touch-action: none;
 }
 
 /* ==========================================================================
@@ -6389,7 +6391,7 @@ const MindBender = (() => {
 const Input = (() => {
   const handlers = {
     left: () => {}, right: () => {}, rotateCW: () => {}, rotateCCW: () => {},
-    softDropStart: () => {}, softDropEnd: () => {}, softDropStep: () => {}, hardDrop: () => {},
+    softDropStart: () => {}, softDropEnd: () => {}, hardDrop: () => {},
     hold: () => {}, pause: () => {}, confirmTap: () => {},
   };
 
@@ -6512,128 +6514,96 @@ const Input = (() => {
   }
 
   // --- Swipe gestures on the board surface ---
-  // Designed for iOS Safari as well as touch/pen devices:
-  // - capture the pointer so fast swipes do not lose pointermove/pointerup
-  // - use the board's actual cell size instead of a fixed 28px threshold
-  // - hard-drop a downward flick as soon as the threshold is crossed
-  // - keep a slower downward drag in soft-drop mode
+  // Touch is handled with the native Touch Events API on phones.  Pointer
+  // Events remain available for mouse/pen.  Keeping the two paths separate
+  // avoids iOS Safari turning a perfectly valid horizontal drag into a
+  // pointer/click gesture before the game sees it.
   function initSwipe(el) {
     if (!el) return;
 
     let startX = 0, startY = 0, lastX = 0, lastY = 0;
     let tracking = false, moved = false, hardDropped = false;
-    let cellThreshold = 20;
-    let horizontalProgress = 0;
-    let verticalProgress = 0;
-    let gestureAxis = null;
-    let pointerId = null;
-    let gestureStartTime = 0;
-    const TAP_MAX_MOVE = 9;
+    let axis = null, horizontalRemainder = 0, verticalRemainder = 0;
+    let threshold = 16, startedAt = 0, pointerId = null;
 
-    function endPointerCapture() {
-      if (pointerId != null) {
-        try { el.releasePointerCapture(pointerId); } catch (_) {}
-      }
-      pointerId = null;
-    }
+    const TAP_MAX = 10;
+    const AXIS_LOCK = 6;
+    const H_STEP = 14;
+    const V_STEP = 10;
 
-    function finish(e) {
-      if (!tracking) return;
-      const x = e?.clientX ?? lastX;
-      const y = e?.clientY ?? lastY;
-      const totalDx = x - startX;
-      const totalDy = y - startY;
-      const elapsed = Math.max(1, performance.now() - gestureStartTime);
-
+    function reset() {
       tracking = false;
+      moved = false;
+      hardDropped = false;
+      axis = null;
+      horizontalRemainder = 0;
+      verticalRemainder = 0;
+      pointerId = null;
       handlers.softDropEnd();
-
-      // A tap rotates. A clear upward flick holds. Horizontal movement is
-      // already consumed during pointermove, so release never moves again.
-      if (!moved && !hardDropped) {
-        handlers.rotateCW();
-      } else if (!hardDropped && totalDy < -Math.max(24, cellThreshold) &&
-                 Math.abs(totalDy) > Math.abs(totalDx) &&
-                 elapsed <= 650) {
-        handlers.hold();
-      } else if (!hardDropped && totalDy > 0 &&
-                 totalDy >= cellThreshold * 2.0 &&
-                 elapsed <= 280 &&
-                 Math.abs(totalDy) > Math.abs(totalDx) &&
-                 typeof handlers.hardDrop === 'function') {
-        handlers.hardDrop();
-      }
-      endPointerCapture();
     }
 
-    el.addEventListener('pointerdown', (e) => {
-      if (e.isPrimary === false) return;
-      if (typeof Game !== 'undefined' && Game.state !== 'playing') return;
-      e.preventDefault();
-
+    function begin(x, y, id = null) {
+      if (typeof Game !== 'undefined' && Game.state !== 'playing') return false;
       tracking = true;
       moved = false;
       hardDropped = false;
-      horizontalProgress = 0;
-      verticalProgress = 0;
-      gestureAxis = null;
-      pointerId = e.pointerId;
-      gestureStartTime = performance.now();
-      startX = lastX = e.clientX;
-      startY = lastY = e.clientY;
+      axis = null;
+      horizontalRemainder = 0;
+      verticalRemainder = 0;
+      pointerId = id;
+      startedAt = performance.now();
+      startX = lastX = x;
+      startY = lastY = y;
 
       const rect = el.getBoundingClientRect();
       const cols = (typeof Board !== 'undefined' && Board.COLS) ? Board.COLS : 10;
       const cell = rect.width / cols;
-      // One horizontal cell is intentionally easy to cross on a phone.
-      cellThreshold = Math.max(10, Math.min(20, cell * 0.42));
+      threshold = Math.max(9, Math.min(18, cell * 0.34));
+      return true;
+    }
 
-      try { el.setPointerCapture(e.pointerId); } catch (_) {}
-    }, { passive: false });
-
-    el.addEventListener('pointermove', (e) => {
-      if (!tracking || e.isPrimary === false || e.pointerId !== pointerId) return;
+    function moveTo(x, y) {
+      if (!tracking) return;
       if (typeof Game !== 'undefined' && Game.state !== 'playing') {
-        tracking = false;
-        handlers.softDropEnd();
-        endPointerCapture();
+        reset();
         return;
       }
-      e.preventDefault();
 
-      const x = e.clientX, y = e.clientY;
       const dx = x - lastX;
       const dy = y - lastY;
       const totalDx = x - startX;
       const totalDy = y - startY;
 
-      if (Math.abs(totalDx) > TAP_MAX_MOVE || Math.abs(totalDy) > TAP_MAX_MOVE) moved = true;
+      if (Math.abs(totalDx) > TAP_MAX || Math.abs(totalDy) > TAP_MAX) moved = true;
 
-      // Lock the gesture to its dominant axis once the finger has moved enough.
-      // This prevents tiny vertical jitter from suppressing left/right movement.
-      if (!gestureAxis && (Math.abs(totalDx) >= 7 || Math.abs(totalDy) >= 7)) {
-        gestureAxis = Math.abs(totalDx) >= Math.abs(totalDy) ? 'horizontal' : 'vertical';
+      // Lock the gesture to its dominant direction once the finger has
+      // travelled a few pixels. This stops diagonal movement from starving
+      // either left/right input.
+      if (!axis && (Math.abs(totalDx) >= AXIS_LOCK || Math.abs(totalDy) >= AXIS_LOCK)) {
+        axis = Math.abs(totalDx) >= Math.abs(totalDy) ? 'x' : 'y';
       }
 
-      if (gestureAxis === 'horizontal') {
-        horizontalProgress += dx;
-        const stepSize = Math.max(8, cellThreshold * 0.72);
-        let steps = Math.floor(Math.abs(horizontalProgress) / stepSize);
+      if (axis === 'x') {
+        horizontalRemainder += dx;
+        let steps = Math.floor(Math.abs(horizontalRemainder) / H_STEP);
         if (steps > 0) {
-          steps = Math.min(6, steps);
-          const dir = horizontalProgress > 0 ? handlers.right : handlers.left;
+          const dir = horizontalRemainder > 0 ? handlers.right : handlers.left;
+          // Consume every complete horizontal travel unit. Collision rules
+          // decide how far the piece can actually move.
+          steps = Math.min(steps, 8);
           for (let i = 0; i < steps; i++) dir();
-          horizontalProgress += horizontalProgress > 0 ? -steps * stepSize : steps * stepSize;
+          horizontalRemainder += horizontalRemainder > 0 ? -steps * H_STEP : steps * H_STEP;
         }
-      } else if (gestureAxis === 'vertical') {
-        verticalProgress += dy;
-        const stepSize = Math.max(9, cellThreshold * 0.48);
-        if (verticalProgress > 0) {
-          let steps = Math.min(5, Math.floor(verticalProgress / stepSize));
+      } else if (axis === 'y') {
+        verticalRemainder += dy;
+        if (verticalRemainder > 0) {
+          let steps = Math.floor(verticalRemainder / V_STEP);
+          steps = Math.min(steps, 8);
           if (steps > 0) {
-            verticalProgress -= steps * stepSize;
+            verticalRemainder -= steps * V_STEP;
             for (let i = 0; i < steps; i++) {
               if (typeof handlers.softDropStep === 'function') handlers.softDropStep();
+              else handlers.softDropStart();
             }
           }
         }
@@ -6641,31 +6611,88 @@ const Input = (() => {
 
       lastX = x;
       lastY = y;
-    }, { passive: false });
+    }
 
-    el.addEventListener('pointerup', finish, { passive: false });
-    el.addEventListener('pointercancel', (e) => {
+    function finish(x, y) {
       if (!tracking) return;
-      tracking = false;
-      hardDropped = false;
-      handlers.softDropEnd();
-      endPointerCapture();
-    }, { passive: false });
-    el.addEventListener('lostpointercapture', () => {
-      if (!tracking) return;
+      const totalDx = x - startX;
+      const totalDy = y - startY;
+      const elapsed = performance.now() - startedAt;
+
       tracking = false;
       handlers.softDropEnd();
+
+      if (!moved && !hardDropped) {
+        handlers.rotateCW();
+      } else if (!hardDropped && axis === 'y' && totalDy < -Math.max(24, threshold) &&
+                 Math.abs(totalDy) > Math.abs(totalDx) && elapsed < 700) {
+        handlers.hold();
+      } else if (!hardDropped && axis === 'y' && totalDy > Math.max(48, threshold * 3) &&
+                 elapsed < 500 && typeof handlers.hardDrop === 'function') {
+        handlers.hardDrop();
+      }
+
       pointerId = null;
-    });
+      axis = null;
+      horizontalRemainder = 0;
+      verticalRemainder = 0;
+    }
+
+    // Native touch path for iPhone/iPad.
+    el.addEventListener('touchstart', (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      if (begin(t.clientX, t.clientY, null)) e.preventDefault();
+    }, { passive: false });
+
+    el.addEventListener('touchmove', (e) => {
+      if (!tracking || !e.touches || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      e.preventDefault();
+      moveTo(t.clientX, t.clientY);
+    }, { passive: false });
+
+    el.addEventListener('touchend', (e) => {
+      if (!tracking) return;
+      e.preventDefault();
+      const t = e.changedTouches && e.changedTouches[0];
+      finish(t ? t.clientX : lastX, t ? t.clientY : lastY);
+    }, { passive: false });
+
+    el.addEventListener('touchcancel', () => reset(), { passive: true });
+
+    // Pointer path for desktop/mouse/pen. Ignore touch pointers so iOS does
+    // not feed the same gesture through both APIs.
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch' || e.isPrimary === false) return;
+      if (begin(e.clientX, e.clientY, e.pointerId)) {
+        e.preventDefault();
+        try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+    }, { passive: false });
+
+    el.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch' || !tracking || e.pointerId !== pointerId) return;
+      e.preventDefault();
+      moveTo(e.clientX, e.clientY);
+    }, { passive: false });
+
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerType === 'touch' || !tracking || e.pointerId !== pointerId) return;
+      e.preventDefault();
+      finish(e.clientX, e.clientY);
+      try { el.releasePointerCapture(e.pointerId); } catch (_) {}
+    }, { passive: false });
+
+    el.addEventListener('pointercancel', (e) => {
+      if (e.pointerType === 'touch' || e.pointerId !== pointerId) return;
+      reset();
+      try { el.releasePointerCapture(e.pointerId); } catch (_) {}
+    }, { passive: false });
   }
 
-  function reset() {
-    stopAutoRepeat();
-    handlers.softDropEnd();
-    pressed.clear();
-  }
 
-  return { on, initKeyboard, initButtons, initSwipe, stopAutoRepeat, reset };
+  return { on, initKeyboard, initButtons, initSwipe, stopAutoRepeat };
 })();
 
 </script>
@@ -8275,7 +8302,6 @@ const Game = (() => {
   let sessionStartTs = 0;
   let countdownValue = 3;
   let countdownTimer = null;
-  let countdownToken = 0;
   let awaitingTopOutCheck = false;
 
   // Mind Bender + spin tracking
@@ -9054,23 +9080,11 @@ const Game = (() => {
     if (rafId) cancelAnimationFrame(rafId);
     rafId = null;
     lastTs = 0;
-    Input.reset();
     accumulatePlayTime();
     Storage.save(saveData);
   }
 
-  function clearCountdownTimer() {
-    countdownToken += 1;
-    if (countdownTimer) {
-      clearInterval(countdownTimer);
-      countdownTimer = null;
-    }
-  }
-
   function startCountdown(selectedMode = 'standard') {
-    clearCountdownTimer();
-    const myCountdownToken = countdownToken;
-    Input.reset();
     mode = Modes.get(selectedMode);
     // Force selected theme + block style onto gameplay immediately
     try {
@@ -9104,18 +9118,12 @@ const Game = (() => {
     UI.setOverlay('overlay-pause', false);
     Audio_.resume();
     countdownTimer = setInterval(() => {
-      if (myCountdownToken !== countdownToken) {
-        clearCountdownTimer();
-        return;
-      }
       countdownValue -= 1;
       if (countdownValue <= 0) {
         UI.setCountdown(0);
         Audio_.sfx.go();
         clearInterval(countdownTimer);
-        countdownTimer = null;
         setTimeout(() => {
-          if (myCountdownToken !== countdownToken) return;
           UI.setOverlay('overlay-countdown', false);
           beginPlaying();
         }, 260);
@@ -9147,7 +9155,6 @@ const Game = (() => {
   }
 
   function quitToMenu() {
-    clearCountdownTimer();
     stopLoop();
     Audio_.stopMusic();
     Particles.clear();
@@ -9163,21 +9170,8 @@ const Game = (() => {
       right: () => tryMoveActive(0, 1),
       rotateCW: () => rotateActive(1),
       rotateCCW: () => rotateActive(-1),
-      softDropStart: () => { if (state === 'playing') softDropStart(); },
-      softDropEnd: () => softDropEnd(),
-      softDropStep: () => {
-        if (state !== 'playing' || !active) return;
-        const moved = moveGravity(active);
-        if (moved) {
-          active = moved;
-          isLocking = false;
-          lockTimer = 0;
-          lastMoveWasRotation = false;
-        } else {
-          isLocking = true;
-        }
-      },
-      hardDrop: () => { if (state === 'playing') hardDrop(); },
+      softDropStart, softDropEnd,
+      hardDrop,
       hold: holdPiece,
       pause: togglePause,
     });
@@ -10397,16 +10391,12 @@ const ThemeFx = (() => {
    *  background tick never eats a life or racks up a silent game over. */
   function bindVisibility() {
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        Input.reset();
-        if (Game.state === 'playing') Game.togglePause();
+      if (document.hidden && Game.state === 'playing') {
+        Game.togglePause();
       }
     });
-    // Do not auto-pause on window blur. iOS Safari can emit blur during
-    // touch/focus transitions while the player is still in the game.
-    // visibilitychange is the reliable signal for actually leaving the app.
     window.addEventListener('blur', () => {
-      Input.reset();
+      if (Game.state === 'playing') Game.togglePause();
     });
   }
 
