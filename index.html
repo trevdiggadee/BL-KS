@@ -12521,6 +12521,22 @@ html[data-theme="matrix"] body {
 #app, .selector-popups, .screen, button, a {
   pointer-events: auto;
 }
+/* BUG FIX: the blanket "button, a { pointer-events: auto }" rule above
+   re-enables hit-testing on every button/link individually, which means a
+   button INSIDE a currently-hidden overlay (pause / game-over) stays
+   clickable even though the overlay itself is invisible and set to
+   pointer-events: none — pointer-events doesn't block descendants that
+   have their own explicit value. In practice, the pause overlay's Restart
+   button sits centered over the board, so any swipe or tap that started
+   near the middle of the board during normal play was being silently
+   swallowed by that invisible button instead of reaching the board's
+   swipe/tap handler. Explicitly turn descendants back off while the
+   overlay isn't active; `.overlay.overlay--active` already restores
+   pointer-events for the whole subtree once it's actually shown. */
+.overlay:not(.overlay--active) button,
+.overlay:not(.overlay--active) a {
+  pointer-events: none;
+}
 .selector-popups {
   z-index: 1000 !important;
   pointer-events: auto !important;
