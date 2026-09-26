@@ -5562,7 +5562,7 @@ const Audio_ = (() => {
  * Chrome = metal sparks, Holo = pixels/spectral shards.
  */
 const Particles = (() => {
-  let particles = [], shocks = [], beams = [], bombRings = [];
+  let particles = [], shocks = [], beams = [], bombRings = [], clearRings = [];
   const MAX_PARTICLES = 180;
   const style = () => document.documentElement.dataset.blockStyle || 'neon';
 
@@ -10457,7 +10457,9 @@ const ThemeFx = (() => {
       }
     });
     window.addEventListener('blur', () => {
-      if (Game.state === 'playing') Game.togglePause();
+      // Blur can occur during normal iOS Safari touch/focus transitions.
+      // Reset gesture state only; visibilitychange handles true backgrounding.
+      if (typeof Input !== 'undefined' && Input.reset) Input.reset();
     });
   }
 
