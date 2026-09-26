@@ -7153,28 +7153,31 @@ const UI = (() => {
     if (applyFx) {
       ctx.save();
       ctx.translate(x, y);
-      if (fx.chromatic) fxChromatic(ctx, cellSize);
-      if (fx.pulse) fxPulse(ctx, cellSize, t, row, col);
-      if (fx.fire) fxFire(ctx, cellSize, t, row, col);
-      if (fx.smoke) fxSmoke(ctx, cellSize, t, row, col);
-      if (fx.lightning) fxLightning(ctx, cellSize, t, row, col);
-      if (fx.sparkle) fxSparkle(ctx, cellSize, t, row, col);
-      if (fx.shimmer) fxShimmer(ctx, cellSize, t, row, col);
-      if (fx.ripple) fxRipple(ctx, cellSize, t, row, col);
-      if (fx.plasma) fxPlasma(ctx, cellSize, t, row, col);
-      if (fx.stars) fxStars(ctx, cellSize, t, row, col);
-      if (fx.aura) fxAura(ctx, cellSize, t, row, col);
-      if (fx.glitch) fxGlitch(ctx, cellSize, t, row, col);
-      if (fx.comet) fxComet(ctx, cellSize, t, row, col);
-      if (fx.dust) fxDust(ctx, cellSize, t, row, col);
-      if (fx.wave) fxWave(ctx, cellSize, t, row, col);
-      if (fx.scan) fxScan(ctx, cellSize, t, row, col);
-      if (fx.flicker) fxFlicker(ctx, cellSize, t, row, col);
-      if (fx.orbit) fxOrbit(ctx, cellSize, t, row, col);
-      if (fx.mist) fxMist(ctx, cellSize, t, row, col);
-      if (fx.ring) fxRing(ctx, cellSize, t, row, col);
-      if (fx.edge) fxEdge(ctx, cellSize, t, row, col);
-      if (fx.spark) fxSpark(ctx, cellSize, t, row, col);
+      // Cap concurrent FX layers (all 24 at once tanks mobile FPS)
+      let fxLeft = 4;
+      const run = (on, fn) => { if (on && fxLeft > 0) { fn(); fxLeft--; } };
+      run(fx.glow || fx.sparkle, () => fxSparkle(ctx, cellSize, t, row, col));
+      run(fx.pulse, () => fxPulse(ctx, cellSize, t, row, col));
+      run(fx.fire, () => fxFire(ctx, cellSize, t, row, col));
+      run(fx.smoke, () => fxSmoke(ctx, cellSize, t, row, col));
+      run(fx.lightning, () => fxLightning(ctx, cellSize, t, row, col));
+      run(fx.shimmer, () => fxShimmer(ctx, cellSize, t, row, col));
+      run(fx.ripple, () => fxRipple(ctx, cellSize, t, row, col));
+      run(fx.plasma, () => fxPlasma(ctx, cellSize, t, row, col));
+      run(fx.stars, () => fxStars(ctx, cellSize, t, row, col));
+      run(fx.aura, () => fxAura(ctx, cellSize, t, row, col));
+      run(fx.glitch, () => fxGlitch(ctx, cellSize, t, row, col));
+      run(fx.comet, () => fxComet(ctx, cellSize, t, row, col));
+      run(fx.dust, () => fxDust(ctx, cellSize, t, row, col));
+      run(fx.wave, () => fxWave(ctx, cellSize, t, row, col));
+      run(fx.scan, () => fxScan(ctx, cellSize, t, row, col));
+      run(fx.flicker, () => fxFlicker(ctx, cellSize, t, row, col));
+      run(fx.orbit, () => fxOrbit(ctx, cellSize, t, row, col));
+      run(fx.mist, () => fxMist(ctx, cellSize, t, row, col));
+      run(fx.ring, () => fxRing(ctx, cellSize, t, row, col));
+      run(fx.edge, () => fxEdge(ctx, cellSize, t, row, col));
+      run(fx.spark, () => fxSpark(ctx, cellSize, t, row, col));
+      run(fx.chromatic, () => fxChromatic(ctx, cellSize));
       ctx.restore();
     }
   }
@@ -7788,8 +7791,8 @@ const UI = (() => {
 
   function startAmbientBackground() {
     const c = el['ambient-canvas']; if (!c || ambientRaf) return;
-    const count = 54;
-    ambientStars = Array.from({length: count}, (_,i) => ({ x: Math.random(), y: Math.random(), r: .35+Math.random()*2.2, s:.00025+Math.random()*.0009, p:Math.random()*Math.PI*2, drift:Math.random()*2 }));
+    const count = 16; // was 54 — main gameplay lag source with shadowBlur
+    ambientStars = Array.from({length: count}, (_,i) => ({ x: Math.random(), y: Math.random(), r: .4+Math.random()*1.6, s:.0003+Math.random()*.0007, p:Math.random()*Math.PI*2, drift:Math.random()*2 }));
     const tick = (t) => {
       const w=c.width/dpr,h=c.height/dpr;
       const theme = document.documentElement.getAttribute('data-theme') || document.documentElement.dataset.theme || 'neon';
@@ -7862,11 +7865,9 @@ const UI = (() => {
         else if (theme === 'frost' || st==='glass' || st==='ice') ambientCtx.fillStyle = '#dffcff';
         else if (theme === 'matrix') ambientCtx.fillStyle = '#00ff88';
         else ambientCtx.fillStyle = 'white';
-        ambientCtx.shadowColor = accent;
-        ambientCtx.shadowBlur = (theme==='neon' || theme==='cyber') ? 8 : 3;
         ambientCtx.beginPath(); ambientCtx.arc(q.x*w,q.y*h,q.r,0,Math.PI*2); ambientCtx.fill();
       });
-      ambientCtx.globalAlpha=1; ambientCtx.shadowBlur=0;
+      ambientCtx.globalAlpha=1;
       ambientRaf=requestAnimationFrame(tick);
     };
     ambientRaf=requestAnimationFrame(tick);
@@ -8960,9 +8961,15 @@ const Game = (() => {
       document.documentElement.setAttribute('data-block-style', blockStyle);
       document.documentElement.dataset.theme = theme;
       document.documentElement.dataset.blockStyle = blockStyle;
+      const gameScr = document.getElementById('screen-game');
+      if (gameScr) {
+        const labels = { neon:'Neon', matrix:'Matrix', minecraft:'Craft', lava:'Lava', plasma:'Plasma', candy:'Candy', frost:'Frost', cyber:'Cyber', arcade:'Arcade', midnight:'Night', ember:'Ember', forest:'Forest', classic:'Classic' };
+        gameScr.setAttribute('data-theme-label', labels[theme] || theme);
+      }
       if (typeof ThemeFx !== 'undefined') ThemeFx.sync();
       if (typeof UI !== 'undefined' && UI.clearColorCache) UI.clearColorCache();
     } catch (_) {}
+    try { if (typeof BlockPreview !== 'undefined') BlockPreview.stop(); } catch (_) {}
     UI.showScreen('game');
     UI.resizeBoardCanvas();
     resetRunState();
@@ -9651,10 +9658,14 @@ const BlockPreview = (() => {
 
     if (UI.fx.glow) {
       ctx.save();
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 18 * UI.getBloom();
+      // Cheap glow: stroke only, no shadowBlur (was a major FPS drain on every cell)
       ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = 0.85;
+      roundRect(ctx, x + pad, y + pad, w, h, 7);
+      ctx.stroke();
+      ctx.globalAlpha = 0.35;
+      ctx.lineWidth = 5;
       roundRect(ctx, x + pad, y + pad, w, h, 7);
       ctx.stroke();
       ctx.restore();
@@ -9877,44 +9888,53 @@ const ThemeFx = (() => {
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    fontSize = Math.max(12, Math.floor(w / 48));
+    fontSize = Math.max(14, Math.floor(w / 36));
     const n = Math.ceil(w / fontSize);
-    cols = Array.from({ length: n }, () => Math.random() * h);
+    cols = Array.from({ length: n }, () => Math.random() * (h / fontSize));
   }
 
+  let frameSkip = 0;
   function frame() {
     if (!running || !ctx) return;
-    const theme = document.documentElement.dataset.theme;
+    const theme = document.documentElement.getAttribute('data-theme') || document.documentElement.dataset.theme;
+    // Skip every other frame for lighter CPU during gameplay
+    frameSkip ^= 1;
+    if (frameSkip && theme === 'matrix') {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
     const w = window.innerWidth, h = window.innerHeight;
 
     if (theme === 'matrix') {
-      ctx.fillStyle = 'rgba(1, 8, 5, 0.12)';
+      ctx.fillStyle = 'rgba(1, 8, 5, 0.18)';
       ctx.fillRect(0, 0, w, h);
       ctx.font = `bold ${fontSize}px monospace`;
-      for (let i = 0; i < cols.length; i++) {
+      ctx.globalAlpha = 1;
+      // Draw only every other column
+      for (let i = 0; i < cols.length; i += 2) {
         const ch = glyphs[(Math.random() * glyphs.length) | 0];
         const x = i * fontSize;
         const y = cols[i] * fontSize;
-        ctx.fillStyle = Math.random() > 0.9 ? '#e8ffe8' : '#00ff88';
-        ctx.globalAlpha = 0.35 + Math.random() * 0.65;
+        ctx.fillStyle = (i + (cols[i]|0)) % 7 === 0 ? '#e8ffe8' : '#00ff88';
+        ctx.globalAlpha = 0.4 + (i % 3) * 0.15;
         ctx.fillText(ch, x, y);
-        if (y > h && Math.random() > 0.975) cols[i] = 0;
-        else cols[i]++;
+        if (y > h && Math.random() > 0.97) cols[i] = 0;
+        else cols[i] += 1.2;
       }
       ctx.globalAlpha = 1;
     } else if (theme === 'plasma') {
-      ctx.fillStyle = 'rgba(10, 6, 20, 0.2)';
+      ctx.fillStyle = 'rgba(10, 6, 20, 0.25)';
       ctx.fillRect(0, 0, w, h);
       const t = performance.now() * 0.001;
-      for (let i = 0; i < 5; i++) {
-        const cx = w * (0.2 + 0.15 * i + 0.05 * Math.sin(t + i));
-        const cy = h * (0.3 + 0.2 * Math.cos(t * 0.7 + i * 1.2));
-        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.28);
-        g.addColorStop(0, i % 2 ? 'rgba(192,128,255,0.18)' : 'rgba(112,224,255,0.16)');
+      for (let i = 0; i < 3; i++) {
+        const cx = w * (0.25 + 0.25 * i + 0.04 * Math.sin(t + i));
+        const cy = h * (0.35 + 0.18 * Math.cos(t * 0.7 + i));
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(w, h) * 0.25);
+        g.addColorStop(0, i % 2 ? 'rgba(192,128,255,0.16)' : 'rgba(112,224,255,0.14)');
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g;
         ctx.beginPath();
-        ctx.arc(cx, cy, Math.min(w, h) * 0.28, 0, Math.PI * 2);
+        ctx.arc(cx, cy, Math.min(w, h) * 0.25, 0, Math.PI * 2);
         ctx.fill();
       }
     } else {
@@ -9984,6 +10004,11 @@ const ThemeFx = (() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-block-style', blockStyle);
     document.documentElement.setAttribute('data-game-mode', gameMode);
+    const gameScr = document.getElementById('screen-game');
+    if (gameScr) {
+      const labels = { neon:'Neon', matrix:'Matrix', minecraft:'Craft', lava:'Lava', plasma:'Plasma', candy:'Candy', frost:'Frost', cyber:'Cyber', arcade:'Arcade', midnight:'Night', ember:'Ember', forest:'Forest', classic:'Classic' };
+      gameScr.setAttribute('data-theme-label', labels[theme] || theme);
+    }
     try { if (typeof UI !== 'undefined' && UI.clearColorCache) UI.clearColorCache(); } catch (_) {}
     document.querySelectorAll('[data-block-style]').forEach(b => {
       const key = b.getAttribute('data-block-style');
@@ -12584,6 +12609,47 @@ html[data-theme="forest"] .ambient-canvas {
 html[data-theme="lava"] .ambient-canvas,
 html[data-theme="ember"] .ambient-canvas {
   opacity: 0.85 !important;
+}
+
+
+/* Stronger theme identity on gameplay + lighter ambient */
+.ambient-canvas {
+  opacity: 0.55 !important;
+}
+html[data-theme="matrix"] .ambient-canvas { opacity: 0.25 !important; }
+
+/* Theme-colored HUD bar so selection is obvious in-game */
+.game-screen .hud-bar {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent) !important;
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--accent) 22%, transparent),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+.game-screen .hud-stat__value {
+  color: var(--accent) !important;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.game-screen .board-frame {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent) !important;
+  box-shadow:
+    0 0 28px color-mix(in srgb, var(--accent) 18%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--accent) 6%, transparent) !important;
+}
+
+/* Tiny theme name chip under HUD */
+.game-screen::after {
+  content: attr(data-theme-label);
+  position: absolute;
+  top: max(6px, env(safe-area-inset-top));
+  right: 12px;
+  z-index: 20;
+  font: 700 0.58rem/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 90%, #fff);
+  opacity: 0.75;
+  pointer-events: none;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 </style>
