@@ -5899,7 +5899,7 @@ const Modes = (() => {
     standard: { id:'standard', name:'STANDARD', icon:'◆', desc:'Classic endless NEONBLOCK.', gravity:1, score:1 },
     zen: { id:'zen', name:'JEWELS', icon:'💎', desc:'Cascade mode with Red, Orange & Green gems. Beat the clock.', gravity:0.85, score:1, jewels:true, timeLimit:60000 },
     blitz: { id:'blitz', name:'MIND BENDER', icon:'🌀', desc:'Clear flashing item blocks to raise the multiplier and trigger wild effects.', gravity:1.0, score:1.0, mindBender:true },
-    inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'Every block burns with living flame. Clear lines through the fire before the heat overwhelms you.', gravity:1.12, score:1.25, garbageEvery:10000 },
+    inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'Every block burns with living flame. Clear lines through the fire before the heat overwhelms you.', gravity:1.12, score:1.25, garbageEvery:12500 },
     bomb: { id:'bomb', name:'BOMB BLOCKS', icon:'💣', desc:'Some pieces contain bombs. Clear a bomb line to blast nearby blocks.', gravity:1.0, score:1.2, bombChance:0.55 },
     stackattack: { id:'stackattack', name:'STACK ATTACK', icon:'⬆', desc:'Rising danger rows build pressure from below. Hold the stack back before it reaches the top.', gravity:0.81, score:1.3, garbageEvery:11719 },
   };
@@ -7795,15 +7795,13 @@ const UI = (() => {
             // cracks instead of the chosen material, on every settled cell.
             drawInfernoCharcoal(boardCtx, visRow, c, cellAlpha);
           } else {
-            // Locked stack: material only, no per-cell FX (sparkle/pulse) — huge FPS win.
-            drawCell(boardCtx, visRow, c, cell, cellAlpha, false, false);
+            // Locked stack: chosen Block Studio FX (sparkle/pulse/etc.) now render
+            // here too, not just on the falling piece.
+            drawCell(boardCtx, visRow, c, cell, cellAlpha, false, true);
           }
-          // Inferno: fire only on the TOP cell of each column (surface), not every buried block.
-          if (infernoActive && infernoHeights[c] > 0) {
-            const topVis = Board.TOTAL_ROWS - hiddenOffset - infernoHeights[c];
-            if (visRow === topVis) {
-              drawInfernoFire(boardCtx, visRow, c, blockColor, infernoHeights[c], cellAlpha);
-            }
+          // Inferno: fire on every settled block in the column, not just the surface.
+          if (infernoActive) {
+            drawInfernoFire(boardCtx, visRow, c, blockColor, infernoHeights[c], cellAlpha);
           }
           if (isItem) drawItemMark(boardCtx, visRow, c, mb ? mb.urgency : 0, cellAlpha);
           if (isJewel) drawGemMark(boardCtx, visRow, c, Jewels.gemType(rawCell), cellAlpha);
