@@ -5575,20 +5575,59 @@ const Particles = (() => {
   function push(p){ if(particles.length<MAX_PARTICLES) particles.push(p); }
 
   function spawnLineClearBurst(rows, cols, cellSize, colors, big=false){
-    // Cap particles hard — full-board clears used to spawn hundreds and tank FPS.
-    const st=style(), per=big?3:2, boardWidth=cols*cellSize;
-    const step = big ? 1 : 2; // every other cell when not a Tetris
+    // Tiered line-clear explosions. The caller passes one row for a single,
+    // two for a double, three for a triple and four for a Tetris.
+    const st=style(), tier=Math.max(1, Math.min(4, rows.length));
+    const boardWidth=cols*cellSize, boardHeight=Math.max(1, (22)*cellSize);
+    const cx=boardWidth/2;
+    const palette=(colors&&colors.length)?colors:['#4cf3ff','#ff4fd8','#ffd45a','#6dff7a'];
+    const step=tier>=3?1:(tier===2?1:2);
+    const per=tier===4?3:(tier===3?2:1);
+
+    // Horizontal energy wave for every cleared row.
     rows.forEach((y,idx)=>{
+      const cy=y+cellSize/2, color=palette[idx%palette.length];
+      shocks.push({y:cy,width:boardWidth,height:6,maxHeight:tier===4?62:tier===3?48:tier===2?38:30,life:1,color,kind:st});
+      clearRings.push({x:cx,y:cy,r:cellSize*.08,maxR:cellSize*(tier===4?3.8:tier===3?3.0:tier===2?2.4:1.8),life:1,decay:tier===4?.025:tier===3?.032:.045,color,width:tier===4?4:tier>=3?3:2,kind:'clear'});
+
+      // Pieces of the cleared line explode outward instead of simply fading.
       for(let i=0;i<cols;i+=step){
-        const x=i*cellSize+cellSize/2, color=colors[(i+idx)%colors.length];
+        const x=i*cellSize+cellSize/2, c=palette[(i+idx)%palette.length];
         for(let n=0;n<per;n++){
-          const a=Math.random()*Math.PI*2, speed=(big?2.8:1.8)+Math.random()*(big?5:3.2);
-          const p={x,y:y+cellSize/2,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-(big?2:1),life:1,decay:.02+Math.random()*.02,size:(big?2.5:2)+Math.random()*3,color,grav:true,kind:'fast'};
-          push(p);
+          const a=Math.random()*Math.PI*2;
+          const speed=(tier===4?3.2:tier===3?2.5:tier===2?2.0:1.55)+Math.random()*(tier===4?6.5:tier===3?5:3.5);
+          let kind='fast';
+          if(tier>=3) kind=(st==='chrome'?'chrome':st==='holo'?'glitch':st==='voxel'?'voxel':st==='fire'?'fast':st==='crystal'||st==='glass'?'sparkle':'electric');
+          push({x,y:cy,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-(tier>=3?1.6:.8),life:1,decay:.018+Math.random()*.018,size:(tier>=3?2.5:2)+Math.random()*3.5,color:c,grav:true,kind});
         }
       }
-      shocks.push({y:y+cellSize/2,width:boardWidth,height:6,maxHeight:big?48:28,life:1,color:colors[idx%colors.length],kind:st});
     });
+
+    // Tier signatures: each step is visually distinct, not just "more particles".
+    if(tier===2){
+      // Double = crossing shockwave / twin detonation.
+      for(const y of rows){
+        clearRings.push({x:cx*.58,y:y+cellSize/2,r:2,maxR:cellSize*1.5,life:.9,decay:.05,color:palette[0],width:2,kind:'clear'});
+        clearRings.push({x:cx*1.42,y:y+cellSize/2,r:2,maxR:cellSize*1.5,life:.9,decay:.05,color:palette[1%palette.length],width:2,kind:'clear'});
+      }
+    } else if(tier===3){
+      // Triple = vertical energy lance plus three concentric bursts.
+      beams.push({x:cx,yTop:0,yBottom:boardHeight,color:palette[2%palette.length],width:Math.max(4,cellSize*.18),life:1,kind:st});
+      for(const y of rows) clearRings.push({x:cx,y:y+cellSize/2,r:2,maxR:cellSize*3.8,life:1,decay:.035,color:palette[1%palette.length],width:3,kind:'clear'});
+    } else if(tier>=4){
+      // Tetris = full-board supernova: giant center rings, cross beams and a
+      // dense second wave of spectral/electric shards.
+      clearRings.push({x:cx,y:boardHeight*.48,r:cellSize*.15,maxR:Math.max(boardWidth,boardHeight)*.72,life:1,decay:.018,color:'#ffffff',width:6,kind:'clear'});
+      clearRings.push({x:cx,y:boardHeight*.48,r:cellSize*.08,maxR:Math.max(boardWidth,boardHeight)*.42,life:1,decay:.028,color:palette[0],width:3,kind:'clear'});
+      beams.push({x:cx,yTop:0,yBottom:boardHeight,color:'#ffffff',width:Math.max(6,cellSize*.28),life:1,kind:'super'});
+      for(let n=0;n<36;n++){
+        const a=Math.random()*Math.PI*2, radius=cellSize*(.3+Math.random()*1.5);
+        const x=cx+Math.cos(a)*radius, y=boardHeight*.48+Math.sin(a)*radius;
+        const speed=4+Math.random()*7;
+        const c=palette[n%palette.length];
+        push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:1,decay:.014+Math.random()*.014,size:2.5+Math.random()*4.5,color:c,grav:false,kind:st==='chrome'?'chrome':st==='holo'?'glitch':'electric'});
+      }
+    }
   }
 
   function spawnBurstAt(x,y,color,count=8){
@@ -5625,6 +5664,8 @@ const Particles = (() => {
 
   function update(){
     particles=particles.filter(p=>p.life>0);
+    clearRings=clearRings.filter(r=>r.life>0);
+    clearRings.forEach(r=>{r.r+=(r.maxR-r.r)*.16;r.life-=r.decay;});
     particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.grav)p.vy+=0.12;if(p.kind==='electric')p.vx*=.992;p.life-=p.decay;});
     shocks=shocks.filter(s=>s.life>0); shocks.forEach(s=>{s.height+=(s.maxHeight-s.height)*.22;s.life-=.055;});
     beams=beams.filter(b=>b.life>0); beams.forEach(b=>{b.life-=.1;});
@@ -5677,6 +5718,19 @@ const Particles = (() => {
     }
     shocks.forEach(s=>{const a=Math.max(0,s.life)*.5;const g=ctx.createLinearGradient(0,s.y-s.height/2,0,s.y+s.height/2);g.addColorStop(0,rgba(s.color,0));g.addColorStop(.5,rgba(s.color,a));g.addColorStop(1,rgba(s.color,0));ctx.fillStyle=g;ctx.fillRect(0,s.y-s.height/2,s.width,s.height);});
     beams.forEach(b=>{const a=Math.max(0,b.life);if(a<=.01)return;const g=ctx.createLinearGradient(0,b.yTop,0,b.yBottom);g.addColorStop(0,rgba(b.color,0));g.addColorStop(.7,rgba(b.color,a*.5));g.addColorStop(1,rgba(b.color,a*.9));ctx.fillStyle=g;ctx.fillRect(b.x-b.width/2,b.yTop,b.width,Math.max(1,b.yBottom-b.yTop));});
+    clearRings.forEach(r=>{
+      const a=Math.max(0,r.life);
+      ctx.save();
+      ctx.globalAlpha=a;
+      ctx.strokeStyle=r.color;
+      ctx.shadowColor=r.color;
+      ctx.shadowBlur=Math.min(24, r.width*5);
+      ctx.lineWidth=Math.max(1,r.width*(.35+.65*a));
+      ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2); ctx.stroke();
+      ctx.globalAlpha=a*.10; ctx.fillStyle=r.color;
+      ctx.beginPath();ctx.arc(r.x,r.y,r.r*.82,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    });
     bombRings.forEach(r=>{
       const a=Math.max(0,r.life);
       ctx.save(); ctx.globalAlpha=a;
@@ -5707,7 +5761,7 @@ const Particles = (() => {
     });
     ctx.globalAlpha=1;ctx.shadowBlur=0;
   }
-  function clear(){particles=[];shocks=[];beams=[];bombRings=[];} function count(){return particles.length;}
+  function clear(){particles=[];shocks=[];beams=[];bombRings=[];clearRings=[];} function count(){return particles.length;}
   return {spawnLineClearBurst,spawnBurstAt,spawnDropBeam,spawnBombExplosion,update,draw,clear,count};
 })();
 
@@ -7565,75 +7619,6 @@ const UI = (() => {
   }
 
   /**
-   * Inferno block skin: replaces the chosen material with a charcoal/coal
-   * fill (dark, slightly mottled like soot) cut through by a couple of
-   * glowing lava cracks. Used for every locked cell once Inferno is active,
-   * regardless of which Block Studio material the player picked — the
-   * theme owns the block look once it's settled into the stack.
-   */
-  function drawInfernoCharcoal(ctx, row, col, alpha = 1) {
-    if (row < 0) return;
-    const x = col * cellSize, y = row * cellSize, s = cellSize;
-    const t = visualTime;
-    const pad = Math.max(1, s * 0.05), inner = s - pad * 2, rad = s * 0.14;
-    // Stable per-cell seed so the mottling/crack shape doesn't jitter frame
-    // to frame — only the glow intensity flickers via `flicker`.
-    const seed = col * 7.13 + row * 3.71;
-    const flicker = 0.82 + 0.18 * Math.sin(t * 5 + seed);
-
-    ctx.save();
-    ctx.globalAlpha = alpha;
-
-    const g = ctx.createLinearGradient(x, y, x + s, y + s);
-    g.addColorStop(0, '#332c26');
-    g.addColorStop(0.5, '#18140f');
-    g.addColorStop(1, '#0a0806');
-    ctx.fillStyle = g;
-    roundRect(ctx, x + pad, y + pad, inner, inner, rad);
-    ctx.fill();
-
-    ctx.save();
-    roundRect(ctx, x + pad, y + pad, inner, inner, rad);
-    ctx.clip();
-
-    // Soot mottling + a faint ash highlight — static positions per cell.
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    [[0.28, 0.32, 0.24], [0.72, 0.58, 0.3], [0.42, 0.78, 0.2]].forEach(([sx, sy, sr]) => {
-      ctx.beginPath(); ctx.arc(x + s * sx, y + s * sy, s * sr, 0, Math.PI * 2); ctx.fill();
-    });
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    ctx.beginPath(); ctx.arc(x + s * 0.35, y + s * 0.22, s * 0.18, 0, Math.PI * 2); ctx.fill();
-
-    // Glowing lava cracks running through the charcoal.
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 2; i++) {
-      const baseY = y + s * (0.32 + i * 0.36) + Math.sin(seed + i) * s * 0.04;
-      ctx.beginPath();
-      ctx.moveTo(x, baseY);
-      ctx.quadraticCurveTo(x + s * 0.3, baseY + Math.sin(seed + i + 1) * s * 0.1, x + s * 0.55, baseY - s * 0.05);
-      ctx.quadraticCurveTo(x + s * 0.78, baseY - s * 0.12, x + s, baseY + Math.sin(seed + i + 2) * s * 0.06);
-      ctx.lineWidth = Math.max(1.5, s * 0.06);
-      ctx.strokeStyle = `rgba(255,120,30,${0.55 * flicker})`;
-      ctx.shadowColor = 'rgba(255,100,20,0.9)';
-      ctx.shadowBlur = s * 0.12 * flicker;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      ctx.lineWidth = Math.max(0.6, s * 0.02);
-      ctx.strokeStyle = `rgba(255,225,150,${0.85 * flicker})`;
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = `rgba(255,90,20,${0.4 * flicker})`;
-    ctx.lineWidth = 1;
-    roundRect(ctx, x + pad + 0.5, y + pad + 0.5, inner - 1, inner - 1, rad);
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  /**
    * Inferno fire on locked stack only — visible but diffuse.
    * Cheap drawing (no shadowBlur) so full boards stay smooth.
    * Flames sit around the block edges so empty cells stay readable.
@@ -7790,19 +7775,14 @@ const UI = (() => {
           const cellAlpha = mb && mb.blurMs != null ? MindBender.blurAlpha(c, mb.blurMs) : 1;
           const blockColor = colorFor(cell);
           const visRow = r - hiddenOffset;
-          if (infernoActive) {
-            // Inferno owns the block look once it's locked: charcoal + lava
-            // cracks instead of the chosen material, on every settled cell.
-            drawInfernoCharcoal(boardCtx, visRow, c, cellAlpha);
-          } else {
-            // Locked stack: material + the studio's chosen FX layers too, so
-            // a finished block keeps whatever look the player picked, not
-            // just the piece while it's still falling.
-            drawCell(boardCtx, visRow, c, cell, cellAlpha, false, true);
-          }
-          // Inferno: every settled block stays alight, not just the surface.
+          // Locked stack: material only, no per-cell FX (sparkle/pulse) — huge FPS win.
+          drawCell(boardCtx, visRow, c, cell, cellAlpha, false, false);
+          // Inferno: fire only on the TOP cell of each column (surface), not every buried block.
           if (infernoActive && infernoHeights[c] > 0) {
-            drawInfernoFire(boardCtx, visRow, c, blockColor, infernoHeights[c], cellAlpha);
+            const topVis = Board.TOTAL_ROWS - hiddenOffset - infernoHeights[c];
+            if (visRow === topVis) {
+              drawInfernoFire(boardCtx, visRow, c, blockColor, infernoHeights[c], cellAlpha);
+            }
           }
           if (isItem) drawItemMark(boardCtx, visRow, c, mb ? mb.urgency : 0, cellAlpha);
           if (isJewel) drawGemMark(boardCtx, visRow, c, Jewels.gemType(rawCell), cellAlpha);
@@ -8344,7 +8324,7 @@ const SettingsScreen = (() => {
 const Game = (() => {
   const LOCK_DELAY_MS = 500;
   const MAX_LOCK_RESETS = 15;
-  const LINE_CLEAR_FLASH_MS = 180;
+  const LINE_CLEAR_FLASH_MS = 360;
 
   let saveData = null;
   let bagNext = null;
@@ -8780,28 +8760,35 @@ const Game = (() => {
     const cellSize = UI.cellSize;
     const clearYs = fullRows.map((r) => (r - Board.HIDDEN_ROWS) * cellSize);
 
-    if (mode.id === 'inferno') {
-      // Inferno gets its own line-clear signature: a multi-colour fire burst
-      // rather than the normal neon particle palette. The burst is layered
-      // across every cleared row so it reads as one large combustion event.
-      const fireColors = [
-        '#ff2d18', '#ff5a1f', '#ff9f1c', '#ffd23f',
-        '#fff1a8', '#ff3ea5', '#9b6bff', '#4cf3ff'
-      ];
-      Particles.spawnLineClearBurst(clearYs, Board.COLS, cellSize, fireColors, true);
-      // Quick, light flash — decays fast so it doesn't linger on the board.
-      Effects.flash('255,110,30', result.isTetris ? 0.28 : 0.16);
-      Effects.shake(result.isTetris ? 8 : 5);
-      Effects.toast(result.isTetris ? '🔥 INFERNO TETRIS' : '🔥 FIRE BURST', 'tetris', 900);
-      try { vibrate(result.isTetris ? [55, 25, 70, 25, 90] : [35, 20, 45]); } catch (_) {}
-    } else {
-      Particles.spawnLineClearBurst(
-        clearYs,
-        Board.COLS, cellSize,
-        [getColorHex('cyan'), getColorHex('magenta'), getColorHex('amber'), getColorHex('green')],
-        result.isTetris
-      );
-    }
+    // Every mode gets the same tiered explosion engine, while the mode/style
+    // palette changes the personality of the blast. 1x/2x/3x/4x are visually
+    // different events, not just different particle counts.
+    const modePalettes = {
+      inferno: ['#ff2d18','#ff6a1a','#ffd23f','#fff1a8','#ff3ea5'],
+      bomb: ['#ff3b20','#ff8a3c','#ffd45a','#fff4b0','#ff5c8a'],
+      jewels: ['#55ff88','#39d9ff','#ff5c9d','#ffd45a','#ffffff'],
+      gravity: ['#a86cff','#5ce1ff','#ff4fd8','#fff05c','#ffffff'],
+      stackattack: ['#ff3d71','#ff9e3d','#ffd45a','#c96cff','#5ce1ff']
+    };
+    const palette = modePalettes[mode.id] || [
+      getColorHex('cyan'), getColorHex('magenta'), getColorHex('amber'), getColorHex('green')
+    ];
+    Particles.spawnLineClearBurst(clearYs, Board.COLS, cellSize, palette, result.isTetris);
+
+    const tier = Math.min(4, fullRows.length);
+    const flashColors = [
+      '255,255,255',
+      tier===1 ? '76,243,255' : tier===2 ? '255,79,216' : tier===3 ? '255,190,60' : '255,255,255',
+      tier===4 ? '255,255,255' : '255,255,255'
+    ];
+    Effects.flash(flashColors[Math.min(flashColors.length-1,tier-1)], tier===4 ? 0.42 : tier===3 ? 0.32 : tier===2 ? 0.24 : 0.16);
+    Effects.shake(tier===4 ? 12 : tier===3 ? 9 : tier===2 ? 6 : 4);
+    try {
+      if (tier===4) vibrate([55,25,80,25,120]);
+      else if (tier===3) vibrate([45,20,70]);
+      else if (tier===2) vibrate([35,20,45]);
+      else vibrate(22);
+    } catch (_) {}
   }
 
   function applyMindBenderEffect(id) {
@@ -9159,16 +9146,6 @@ const Game = (() => {
   }
 
   function startCountdown(selectedMode = 'standard') {
-    // Whatever button was clicked/tapped to get here (Play, Play Again, a
-    // mode pill, ...) keeps keyboard focus after the click. If it's a
-    // <button>, the browser treats a later Space/Enter press as "activate
-    // the focused button" natively — so hitting Space to hard-drop in game
-    // was re-clicking that button and calling startCountdown() again,
-    // restarting the run out from under the player. Drop focus so gameplay
-    // key presses can't land on a leftover menu button.
-    if (document.activeElement && typeof document.activeElement.blur === 'function') {
-      document.activeElement.blur();
-    }
     mode = Modes.get(selectedMode);
     // Force selected theme + block style onto gameplay immediately
     try {
@@ -12604,22 +12581,6 @@ html[data-theme="matrix"] body {
 }
 #app, .selector-popups, .screen, button, a {
   pointer-events: auto;
-}
-/* BUG FIX: the blanket "button, a { pointer-events: auto }" rule above
-   re-enables hit-testing on every button/link individually, which means a
-   button INSIDE a currently-hidden overlay (pause / game-over) stays
-   clickable even though the overlay itself is invisible and set to
-   pointer-events: none — pointer-events doesn't block descendants that
-   have their own explicit value. In practice, the pause overlay's Restart
-   button sits centered over the board, so any swipe or tap that started
-   near the middle of the board during normal play was being silently
-   swallowed by that invisible button instead of reaching the board's
-   swipe/tap handler. Explicitly turn descendants back off while the
-   overlay isn't active; `.overlay.overlay--active` already restores
-   pointer-events for the whole subtree once it's actually shown. */
-.overlay:not(.overlay--active) button,
-.overlay:not(.overlay--active) a {
-  pointer-events: none;
 }
 .selector-popups {
   z-index: 1000 !important;
