@@ -6600,6 +6600,9 @@ const Input = (() => {
   const ARR_MS = 30;
   let dasTimer = null, arrTimer = null, activeDir = null;
   const pressed = new Set();
+  // Cleanup hooks registered by hold-buttons and swipe surfaces so a stuck
+  // gesture (finger down when the app loses focus) can be force-reset.
+  const cleanupHooks = [];
 
   function startAutoRepeat(dir) {
     if (activeDir === dir) return;
@@ -6617,6 +6620,18 @@ const Input = (() => {
     if (dasTimer) clearTimeout(dasTimer);
     if (arrTimer) clearInterval(arrTimer);
     dasTimer = null; arrTimer = null; activeDir = null;
+  }
+
+  /** Clears all held-input state: keyboard keys "stuck" down, on-screen
+   *  button hold-repeat timers, and any in-progress swipe gesture. Called
+   *  on window blur so backgrounding the app (a notification, an app
+   *  switch, a permission prompt) never leaves left/right or swipe input
+   *  unresponsive when the player comes back. */
+  function reset() {
+    pressed.clear();
+    stopAutoRepeat();
+    try { handlers.softDropEnd(); } catch (_) {}
+    cleanupHooks.forEach((fn) => { try { fn(); } catch (_) {} });
   }
 
   function keyDown(e) {
@@ -6693,6 +6708,7 @@ const Input = (() => {
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
     el.addEventListener('lostpointercapture', end);
+    cleanupHooks.push(() => end());
   }
 
   function bindTapButton(el, fn) {
@@ -6857,6 +6873,7 @@ const Input = (() => {
     el.addEventListener('touchmove', touchMove, { passive: false });
     el.addEventListener('touchend', touchEnd, { passive: false });
     el.addEventListener('touchcancel', reset, { passive: true });
+    cleanupHooks.push(reset);
 
     // Mouse/pen support without competing with the native touch path.
     el.addEventListener('pointerdown', e => {
@@ -6884,7 +6901,7 @@ const Input = (() => {
   }
 
 
-  return { on, initKeyboard, initButtons, initSwipe, stopAutoRepeat };
+  return { on, initKeyboard, initButtons, initSwipe, stopAutoRepeat, reset };
 })();
 
 </script>
@@ -9371,12 +9388,28 @@ const Game = (() => {
   }
 
   // --- Player actions ---
+  /** If the Gems cascade animation got stuck logically "done" but never
+   *  transitioned out (a dropped frame, or an earlier caught error), finish
+   *  it the same way the normal loop would: settle any in-flight blocks
+   *  into the grid first (so nothing just vanishes off the board), then
+   *  run the real finish routine, which spawns the next piece. Forcing
+   *  state back to 'playing' without this used to leave the old, already-
+   *  locked piece as "active" with no new piece spawned — the next drop
+   *  would then fail to fit and immediately end the run, which looked
+   *  like the mode randomly restarting. */
+  function forceRecoverGemsCascade() {
+    if (state !== 'gems_cascade') return;
+    try { gemsSettleActors(); } catch (_) {}
+    gemsFinishCascade();
+  }
+
+  function recoverStuckGemsCascade() {
+    if (state !== 'gems_cascade' || (gemsCascade && gemsCascade.phase !== 'done')) return;
+    forceRecoverGemsCascade();
+  }
+
   function tryMoveActive(dRow, dCol) {
-    // Recover if cascade left us stuck
-    if (state === 'gems_cascade' && (!gemsCascade || gemsCascade.phase === 'done')) {
-      gemsCascade = null;
-      state = 'playing';
-    }
+    recoverStuckGemsCascade();
     if (state !== 'playing' || !active) return false;
     const moved = Collision.tryMove(grid, active, dRow, dCol);
     if (moved) {
@@ -9390,6 +9423,7 @@ const Game = (() => {
   }
 
   function rotateActive(dir) {
+    recoverStuckGemsCascade();
     if (state !== 'playing') return;
     const rotated = Collision.tryRotate(grid, active, dir);
     if (rotated) {
@@ -9416,6 +9450,7 @@ const Game = (() => {
   }
 
   function hardDrop() {
+    recoverStuckGemsCascade();
     if (state !== 'playing') return;
     const distance = dropDistanceGravity(active);
     if (distance > 0) lastMoveWasRotation = false;
@@ -9678,8 +9713,25 @@ const Game = (() => {
     if (!lastTs) lastTs = ts;
     const dt = Math.min(50, ts - lastTs);
     lastTs = ts;
-    update(dt);
-    render();
+    // update()/render() drive every frame of gameplay, including the Gems
+    // cascade animation. An uncaught error in either one used to kill the
+    // requestAnimationFrame chain outright — the board would freeze and
+    // every control (keyboard, swipe, on-screen buttons) would stop doing
+    // anything, since nothing was left running to react to them. Contain
+    // errors here so a single bad frame can't take the whole loop down.
+    try {
+      update(dt);
+    } catch (err) {
+      console.error('Game loop update() error', err);
+      // Best-effort recovery: don't leave the run stuck mid-cascade with a
+      // stale piece — finish it out the same way a normal cascade would.
+      try { forceRecoverGemsCascade(); } catch (_) {}
+    }
+    try {
+      render();
+    } catch (err) {
+      console.error('Game loop render() error', err);
+    }
     rafId = requestAnimationFrame(loop);
   }
 
