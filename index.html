@@ -6090,6 +6090,7 @@ const Jewels = (() => {
       gemsCleared: { red: 0, orange: 0, green: 0 },
       pendingShockwave: false,
       garbageRowsSpawned: 0,
+      cascadeWave: 1,
     };
   }
 
@@ -8500,6 +8501,7 @@ const Game = (() => {
   // Mind Bender + spin tracking
   let mb = null;                     // MindBender.createState()
   let jewels = null;                 // Jewels.createState()
+  let gemsCascade = null;            // animated cascade state for Gems mode
   let lastMoveWasRotation = false;   // T-spin rule: last successful action must be a rotation
   let pendingEffect = null;          // effect id waiting for the line-clear animation to end
   let itemHintShown = false;
@@ -8647,6 +8649,7 @@ const Game = (() => {
     softDropActive = false;
     gravityAcc = 0; lockTimer = 0; lockResets = 0; isLocking = false;
     pendingClearRows = null;
+    gemsCascade = null;
     UI.resetTrail();
     UI.setCombo('');
     UI.updateHud(score, level);
@@ -8803,6 +8806,11 @@ const Game = (() => {
   }
 
   function beginLineClear(fullRows) {
+    // Gems mode: animated domino cascade instead of instant clear
+    if (jewels && mode.jewels) {
+      gemsStartCascade(fullRows, true);
+      return;
+    }
     state = 'clearing';
     pendingClearRows = fullRows;
     clearTimer = LINE_CLEAR_FLASH_MS;
@@ -8964,6 +8972,288 @@ const Game = (() => {
       else if (window.Audio_?.sfx?.uiTap) Audio_.sfx.uiTap();
     } catch (_) {}
     refreshMbHud();
+  }
+
+
+  // ========== GEMS MODE: animated domino cascade (tetris.com/gems style) ==========
+  // Player clear → rows shatter into independent minos → columns fall with a
+  // left↔right wave delay → settled full rows clear → repeat until stable.
+  // Green gem cells never clear; they trigger a shockwave after the chain ends.
+
+  function gemsStartCascade(fullRows, isPlayerClear) {
+    const C = Board.COLS;
+    const T = grid.length;
+    const dir = (jewels.cascadeWave = -(jewels.cascadeWave || 1)); // alternate L→R / R→L
+    const collected = [];
+    fullRows.forEach((r) => {
+      if (!grid[r]) return;
+      for (let c = 0; c < C; c++) {
+        const cell = grid[r][c];
+        if (cell == null) continue;
+        const t = Jewels.gemType(cell);
+        if (t && t !== 'green') collected.push(t);
+        // Shatter: keep green, clear others (will fall from above)
+        if (t !== 'green') grid[r][c] = null;
+      }
+    });
+    // Build falling actors: every non-empty cell that needs to drop
+    const actors = [];
+    for (let c = 0; c < C; c++) {
+      const colCells = [];
+      for (let r = T - 1; r >= 0; r--) {
+        if (grid[r][c] != null) colCells.push({ r, cell: grid[r][c] });
+      }
+      // Targets packed to bottom
+      let target = T - 1;
+      for (const item of colCells) {
+        if (item.r !== target) {
+          actors.push({
+            c,
+            fromR: item.r,
+            toR: target,
+            cell: item.cell,
+            progress: 0,
+            delay: (dir > 0 ? c : (C - 1 - c)) * 0.028, // domino wave
+            done: false,
+          });
+          grid[item.r][c] = null; // lift from board while animating
+        }
+        target--;
+      }
+    }
+    // Also place already-settled cells back (those that didn't move)
+    // Rebuild settled part after animation from actors + stationary
+    gemsCascade = {
+      phase: actors.length ? 'falling' : 'check',
+      actors,
+      dir,
+      timer: 0,
+      gems: collected,
+      chainLines: fullRows.length,
+      wave: 0,
+      isPlayerClear: !!isPlayerClear,
+    };
+    state = 'gems_cascade';
+    // Initial guideline score for the player-made clear only (cascade bonus later)
+    if (isPlayerClear) {
+      const scoreMult = jewels.multiplier;
+      const result = Scoring.scoreLineClear({
+        linesCleared: fullRows.length, level, multiplier: scoreMult, combo, backToBack,
+        tspin: lastTSpin, allClear: false,
+      });
+      score += Math.round(result.points * mode.score);
+      combo = result.combo;
+      backToBack = result.backToBack;
+      bestComboThisGame = Math.max(bestComboThisGame, combo);
+      lines += fullRows.length;
+      level = Scoring.levelForLines(lines);
+      saveData.stats.totalLines += fullRows.length;
+      if (result.isTetris) saveData.stats.totalTetrises += 1;
+      UI.updateHud(score, level);
+      Effects.toast(fullRows.length >= 4 ? 'TETRIS!' : fullRows.length === 3 ? 'TRIPLE!' : fullRows.length === 2 ? 'DOUBLE!' : 'CLEAR', fullRows.length >= 3 ? 'tetris' : 'combo', 700);
+      Effects.shake(4 + fullRows.length);
+      try {
+        const cs = UI.cellSize || 24;
+        const ys = fullRows.map((r) => (r - Board.HIDDEN_ROWS) * cs);
+        Particles.spawnLineClearBurst(ys, C, cs, ['#55ff88','#39d9ff','#ff5c9d','#ffd45a'], fullRows.length >= 4);
+      } catch (_) {}
+    }
+    if (collected.length) {
+      const fx = Jewels.applyGemEffects(jewels, collected, mode);
+      if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 900);
+      if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 900);
+      refreshMbHud();
+    }
+  }
+
+  function gemsSettleActors() {
+    const T = grid.length;
+    // Write actors to their target rows
+    gemsCascade.actors.forEach((a) => {
+      if (a.toR >= 0 && a.toR < T && a.c >= 0) {
+        grid[a.toR][a.c] = a.cell;
+      }
+    });
+    gemsCascade.actors = [];
+  }
+
+  function gemsStartFallFromGrid() {
+    const C = Board.COLS;
+    const T = grid.length;
+    const dir = gemsCascade.dir || 1;
+    const actors = [];
+    // snapshot columns
+    for (let c = 0; c < C; c++) {
+      const colCells = [];
+      for (let r = T - 1; r >= 0; r--) {
+        if (grid[r][c] != null) colCells.push({ r, cell: grid[r][c] });
+      }
+      let target = T - 1;
+      for (const item of colCells) {
+        if (item.r !== target) {
+          actors.push({
+            c, fromR: item.r, toR: target, cell: item.cell,
+            progress: 0,
+            delay: (dir > 0 ? c : (C - 1 - c)) * 0.028 + gemsCascade.wave * 0.02,
+            done: false,
+          });
+          grid[item.r][c] = null;
+        }
+        target--;
+      }
+    }
+    gemsCascade.actors = actors;
+    gemsCascade.phase = actors.length ? 'falling' : 'check';
+    gemsCascade.timer = 0;
+  }
+
+  function gemsUpdateCascade(dt) {
+    if (!gemsCascade) return;
+    const sec = dt / 1000;
+    gemsCascade.timer += sec;
+
+    if (gemsCascade.phase === 'falling') {
+      const FALL_SPEED = 7.5; // rows per second once delay elapsed
+      let allDone = true;
+      gemsCascade.actors.forEach((a) => {
+        if (a.done) return;
+        if (gemsCascade.timer < a.delay) { allDone = false; return; }
+        a.progress += FALL_SPEED * sec;
+        const dist = Math.abs(a.toR - a.fromR) || 0.001;
+        if (a.progress >= dist) {
+          a.progress = dist;
+          a.done = true;
+        } else {
+          allDone = false;
+        }
+      });
+      if (allDone) {
+        gemsSettleActors();
+        gemsCascade.phase = 'pause';
+        gemsCascade.timer = 0;
+      }
+      return;
+    }
+
+    if (gemsCascade.phase === 'pause') {
+      if (gemsCascade.timer < 0.12) return;
+      gemsCascade.phase = 'check';
+      gemsCascade.timer = 0;
+      return;
+    }
+
+    if (gemsCascade.phase === 'check') {
+      const full = Board.findFullRows(grid);
+      if (full.length) {
+        // Sequential clear flash, then null (keep green), then fall again
+        gemsCascade.clearRows = full.slice();
+        gemsCascade.phase = 'clearing';
+        gemsCascade.timer = 0;
+        gemsCascade.chainLines += full.length;
+        lines += full.length;
+        level = Scoring.levelForLines(lines);
+        // cascade score after mult applied
+        score += 100 * full.length * jewels.multiplier;
+        UI.updateHud(score, level);
+        Effects.toast(`CASCADE ×${full.length}`, 'combo', 800);
+        Effects.shake(3 + full.length);
+        try {
+          const cs = UI.cellSize || 24;
+          const ys = full.map((r) => (r - Board.HIDDEN_ROWS) * cs);
+          Particles.spawnLineClearBurst(ys, Board.COLS, cs, ['#55ff88','#39d9ff','#ff5c9d','#ffd45a'], full.length >= 3);
+        } catch (_) {}
+        const gems = [];
+        full.forEach((r) => {
+          if (!grid[r]) return;
+          for (let c = 0; c < Board.COLS; c++) {
+            const cell = grid[r][c];
+            const t = Jewels.gemType(cell);
+            if (t && t !== 'green') {
+              gems.push(t);
+              grid[r][c] = null;
+            } else if (t !== 'green') {
+              grid[r][c] = null;
+            }
+          }
+        });
+        if (gems.length) {
+          const fx = Jewels.applyGemEffects(jewels, gems, mode);
+          if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 800);
+          if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 800);
+          refreshMbHud();
+        }
+        return;
+      }
+      // Stable — maybe shockwave
+      if (jewels.pendingShockwave) {
+        jewels.pendingShockwave = false;
+        Effects.toast('💎 SHOCKWAVE', 'tetris', 1400);
+        Effects.shake(16);
+        Effects.flash('80,255,140', 0.45);
+        // Shatter ALL cells into falling actors (grey-ish keep color)
+        const C = Board.COLS, T = grid.length;
+        const actors = [];
+        for (let c = 0; c < C; c++) {
+          const colCells = [];
+          for (let r = T - 1; r >= 0; r--) {
+            if (grid[r][c] != null) {
+              colCells.push({ r, cell: grid[r][c] });
+              grid[r][c] = null;
+            }
+          }
+          let target = T - 1;
+          for (const item of colCells) {
+            actors.push({
+              c, fromR: item.r, toR: target, cell: item.cell,
+              progress: 0,
+              delay: (c * 0.02) + Math.random() * 0.05,
+              done: false,
+            });
+            target--;
+          }
+        }
+        gemsCascade.actors = actors;
+        gemsCascade.phase = actors.length ? 'falling' : 'done';
+        gemsCascade.timer = 0;
+        gemsCascade.wave++;
+        gemsCascade.didShock = true;
+        return;
+      }
+      gemsCascade.phase = 'done';
+      return;
+    }
+
+    if (gemsCascade.phase === 'clearing') {
+      if (gemsCascade.timer < 0.22) return;
+      gemsCascade.wave++;
+      gemsStartFallFromGrid();
+      return;
+    }
+
+    if (gemsCascade.phase === 'done') {
+      // Refill garbage
+      let filled = 0;
+      for (let r = 0; r < grid.length; r++) {
+        if (grid[r].some((c) => c != null)) filled++;
+      }
+      const target = filled < 4 ? 5 : filled < 8 ? 3 : filled < 12 ? 2 : 0;
+      if (target > 0) {
+        grid = Jewels.pushGarbage(grid, jewels, target);
+      }
+      gemsCascade = null;
+      pendingClearRows = null;
+      state = 'playing';
+      spawnNext();
+    }
+  }
+
+  /** Current visual row for an animating actor (float). */
+  function gemsActorY(a) {
+    const dist = a.toR - a.fromR;
+    const p = Math.min(1, a.progress / (Math.abs(dist) || 1));
+    // ease-in
+    const e = p * p;
+    return a.fromR + dist * e;
   }
 
   function finishLineClear() {
@@ -9280,6 +9570,10 @@ const Game = (() => {
       }
       refreshMbHud();
     }
+    if (state === 'gems_cascade') {
+      gemsUpdateCascade(dt);
+      return;
+    }
     if (state === 'clearing') {
       clearTimer -= dt;
       if (clearTimer <= 0) finishLineClear();
@@ -9318,7 +9612,7 @@ const Game = (() => {
   }
 
   function render() {
-    const ghost = saveData.settings.ghostPiece && active ? (() => { const d = dropDistanceGravity(active); const [dr,dc] = gravityVector(); return { ...active, row: active.row + dr*d, col: active.col + dc*d }; })() : null;
+    const ghost = saveData.settings.ghostPiece && active && state === 'playing' ? (() => { const d = dropDistanceGravity(active); const [dr,dc] = gravityVector(); return { ...active, row: active.row + dr*d, col: active.col + dc*d }; })() : null;
     const activeCells = state === 'playing' || state === 'clearing' ? Pieces.getCells(active) : null;
     if (state === 'playing' && activeCells && saveData.settings.animations) {
       // Pass color *name* so the trail uses the Block Studio material, not a solid hex.
@@ -9339,6 +9633,51 @@ const Game = (() => {
     });
     Particles.update();
     UI.renderFx();
+    // Gems: draw cascading minos (domino fall animation)
+    if (state === 'gems_cascade' && gemsCascade && gemsCascade.actors && gemsCascade.actors.length) {
+      try {
+        const canvas = UI.el['fx-canvas'];
+        const ctx = canvas && canvas.getContext('2d');
+        if (ctx) {
+          const cs = UI.cellSize;
+          const hidden = Board.HIDDEN_ROWS;
+          gemsCascade.actors.forEach((a) => {
+            const yRow = gemsActorY(a) - hidden;
+            if (yRow < -2 || yRow > Board.ROWS + 1) return;
+            const x = a.c * cs;
+            const y = yRow * cs;
+            const base = (typeof Jewels !== 'undefined' ? Jewels.baseColor(a.cell) : a.cell) || 'cyan';
+            // motion streak
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            const col = getComputedStyle(document.documentElement).getPropertyValue('--' + base).trim() || '#4cf3ff';
+            ctx.fillStyle = col;
+            ctx.fillRect(x + 3, y - cs * 0.4, cs - 6, cs * 0.55);
+            ctx.restore();
+            if (typeof BlockPreview !== 'undefined' && BlockPreview.renderCell) {
+              const typeMap = { cyan:0, amber:1, violet:2, green:3, magenta:4, blue:5, orange:6 };
+              const ti = typeMap[base] != null ? typeMap[base] : 0;
+              BlockPreview.renderCell(ctx, x, y, cs, ti, Math.floor(yRow), a.c, performance.now() * 0.001, 1, true);
+            } else {
+              ctx.fillStyle = col;
+              ctx.fillRect(x + 1, y + 1, cs - 2, cs - 2);
+            }
+            const gt = typeof Jewels !== 'undefined' ? Jewels.gemType(a.cell) : null;
+            if (gt) {
+              ctx.save();
+              ctx.fillStyle = gt === 'red' ? '#ff3b4a' : gt === 'orange' ? '#ff9f1c' : '#3cff8a';
+              ctx.strokeStyle = '#fff';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.arc(x + cs * 0.5, y + cs * 0.5, cs * 0.2, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.stroke();
+              ctx.restore();
+            }
+          });
+        }
+      } catch (_) {}
+    }
     UI.applyShake();
   }
 
