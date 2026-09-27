@@ -3184,8 +3184,8 @@ html[data-block-style="pixel"] .board-frame canvas {
   width: 100% !important;
   inset: unset !important;
   z-index: 1 !important;
-  pointer-events: auto !important;
-  cursor: pointer !important;
+  pointer-events: none !important;
+  cursor: default !important;
 }
 .menu-dock {
   position: relative !important;
@@ -6984,14 +6984,39 @@ const UI = (() => {
     const target = document.getElementById(`screen-${name}`);
     if (target) target.classList.add('screen--active');
     document.body.dataset.screen = name || '';
-    // Kill menu play hit-target during any non-start screen
+    document.body.classList.toggle('in-game', name === 'game');
+    document.body.classList.toggle('on-start', name === 'start');
+    // Nuclear disable of menu play controls outside start
     const playBtn = document.getElementById('btn-play');
     if (playBtn) {
       const onStart = name === 'start';
-      playBtn.style.pointerEvents = onStart ? 'auto' : 'none';
-      playBtn.style.display = onStart ? '' : 'none';
+      playBtn.disabled = !onStart;
+      playBtn.style.cssText = onStart
+        ? ''
+        : 'pointer-events:none!important;display:none!important;visibility:hidden!important;';
       playBtn.tabIndex = onStart ? 0 : -1;
       playBtn.setAttribute('aria-hidden', onStart ? 'false' : 'true');
+    }
+    document.querySelectorAll('.hero-stage, .play-hit-area').forEach((el) => {
+      if (name !== 'start') {
+        el.style.pointerEvents = 'none';
+        el.style.cursor = 'default';
+      } else if (el.classList.contains('play-hit-area')) {
+        el.style.pointerEvents = 'auto';
+        el.style.cursor = 'pointer';
+      } else {
+        el.style.pointerEvents = 'none';
+      }
+    });
+    const startSc = document.getElementById('screen-start');
+    if (startSc && name !== 'start') {
+      startSc.style.pointerEvents = 'none';
+      startSc.style.visibility = 'hidden';
+      startSc.style.display = 'none';
+    } else if (startSc) {
+      startSc.style.pointerEvents = '';
+      startSc.style.visibility = '';
+      startSc.style.display = '';
     }
   }
 
@@ -9722,6 +9747,11 @@ const Game = (() => {
   }
 
   function startCountdown(selectedMode = 'standard') {
+    // HARD BLOCK: never restart from a stray menu tap while a run is live
+    if (state === 'playing' || state === 'countdown' || state === 'clearing'
+        || state === 'gems_cascade' || state === 'paused') {
+      return;
+    }
     cancelCountdown();
     // Never allow two animation loops to coexist.
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; lastTs = 0; }
@@ -10959,11 +10989,34 @@ const ThemeFx = (() => {
     UI.showScreen('start');
   }
 
+
+// Absolute last line of defence: ignore Play taps unless start screen is active
+document.addEventListener('click', (ev) => {
+  const t = ev.target && ev.target.closest && ev.target.closest('#btn-play, .play-hit-area');
+  if (!t) return;
+  const start = document.getElementById('screen-start');
+  if (!start || !start.classList.contains('screen--active') || document.body.dataset.screen !== 'start') {
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+  }
+}, true);
+document.addEventListener('pointerup', (ev) => {
+  const t = ev.target && ev.target.closest && ev.target.closest('#btn-play, .play-hit-area');
+  if (!t) return;
+  const start = document.getElementById('screen-start');
+  if (!start || !start.classList.contains('screen--active') || document.body.dataset.screen !== 'start') {
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+  }
+}, true);
+
   function bindNav() {
     UI.el['btn-play'].addEventListener('click', (ev) => {
       // Ignore taps if we are not on the start screen (stale hit-area)
       const start = document.getElementById('screen-start');
-      if (!start || !start.classList.contains('screen--active')) {
+      if (!start || !start.classList.contains('screen--active') || document.body.dataset.screen !== 'start') {
         ev.preventDefault();
         ev.stopPropagation();
         return;
@@ -13458,6 +13511,30 @@ body:not([data-screen="start"]) .play-hit-area,
 .game-screen.screen--active {
   z-index: 10 !important;
   pointer-events: auto !important;
+}
+
+
+/* === NEVER let menu steal taps during gameplay === */
+body.in-game #screen-start,
+body.in-game .play-hit-area,
+body.in-game #btn-play,
+body.in-game .hero-stage,
+body[data-screen="game"] #screen-start,
+body[data-screen="game"] .play-hit-area,
+body[data-screen="game"] #btn-play {
+  pointer-events: none !important;
+  display: none !important;
+  visibility: hidden !important;
+  z-index: -1 !important;
+}
+body.in-game .game-screen,
+body[data-screen="game"] .game-screen {
+  pointer-events: auto !important;
+  z-index: 20 !important;
+}
+.hero-stage {
+  pointer-events: none !important;
+  cursor: default !important;
 }
 
 </style>
