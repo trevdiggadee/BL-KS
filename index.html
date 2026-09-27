@@ -2223,6 +2223,10 @@ html, body, #app { min-height:100%; background:#030611; }
 @keyframes mb-fx-blink { from { opacity: .7; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .mode-hud__fx { animation: none; } }
 
+
+/* BLØKS gameplay touch safety: keep the board gesture surface native-feeling. */
+#board-frame, #board-frame * { touch-action: none !important; -webkit-user-select: none !important; user-select: none !important; }
+canvas#board-canvas, canvas#fx-canvas { pointer-events: none !important; }
 </style>
 <style>
 /* BLØKS menu final visual layer. Loaded after style.css. */
@@ -6570,93 +6574,93 @@ const Input = (() => {
   }
 
   // --- Swipe gestures on the board surface ---
-  // Touch is handled with the native Touch Events API on phones.  Pointer
-  // Events remain available for mouse/pen.  Keeping the two paths separate
-  // avoids iOS Safari turning a perfectly valid horizontal drag into a
-  // pointer/click gesture before the game sees it.
+  // Single, deterministic touch path for iOS/Android.  A swipe is converted
+  // directly into one-cell actions; it never depends on the browser's
+  // pointer-event synthesis or on the number/timing of touchmove events.
   function initSwipe(el) {
-    if (!el) return;
+    if (!el || el._bloksSwipeBound) return;
+    el._bloksSwipeBound = true;
 
-    let startX = 0, startY = 0, lastX = 0, lastY = 0;
-    let tracking = false, moved = false, hardDropped = false;
-    let axis = null, consumedX = 0, consumedY = 0;
-    let threshold = 8, startedAt = 0, pointerId = null;
+    let active = false;
+    let startX = 0, startY = 0;
+    let lastX = 0, lastY = 0;
+    let axis = null;
+    let moved = false;
+    let pointerId = null;
+    let startTime = 0;
+    let cell = 28;
+    let xRemainder = 0;
+    let yRemainder = 0;
 
-    const TAP_MAX = 9;
-    const AXIS_LOCK = 5;
-    const H_STEP = 8;
-    const V_STEP = 8;
+    const TAP_LIMIT = 10;
+    const AXIS_LOCK = 6;
+    const MOVE_RATIO = 0.28;
+    const HARD_DROP_MIN = 42;
+    const HOLD_MIN = 34;
 
-    function reset() {
-      tracking = false;
-      moved = false;
-      hardDropped = false;
-      axis = null;
-      consumedX = 0;
-      consumedY = 0;
-      pointerId = null;
-      handlers.softDropEnd();
+    function playing() {
+      return typeof Game === 'undefined' || Game.state === 'playing';
     }
 
-    function begin(x, y, id = null) {
-      if (typeof Game !== 'undefined' && Game.state !== 'playing') return false;
-      tracking = true;
-      moved = false;
-      hardDropped = false;
+    function reset() {
+      active = false;
       axis = null;
-      consumedX = 0;
-      consumedY = 0;
-      pointerId = id;
-      startedAt = performance.now();
-      startX = lastX = x;
-      startY = lastY = y;
+      moved = false;
+      pointerId = null;
+      xRemainder = 0;
+      yRemainder = 0;
+    }
 
+    function start(x, y, id) {
+      if (!playing()) return false;
       const rect = el.getBoundingClientRect();
       const cols = (typeof Board !== 'undefined' && Board.COLS) ? Board.COLS : 10;
-      const cell = rect.width / cols;
-      threshold = Math.max(7, Math.min(14, cell * 0.22));
+      cell = Math.max(18, rect.width / cols);
+      startX = lastX = x;
+      startY = lastY = y;
+      axis = null;
+      moved = false;
+      active = true;
+      pointerId = id;
+      startTime = performance.now();
+      xRemainder = 0;
+      yRemainder = 0;
       return true;
     }
 
-    function moveTo(x, y) {
-      if (!tracking) return;
-      if (typeof Game !== 'undefined' && Game.state !== 'playing') {
-        reset();
-        return;
+    function move(x, y) {
+      if (!active || !playing()) { reset(); return; }
+
+      const dx = x - startX;
+      const dy = y - startY;
+      const adx = Math.abs(dx), ady = Math.abs(dy);
+
+      if (!axis && Math.max(adx, ady) >= AXIS_LOCK) {
+        axis = adx >= ady ? 'x' : 'y';
       }
+      if (!axis) return;
 
-      const totalDx = x - startX;
-      const totalDy = y - startY;
-      const absX = Math.abs(totalDx), absY = Math.abs(totalDy);
-
-      if (absX > TAP_MAX || absY > TAP_MAX) moved = true;
-
-      if (!axis && (absX >= AXIS_LOCK || absY >= AXIS_LOCK)) {
-        axis = absX >= absY ? 'x' : 'y';
-      }
+      moved = true;
+      const step = Math.max(7, cell * MOVE_RATIO);
 
       if (axis === 'x') {
-        // Use total travel minus already-consumed travel. This is much more
-        // reliable on iOS where touchmove events can arrive in uneven bursts.
-        const available = totalDx - consumedX;
-        const steps = Math.min(10, Math.floor(Math.abs(available) / H_STEP));
-        if (steps > 0) {
-          const dir = available > 0 ? handlers.right : handlers.left;
-          for (let i = 0; i < steps; i++) dir();
-          consumedX += (available > 0 ? 1 : -1) * steps * H_STEP;
-          moved = true;
+        const incremental = x - lastX;
+        xRemainder += incremental;
+        const count = Math.min(8, Math.floor(Math.abs(xRemainder) / step));
+        if (count) {
+          const dir = xRemainder > 0 ? handlers.right : handlers.left;
+          for (let i = 0; i < count; i++) dir();
+          xRemainder -= (xRemainder > 0 ? 1 : -1) * count * step;
         }
-      } else if (axis === 'y') {
-        const available = totalDy - consumedY;
-        if (available > 0) {
-          const steps = Math.min(10, Math.floor(available / V_STEP));
-          if (steps > 0) {
-            for (let i = 0; i < steps; i++) {
-              if (typeof handlers.softDropStep === 'function') handlers.softDropStep();
-            }
-            consumedY += steps * V_STEP;
-            moved = true;
+      } else if (dy > 0) {
+        const incremental = y - lastY;
+        yRemainder += incremental;
+        const count = Math.min(8, Math.floor(Math.abs(yRemainder) / step));
+        if (count) {
+          for (let i = 0; i < count; i++) {
+            if (typeof handlers.softDropStep === 'function') handlers.softDropStep();
           }
+          yRemainder -= count * step;
         }
       }
 
@@ -6665,86 +6669,75 @@ const Input = (() => {
     }
 
     function finish(x, y) {
-      if (!tracking) return;
-      const totalDx = x - startX;
-      const totalDy = y - startY;
-      const elapsed = performance.now() - startedAt;
-      const absX = Math.abs(totalDx), absY = Math.abs(totalDy);
+      if (!active) return;
+      const dx = x - startX;
+      const dy = y - startY;
+      const adx = Math.abs(dx), ady = Math.abs(dy);
+      const elapsed = performance.now() - startTime;
 
-      // Process the final few pixels even if Safari didn't send a final
-      // touchmove event before touchend.
-      moveTo(x, y);
+      move(x, y);
 
-      tracking = false;
-      handlers.softDropEnd();
-
-      if (!moved && !hardDropped && absX < TAP_MAX && absY < TAP_MAX) {
+      // A short tap is rotation.  Swipes never rotate on release.
+      if (!moved && adx <= TAP_LIMIT && ady <= TAP_LIMIT && elapsed < 350) {
         handlers.rotateCW();
-      } else if (!hardDropped && totalDy < -Math.max(22, threshold * 2) &&
-                 absY > absX && elapsed < 700) {
-        handlers.hold();
-      } else if (!hardDropped && totalDy > Math.max(34, threshold * 3) &&
-                 absY > absX && elapsed < 700 && typeof handlers.hardDrop === 'function') {
-        handlers.hardDrop();
-        hardDropped = true;
+        reset();
+        return;
       }
 
-      pointerId = null;
-      axis = null;
-      consumedX = 0;
-      consumedY = 0;
+      if (ady > adx && dy < -HOLD_MIN && elapsed < 800) {
+        handlers.hold();
+      } else if (ady > adx && dy > HARD_DROP_MIN && elapsed < 900) {
+        if (typeof handlers.hardDrop === 'function') handlers.hardDrop();
+      }
+      reset();
     }
 
-    // Native touch path for iPhone/iPad.
-    el.addEventListener('touchstart', (e) => {
+    function touchStart(e) {
       if (!e.touches || e.touches.length !== 1) return;
       const t = e.touches[0];
-      if (begin(t.clientX, t.clientY, null)) e.preventDefault();
-    }, { passive: false });
-
-    el.addEventListener('touchmove', (e) => {
-      if (!tracking || !e.touches || e.touches.length !== 1) return;
+      if (start(t.clientX, t.clientY, null)) e.preventDefault();
+    }
+    function touchMove(e) {
+      if (!active || !e.touches || e.touches.length !== 1) return;
       e.preventDefault();
       const t = e.touches[0];
-      moveTo(t.clientX, t.clientY);
-    }, { passive: false });
-
-    el.addEventListener('touchend', (e) => {
-      if (!tracking) return;
+      move(t.clientX, t.clientY);
+    }
+    function touchEnd(e) {
+      if (!active) return;
       e.preventDefault();
       const t = e.changedTouches && e.changedTouches[0];
       finish(t ? t.clientX : lastX, t ? t.clientY : lastY);
-    }, { passive: false });
+    }
 
-    el.addEventListener('touchcancel', () => reset(), { passive: true });
+    el.addEventListener('touchstart', touchStart, { passive: false });
+    el.addEventListener('touchmove', touchMove, { passive: false });
+    el.addEventListener('touchend', touchEnd, { passive: false });
+    el.addEventListener('touchcancel', reset, { passive: true });
 
-    // Pointer path for desktop/mouse/pen. Touch is handled exclusively above.
-    el.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'touch' || e.isPrimary === false) return;
-      if (begin(e.clientX, e.clientY, e.pointerId)) {
+    // Mouse/pen support without competing with the native touch path.
+    el.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'touch' || !e.isPrimary) return;
+      if (start(e.clientX, e.clientY, e.pointerId)) {
         e.preventDefault();
         try { el.setPointerCapture(e.pointerId); } catch (_) {}
       }
-    }, { passive: false });
-
-    el.addEventListener('pointermove', (e) => {
-      if (e.pointerType === 'touch' || !tracking || e.pointerId !== pointerId) return;
+    });
+    el.addEventListener('pointermove', e => {
+      if (e.pointerType === 'touch' || !active || e.pointerId !== pointerId) return;
       e.preventDefault();
-      moveTo(e.clientX, e.clientY);
-    }, { passive: false });
-
-    el.addEventListener('pointerup', (e) => {
-      if (e.pointerType === 'touch' || !tracking || e.pointerId !== pointerId) return;
+      move(e.clientX, e.clientY);
+    });
+    el.addEventListener('pointerup', e => {
+      if (e.pointerType === 'touch' || !active || e.pointerId !== pointerId) return;
       e.preventDefault();
       finish(e.clientX, e.clientY);
       try { el.releasePointerCapture(e.pointerId); } catch (_) {}
-    }, { passive: false });
-
-    el.addEventListener('pointercancel', (e) => {
+    });
+    el.addEventListener('pointercancel', e => {
       if (e.pointerType === 'touch' || e.pointerId !== pointerId) return;
       reset();
-      try { el.releasePointerCapture(e.pointerId); } catch (_) {}
-    }, { passive: false });
+    });
   }
 
 
