@@ -4607,7 +4607,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
           <div class="popup-kicker">ARENA PROTOCOL / 03</div><h2 id="popup-mode-title">CHOOSE GAME MODE</h2><p>Pick the challenge you want to take on.</p>
           <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
-            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button><button class="mode-pill" data-game-mode="tide"><span>🌊</span> RISING TIDE</button><button class="mode-pill" data-game-mode="magnet"><span>🧲</span> MAGNETIC STORM</button><button class="mode-pill" data-game-mode="quake"><span>⛰️</span> EARTHQUAKE</button>
+            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button><button class="mode-pill" data-game-mode="tide"><span>🌊</span> RISING TIDE</button><button class="mode-pill" data-game-mode="magnet"><span>🧲</span> MAGNETIC STORM</button><button class="mode-pill" data-game-mode="quake"><span>⛰️</span> EARTHQUAKE</button><button class="mode-pill" data-game-mode="fog"><span>🌫️</span> FOG ROLL</button>
           </div>
           <div class="mode-description" id="mode-description">Classic endless BLØKS. Mind Bender mode adds flashing item blocks and ten chaotic effects.</div>
         </section>
@@ -6006,8 +6006,9 @@ const Modes = (() => {
     bomb: { id:'bomb', name:'BOMB BLOCKS', icon:'💣', desc:'Some pieces contain bombs. Clear a bomb line to blast nearby blocks.', gravity:1.0, score:1.2, bombChance:0.55 },
     stackattack: { id:'stackattack', name:'STACK ATTACK', icon:'⬆', desc:'Rising danger rows build pressure from below. Hold the stack back before it reaches the top.', gravity:0.81, score:1.3, garbageEvery:11719 },
     tide: { id:'tide', name:'RISING TIDE', icon:'🌊', desc:'A liquid level slowly rises from the bottom. Clearing lines pushes it back down.', gravity:1, score:1.2, tideEvery:9000 },
-    magnet: { id:'magnet', name:'MAGNETIC STORM', icon:'🧲', desc:'Periodically pulls the stack toward one side of the board.', gravity:1, score:1.25, magnetEvery:10500 },
+    magnet: { id:'magnet', name:'MAGNETIC STORM', icon:'🧲', desc:'Periodically pulls the stack toward one side of the board.', gravity:1, score:1.25, magnetEvery:20000 },
     quake: { id:'quake', name:'EARTHQUAKE', icon:'⛰️', desc:'Occasionally shakes the stack and unsupported blocks shift and fall.', gravity:1, score:1.25, quakeEvery:13000 },
+    fog: { id:'fog', name:'FOG ROLL', icon:'🌫️', desc:'Thick fog periodically rolls in and hides the stack — memorize the terrain before it disappears.', gravity:1, score:1.2, fogEvery:12000, fogDuration:4000 },
   };
   function get(id){ return LIST[id] || LIST.standard; }
   function all(){ return Object.values(LIST); }
@@ -7870,7 +7871,7 @@ const UI = (() => {
     ctx.restore();
   }
 
-  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null, jewelClear = null }) {
+  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null, jewelClear = null, fogged = false }) {
     visualTime = performance.now() * 0.001;
     const phase = visualTime;
     const infernoActive = document.body.classList.contains('mode-inferno');
@@ -7948,8 +7949,10 @@ const UI = (() => {
           const cell = (typeof Jewels !== 'undefined' ? Jewels.baseColor(strippedCell) : MindBender.baseColor(strippedCell));
           const isBomb = bombSuffix;
           const flashing = lockFlashRows && lockFlashRows.includes(r);
-          // Mind Bender "Blur": the stack fades left-to-right once a second
-          const cellAlpha = mb && mb.blurMs != null ? MindBender.blurAlpha(c, mb.blurMs) : 1;
+          // Mind Bender "Blur": the stack fades left-to-right once a second.
+          // Fog Roll: the whole locked stack nearly disappears while the
+          // falling/ghost piece (drawn separately, below) stays fully lit.
+          const cellAlpha = (mb && mb.blurMs != null ? MindBender.blurAlpha(c, mb.blurMs) : 1) * (fogged ? 0.05 : 1);
           const blockColor = colorFor(cell);
           const visRow = r - hiddenOffset;
           if (infernoActive) {
@@ -8600,6 +8603,8 @@ const Game = (() => {
   let jewels = null;                 // Jewels.createState()
   let tide = null;                   // Rising Tide: { level } — rows of water from the bottom
   let magnetDir = null;              // Magnetic Storm: current pull direction ('left' | 'right')
+  let fogActive = false;             // Fog Roll: whether the stack is currently hidden
+  let fogClock = 0;                  // Fog Roll: elapsed ms since the current fog phase began
   let lastMoveWasRotation = false;   // T-spin rule: last successful action must be a rotation
   let pendingEffect = null;          // effect id waiting for the line-clear animation to end
   let itemHintShown = false;
@@ -8724,6 +8729,7 @@ const Game = (() => {
     jewels = (mode.jewels && typeof Jewels !== 'undefined') ? Jewels.createState() : null;
     tide = (mode.id === 'tide') ? { level: 0 } : null;
     magnetDir = null;
+    fogActive = false; fogClock = 0;
     lastMoveWasRotation = false; pendingEffect = null;
     MindBender.setEnabled(!!mode.mindBender);
     if (jewels) {
@@ -8745,7 +8751,7 @@ const Game = (() => {
     UI.resetTrail();
     UI.setCombo('');
     UI.updateHud(score, level);
-    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : (mode.timeLimit || 0), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1, tideLevel: tide ? tide.level : 0, magnetDir });
+    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : (mode.timeLimit || 0), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1, tideLevel: tide ? tide.level : 0, magnetDir, fogActive });
   }
 
   function spawnNext() {
@@ -9442,7 +9448,24 @@ const Game = (() => {
       applyEarthquakeShift();
     }
 
-    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1, tideLevel: tide ? tide.level : 0, magnetDir });
+    if (mode.id === 'fog') {
+      if (!fogActive && modeEventTimer >= mode.fogEvery) {
+        modeEventTimer = 0;
+        fogClock = 0;
+        fogActive = true;
+        Effects.toast('🌫️ FOG ROLLS IN', 'tetris', 900);
+        if (typeof Effects.flash === 'function') Effects.flash('180,195,210', 0.1);
+      } else if (fogActive) {
+        fogClock += dt;
+        if (fogClock >= mode.fogDuration) {
+          fogActive = false;
+          fogClock = 0;
+          Effects.toast('☀️ FOG CLEARS', 'tetris', 800);
+        }
+      }
+    }
+
+    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1, tideLevel: tide ? tide.level : 0, magnetDir, fogActive });
   }
 
   function addGarbageRows(count) {
@@ -9530,12 +9553,55 @@ const Game = (() => {
   function applyEarthquakeShift() {
     const before = grid;
     grid = Board.compactColumns(grid);
-    const moved = before.some((row, r) => row.some((cell, c) => cell !== grid[r][c]));
+    let moved = before.some((row, r) => row.some((cell, c) => cell !== grid[r][c]));
+    // Overhangs (the only thing compactColumns fixes) are common but not
+    // guaranteed — a lot of real play never has one sitting around when the
+    // timer fires, which made Earthquake read as a no-op most of the time.
+    // When there was nothing to settle, knock a block loose ourselves so the
+    // mode always visibly does something once there's a stack to shake.
+    if (!moved) moved = toppleRandomColumn();
     Effects.toast(moved ? '⛰️ EARTHQUAKE!' : '⛰️ TREMOR', 'tetris', 900);
     Effects.shake(moved ? 10 : 6);
     if (typeof Effects.flash === 'function') Effects.flash('200,150,60', moved ? 0.16 : 0.1);
     try { vibrate(moved ? [30, 20, 30, 20, 50] : [25, 15, 25]); } catch (_) {}
     settleEnvironmentalShift();
+  }
+
+  /** Picks a random column with a block near its top and knocks that block
+   *  sideways into a shorter neighboring column, landing on whatever is
+   *  already stacked there. Used as Earthquake's fallback when there was no
+   *  natural overhang to settle, so a pulse never looks like nothing
+   *  happened as long as there's anything on the board. Returns true if a
+   *  block actually moved. */
+  function toppleRandomColumn() {
+    const cols = Board.COLS;
+    const heightOf = (c) => {
+      for (let r = 0; r < Board.TOTAL_ROWS; r++) if (grid[r][c] != null) return Board.TOTAL_ROWS - r;
+      return 0;
+    };
+    const candidates = [];
+    for (let c = 0; c < cols; c++) if (heightOf(c) > 0) candidates.push(c);
+    for (let n = candidates.length - 1; n > 0; n--) {
+      const i = Math.floor(Math.random() * (n + 1));
+      [candidates[n], candidates[i]] = [candidates[i], candidates[n]];
+    }
+    for (const c of candidates) {
+      const neighbors = [c - 1, c + 1].filter((nc) => nc >= 0 && nc < cols);
+      for (const nc of neighbors) {
+        if (heightOf(nc) >= heightOf(c)) continue;
+        let topR = -1;
+        for (let r = 0; r < Board.TOTAL_ROWS; r++) { if (grid[r][c] != null) { topR = r; break; } }
+        if (topR === -1) continue;
+        let landR = Board.TOTAL_ROWS - 1;
+        while (landR >= 0 && grid[landR][nc] != null) landR--;
+        if (landR < 0) continue;
+        const color = grid[topR][c];
+        grid[topR][c] = null;
+        grid[landR][nc] = color;
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Magnetic pulls and earthquake shifts can accidentally close a gap and
@@ -9624,6 +9690,7 @@ const Game = (() => {
       activeBombIndex: (mode.id === 'bomb' && active) ? active.bombCell : null,
       ghostCells: ghost ? Pieces.getCells(ghost) : null,
       ghostOn: !!ghost,
+      fogged: mode.id === 'fog' && fogActive,
       lockFlashRows: state === 'clearing' ? pendingClearRows : null,
       jewelCollapse: jewelCollapseAnim,
       jewelClear: jewelClearAnim,
