@@ -9054,6 +9054,73 @@ const Game = (() => {
     if (onDone) onDone();
   }
 
+  /**
+   * Give a cascade-triggered clear — a row completed by blocks falling
+   * into place during the Jewels collapse, not by the player's own piece
+   * placement — the exact same feedback as a normal line clear: proper
+   * scoring (with combo/back-to-back), the line-clear/tetris sound, the
+   * particle burst, screen shake/flash, and the matching toast (DOUBLE /
+   * TRIPLE / TETRIS / ALL CLEAR / combo). Previously these just added a
+   * flat score bump with no sound or fanfare.
+   */
+  function announceCascadeLineClear(rows) {
+    const rowSet = new Set(rows);
+    const allClear = grid.every((row, r) => rowSet.has(r) || row.every((cell) => cell === null));
+    const result = Scoring.scoreLineClear({
+      linesCleared: rows.length, level, multiplier: jewels.multiplier, combo, backToBack,
+      tspin: 'none', allClear,
+    });
+    // Same Gems-style cascade bonus the very first clear gets.
+    const cascadeBonus = 100 * rows.length * jewels.multiplier;
+    score += Math.round((result.points + cascadeBonus) * mode.score);
+
+    combo = result.combo;
+    backToBack = result.backToBack;
+    bestComboThisGame = Math.max(bestComboThisGame, combo);
+    lines += rows.length;
+    const newLevel = Scoring.levelForLines(lines);
+    const leveledUp = newLevel > level;
+    level = newLevel;
+
+    saveData.stats.totalLines += rows.length;
+    if (result.isTetris) saveData.stats.totalTetrises += 1;
+
+    UI.updateHud(score, level);
+
+    if (result.allClear) {
+      Effects.toast('ALL CLEAR!', 'highscore', 1400);
+      Audio_.sfx.highScore();
+    } else if (result.isTetris) {
+      Audio_.sfx.tetris();
+      Effects.shake(9);
+      Effects.flash(getColorRgb('cyan'), 0.3);
+      Effects.toast('TETRIS!', 'tetris', 1100);
+      vibrate([40, 30, 40, 30, 60]);
+    } else {
+      Audio_.sfx.lineClear(rows.length);
+      Effects.shake(3 + rows.length);
+      if (rows.length === 3) Effects.toast('TRIPLE!', 'triple', 950);
+      else if (rows.length === 2) Effects.toast('DOUBLE!', 'double', 900);
+      vibrate(30);
+    }
+    if (combo >= 2) {
+      Audio_.sfx.combo(combo);
+      Effects.toast(`${combo}x COMBO`, 'combo', 800);
+    }
+    if (leveledUp) {
+      Audio_.sfx.levelUp();
+      Effects.toast(`LEVEL ${level}`, 'levelup');
+    }
+
+    const cellSize = UI.cellSize;
+    const clearYs = rows.map((r) => (r - Board.HIDDEN_ROWS) * cellSize);
+    Particles.spawnLineClearExplosion(
+      clearYs, Board.COLS, cellSize,
+      [getColorHex('cyan'), getColorHex('magenta'), getColorHex('amber'), getColorHex('green')],
+      rows.length
+    );
+  }
+
   function finishJewelsCascade() {
     if (!jewelCollapseAnim) return;
     const settled = jewelCollapseAnim.target;
@@ -9070,8 +9137,15 @@ const Game = (() => {
         const t = Jewels.gemType(cell);
         if (t) gemsFound.push(t);
       }));
-      jewels._cascadeGems = (jewels._cascadeGems || []).concat(gemsFound);
-      jewels._cascadeLines = (jewels._cascadeLines || 0) + full.length;
+
+      // Full sound/score/particle treatment for this wave, same as any
+      // other line clear, then the gem effects it turned up.
+      announceCascadeLineClear(full);
+      const fx = Jewels.applyGemEffects(jewels, gemsFound, mode);
+      if (fx.timeBonus && mode.timeLimit) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
+      if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1000);
+      if (fx.shock) Effects.toast('SHOCKWAVE', 'tetris', 1000);
+
       beginJewelsRowClear(full, () => {
         const cleared = Board.clearRows(grid, full);
         const next = Jewels.cascade(cleared);
@@ -9080,24 +9154,9 @@ const Game = (() => {
       return;
     }
 
-    // No more line: the cascade is finally settled. Award all cascade lines
-    // and gem effects together, then handle the green-gem shockwave.
-    const cascadeLines = jewels._cascadeLines || 0;
-    const cascadeGems = jewels._cascadeGems || [];
-    jewels._cascadeLines = 0;
-    jewels._cascadeGems = [];
-
-    if (cascadeLines > 0) {
-      score += 100 * cascadeLines * jewels.multiplier;
-      lines += cascadeLines;
-      level = Scoring.levelForLines(lines);
-      UI.updateHud(score, level);
-      const fx = Jewels.applyGemEffects(jewels, cascadeGems, mode);
-      if (fx.timeBonus && mode.timeLimit) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
-      if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1000);
-      Effects.toast(`CASCADE ×${cascadeLines}`, 'combo', 900);
-    }
-
+    // No more lines: the cascade is finally settled. Every wave already
+    // scored and announced itself above — just handle the green-gem
+    // shockwave (if one triggered) and get the next piece ready.
     if (jewels.pendingShockwave) {
       jewels.pendingShockwave = false;
       // Green gem turns the stack loose. Animate that shockwave through the
@@ -9117,12 +9176,6 @@ const Game = (() => {
   function finishLineClear() {
     if (jewels && mode.jewels) {
       const rowsToClear = pendingClearRows || [];
-      jewels._cascadeLines = rowsToClear.length;
-      jewels._cascadeGems = [];
-      rowsToClear.forEach((r) => grid[r]?.forEach((cell) => {
-        const t = Jewels.gemType(cell);
-        if (t) jewels._cascadeGems.push(t);
-      }));
       pendingClearRows = null;
       pendingEffect = null;
       beginJewelsRowClear(rowsToClear, () => {
