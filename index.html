@@ -4607,7 +4607,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
           <div class="popup-kicker">ARENA PROTOCOL / 03</div><h2 id="popup-mode-title">CHOOSE GAME MODE</h2><p>Pick the challenge you want to take on.</p>
           <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
-            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button>
+            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button><button class="mode-pill" data-game-mode="tide"><span>🌊</span> RISING TIDE</button><button class="mode-pill" data-game-mode="magnet"><span>🧲</span> MAGNETIC STORM</button><button class="mode-pill" data-game-mode="quake"><span>⛰️</span> EARTHQUAKE</button>
           </div>
           <div class="mode-description" id="mode-description">Classic endless BLØKS. Mind Bender mode adds flashing item blocks and ten chaotic effects.</div>
         </section>
@@ -5235,7 +5235,27 @@ const Board = (() => {
     return false;
   }
 
-  return { COLS, ROWS, HIDDEN_ROWS, TOTAL_ROWS, create, canPlace, lockPiece, findFullRows, clearRows, isTopedOut, cellFree };
+  /** Generic "block gravity": compacts every column's occupied cells
+   *  downward, closing any gaps beneath them, while keeping each column's
+   *  relative stacking order. Used by Earthquake mode to make unsupported
+   *  (floating) blocks fall once the ground shakes. Returns a new grid. */
+  function compactColumns(grid) {
+    const next = create();
+    for (let c = 0; c < COLS; c++) {
+      const stack = [];
+      for (let r = 0; r < TOTAL_ROWS; r++) {
+        if (grid[r][c] != null) stack.push(grid[r][c]);
+      }
+      let r = TOTAL_ROWS - 1;
+      for (let i = stack.length - 1; i >= 0; i--) {
+        next[r][c] = stack[i];
+        r--;
+      }
+    }
+    return next;
+  }
+
+  return { COLS, ROWS, HIDDEN_ROWS, TOTAL_ROWS, create, canPlace, lockPiece, findFullRows, clearRows, isTopedOut, cellFree, compactColumns };
 })();
 
 </script>
@@ -5985,6 +6005,9 @@ const Modes = (() => {
     inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'Every block burns with living flame. Clear lines through the fire before the heat overwhelms you.', gravity:1.12, score:1.25, garbageEvery:10000 },
     bomb: { id:'bomb', name:'BOMB BLOCKS', icon:'💣', desc:'Some pieces contain bombs. Clear a bomb line to blast nearby blocks.', gravity:1.0, score:1.2, bombChance:0.55 },
     stackattack: { id:'stackattack', name:'STACK ATTACK', icon:'⬆', desc:'Rising danger rows build pressure from below. Hold the stack back before it reaches the top.', gravity:0.81, score:1.3, garbageEvery:11719 },
+    tide: { id:'tide', name:'RISING TIDE', icon:'🌊', desc:'A liquid level slowly rises from the bottom. Clearing lines pushes it back down.', gravity:1, score:1.2, tideEvery:9000 },
+    magnet: { id:'magnet', name:'MAGNETIC STORM', icon:'🧲', desc:'Periodically pulls the stack toward one side of the board.', gravity:1, score:1.25, magnetEvery:7000 },
+    quake: { id:'quake', name:'EARTHQUAKE', icon:'⛰️', desc:'Occasionally shakes the stack and unsupported blocks shift and fall.', gravity:1, score:1.25, quakeEvery:13000 },
   };
   function get(id){ return LIST[id] || LIST.standard; }
   function all(){ return Object.values(LIST); }
@@ -6915,7 +6938,7 @@ const UI = (() => {
       const v = themeColorVar(name);
       COLOR_CACHE[name] = v || ({
         cyan:'#4cf3ff', magenta:'#ff3ea5', amber:'#ffc94c', green:'#3cffb0',
-        violet:'#9b6bff', blue:'#4c8cff', orange:'#ff8a3c'
+        violet:'#9b6bff', blue:'#4c8cff', orange:'#ff8a3c', tide:'#1c9dff'
       }[name] || '#4cf3ff');
     }
     return COLOR_CACHE[name];
@@ -7820,11 +7843,39 @@ const UI = (() => {
     ctx.restore();
   }
 
+  /** Rising Tide: a translucent, gently bobbing water fill over every
+   *  flooded cell, with a soft crest line and a rising bubble so the
+   *  waterline reads clearly against the rest of the stack. */
+  function drawTideWater(ctx, row, col, phase) {
+    const x = col * cellSize, y = row * cellSize, s = cellSize;
+    const wave = Math.sin(phase * 2.4 + col * 0.9) * s * 0.06;
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = '#1c9dff';
+    roundRect(ctx, x + 1, y + 1 + wave, s - 2, s - 2 - wave, s * 0.12);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.4;
+    ctx.strokeStyle = 'rgba(180,235,255,.9)';
+    ctx.lineWidth = Math.max(1, s * 0.05);
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.08, y + s * 0.22 + wave);
+    ctx.quadraticCurveTo(x + s * 0.5, y + s * 0.1 + wave, x + s * 0.92, y + s * 0.22 + wave);
+    ctx.stroke();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = 'rgba(220,245,255,.7)';
+    ctx.beginPath();
+    ctx.arc(x + s * (0.3 + ((phase * 0.22 + col * 0.17) % 0.5)), y + s * 0.65, Math.max(1, s * 0.04), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null, jewelClear = null }) {
     visualTime = performance.now() * 0.001;
     const phase = visualTime;
     const infernoActive = document.body.classList.contains('mode-inferno');
     const stackActive = document.body.classList.contains('mode-stackattack');
+    const tideActive = document.body.classList.contains('mode-tide');
     const w = el['board-canvas'].width / dpr;
     const h = el['board-canvas'].height / dpr;
     boardCtx.clearRect(0, 0, w, h);
@@ -7919,6 +7970,7 @@ const UI = (() => {
           if (isJewel) drawGemMark(boardCtx, visRow, c, Jewels.gemType(rawCell), cellAlpha);
           if (isBomb) drawBombMark(boardCtx, visRow, c, cellAlpha);
           if (stackActive && rawCell === 'danger') drawStackDanger(boardCtx, visRow, c, phase);
+          if (tideActive && rawCell === 'tide') drawTideWater(boardCtx, visRow, c, phase);
           if (flashing) {
             boardCtx.save();
             boardCtx.globalAlpha = 0.7;
@@ -8083,14 +8135,14 @@ const UI = (() => {
     el['countdown-num'].textContent = n > 0 ? String(n) : 'GO!';
   }
 
-  function setModeHud(mode, { timeLeft = 0, bossHp = 0, bossMaxHp = 0, gravityIndex = 0, multiplier = 1 } = {}) {
+  function setModeHud(mode, { timeLeft = 0, bossHp = 0, bossMaxHp = 0, gravityIndex = 0, multiplier = 1, tideLevel = 0, magnetDir = null } = {}) {
     const name = el['hud-mode-name'];
     const status = el['hud-mode-status'];
     const meter = el['boss-meter'];
     const fill = el['boss-meter-fill'];
     if (!name || !status) return;
     name.textContent = mode ? mode.name : 'STANDARD';
-    document.body.classList.remove('mode-zen','mode-blitz','mode-inferno','mode-bomb','mode-stackattack','mode-standard');
+    document.body.classList.remove('mode-zen','mode-blitz','mode-inferno','mode-bomb','mode-stackattack','mode-standard','mode-tide','mode-magnet','mode-quake');
     document.body.classList.add(`mode-${mode ? mode.id : 'standard'}`);
     const mbHud = document.getElementById('hud-mb');
     if (mbHud) mbHud.hidden = !(mode && (mode.mindBender || mode.jewels));
@@ -8103,6 +8155,12 @@ const UI = (() => {
       text = 'RISING';
     } else if (mode && mode.id === 'inferno') {
       text = 'RISING';
+    } else if (mode && mode.id === 'tide') {
+      text = tideLevel > 0 ? `🌊 ${tideLevel}` : 'CALM';
+    } else if (mode && mode.id === 'magnet') {
+      text = magnetDir === 'left' ? '🧲 ←' : magnetDir === 'right' ? '🧲 →' : 'CALM';
+    } else if (mode && mode.id === 'quake') {
+      text = 'UNSTABLE';
     } else if (mode && mode.id === 'zen') {
       if (mode.timeLimit) {
         const sec = Math.max(0, Math.ceil((timeLeft || 0) / 1000));
@@ -8540,6 +8598,8 @@ const Game = (() => {
   // Mind Bender + spin tracking
   let mb = null;                     // MindBender.createState()
   let jewels = null;                 // Jewels.createState()
+  let tide = null;                   // Rising Tide: { level } — rows of water from the bottom
+  let magnetDir = null;              // Magnetic Storm: current pull direction ('left' | 'right')
   let lastMoveWasRotation = false;   // T-spin rule: last successful action must be a rotation
   let pendingEffect = null;          // effect id waiting for the line-clear animation to end
   let itemHintShown = false;
@@ -8662,6 +8722,8 @@ const Game = (() => {
     combo = -1; bestComboThisGame = 0; backToBack = 0;
     mb = MindBender.createState();
     jewels = (mode.jewels && typeof Jewels !== 'undefined') ? Jewels.createState() : null;
+    tide = (mode.id === 'tide') ? { level: 0 } : null;
+    magnetDir = null;
     lastMoveWasRotation = false; pendingEffect = null;
     MindBender.setEnabled(!!mode.mindBender);
     if (jewels) {
@@ -8683,7 +8745,7 @@ const Game = (() => {
     UI.resetTrail();
     UI.setCombo('');
     UI.updateHud(score, level);
-    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : (mode.timeLimit || 0), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1 });
+    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : (mode.timeLimit || 0), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1, tideLevel: tide ? tide.level : 0, magnetDir });
   }
 
   function spawnNext() {
@@ -8863,6 +8925,11 @@ const Game = (() => {
 
     // Bomb Blocks: a bomb in a cleared line detonates and destroys nearby blocks.
     if (mode.id === 'bomb') detonateNearbyBombs(fullRows);
+
+    // Rising Tide: every cleared line pushes the water back down.
+    if (mode.id === 'tide' && tide) {
+      tide.level = Math.max(0, tide.level - fullRows.length);
+    }
 
     // perfect clear = nothing left once the full rows are gone
     const rowSet = new Set(fullRows);
@@ -9190,6 +9257,7 @@ const Game = (() => {
     pendingClearRows = null;
     if (pendingEffect) applyMindBenderEffect(pendingEffect);
     pendingEffect = null;
+    if (mode.id === 'tide' && tide) syncTideLevel();
     state = 'playing';
     maybeSpawnItem();
     spawnNext();
@@ -9356,7 +9424,25 @@ const Game = (() => {
       if (typeof Effects.flash === 'function') Effects.flash('255,55,25', 0.14);
     }
 
-    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1 });
+    if (mode.id === 'tide' && tide && modeEventTimer >= mode.tideEvery) {
+      modeEventTimer = 0;
+      riseTide(1);
+      Effects.toast('🌊 TIDE RISING', 'tetris', 900);
+      Effects.shake(3);
+      if (typeof Effects.flash === 'function') Effects.flash('60,170,255', 0.12);
+    }
+
+    if (mode.id === 'magnet' && modeEventTimer >= mode.magnetEvery) {
+      modeEventTimer = 0;
+      applyMagneticPulse();
+    }
+
+    if (mode.id === 'quake' && modeEventTimer >= mode.quakeEvery) {
+      modeEventTimer = 0;
+      applyEarthquakeShift();
+    }
+
+    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1, tideLevel: tide ? tide.level : 0, magnetDir });
   }
 
   function addGarbageRows(count) {
@@ -9370,6 +9456,96 @@ const Game = (() => {
       const row = Array.from({length: Board.COLS}, (_, c) => c === hole ? null : 'danger');
       grid.push(row);
     }
+  }
+
+  // --- Rising Tide ---
+  /** Re-marks the bottom `tide.level` rows as flooded (only cells that are
+   *  still empty become 'tide' cells — a real locked block never gets
+   *  overwritten), and clears any stray 'tide' markers left above the
+   *  current level (e.g. after clearing lines pushed the water back down).
+   *  Called any time `tide.level` or the grid changes, so the two always
+   *  stay in sync no matter how the rows above shifted around. */
+  function syncTideLevel() {
+    if (!tide) return;
+    for (let r = 0; r < Board.TOTAL_ROWS; r++) {
+      for (let c = 0; c < Board.COLS; c++) {
+        if (grid[r][c] === 'tide') grid[r][c] = null;
+      }
+    }
+    for (let n = 1; n <= tide.level; n++) {
+      const r = Board.TOTAL_ROWS - n;
+      if (r < 0) break;
+      for (let c = 0; c < Board.COLS; c++) {
+        if (grid[r][c] == null) grid[r][c] = 'tide';
+      }
+    }
+  }
+
+  function riseTide(rows) {
+    if (!tide) return;
+    tide.level = Math.min(Board.TOTAL_ROWS - 1, tide.level + rows);
+    syncTideLevel();
+  }
+
+  // --- Magnetic Storm ---
+  /** One magnetic "pulse": every locked cell that has an empty slot on the
+   *  pulled side slides one column that way (based on a snapshot of the
+   *  board, so it's a single uniform nudge, not a cascade all the way to
+   *  the wall). Repeated pulses gradually drag the whole stack over. */
+  function applyMagneticPulse() {
+    magnetDir = Math.random() < 0.5 ? 'left' : 'right';
+    const before = grid.map((row) => row.slice());
+    const cols = Board.COLS;
+    for (let r = 0; r < Board.TOTAL_ROWS; r++) {
+      const src = before[r];
+      const dst = grid[r];
+      if (magnetDir === 'left') {
+        for (let c = 1; c < cols; c++) {
+          if (src[c] != null && src[c - 1] == null) {
+            dst[c - 1] = src[c];
+            dst[c] = null;
+          }
+        }
+      } else {
+        for (let c = cols - 2; c >= 0; c--) {
+          if (src[c] != null && src[c + 1] == null) {
+            dst[c + 1] = src[c];
+            dst[c] = null;
+          }
+        }
+      }
+    }
+    Effects.toast(magnetDir === 'left' ? '🧲 PULL ←' : '🧲 PULL →', 'tetris', 800);
+    Effects.shake(5);
+    if (typeof Effects.flash === 'function') Effects.flash('180,90,255', 0.12);
+    settleEnvironmentalShift();
+  }
+
+  // --- Earthquake ---
+  /** Shakes the stack loose: any block with empty space beneath it (an
+   *  overhang left behind by a T-spin or an awkward drop) falls straight
+   *  down until it lands on something, compacting each column. */
+  function applyEarthquakeShift() {
+    const before = grid;
+    grid = Board.compactColumns(grid);
+    const moved = before.some((row, r) => row.some((cell, c) => cell !== grid[r][c]));
+    if (moved) {
+      Effects.toast('⛰️ EARTHQUAKE!', 'tetris', 900);
+      Effects.shake(10);
+      if (typeof Effects.flash === 'function') Effects.flash('200,150,60', 0.16);
+      try { vibrate([30, 20, 30, 20, 50]); } catch (_) {}
+    }
+    settleEnvironmentalShift();
+  }
+
+  /** Magnetic pulls and earthquake shifts can accidentally close a gap and
+   *  complete a row on their own, with no piece being placed. Give that the
+   *  same clear treatment a normal line clear gets instead of leaving a
+   *  completed row sitting on the board unrewarded. */
+  function settleEnvironmentalShift() {
+    if (tide) syncTideLevel();
+    const full = Board.findFullRows(grid);
+    if (full.length && state === 'playing') beginLineClear(full);
   }
 
   function update(dt) {
