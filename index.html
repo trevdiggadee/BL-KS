@@ -3322,9 +3322,21 @@ html, body, #app {
 .start-screen {
   position: absolute !important;
   inset: 0 !important;
-  display: block !important;
   overflow: hidden !important;
   padding: 0 !important;
+}
+/* CRITICAL: inactive start screen must not intercept taps during gameplay */
+.start-screen:not(.screen--active) {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  z-index: 0 !important;
+}
+.start-screen.screen--active {
+  display: block !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  z-index: 5 !important;
 }
 .start-scroll {
   position: absolute !important;
@@ -6971,6 +6983,16 @@ const UI = (() => {
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('screen--active'));
     const target = document.getElementById(`screen-${name}`);
     if (target) target.classList.add('screen--active');
+    document.body.dataset.screen = name || '';
+    // Kill menu play hit-target during any non-start screen
+    const playBtn = document.getElementById('btn-play');
+    if (playBtn) {
+      const onStart = name === 'start';
+      playBtn.style.pointerEvents = onStart ? 'auto' : 'none';
+      playBtn.style.display = onStart ? '' : 'none';
+      playBtn.tabIndex = onStart ? 0 : -1;
+      playBtn.setAttribute('aria-hidden', onStart ? 'false' : 'true');
+    }
   }
 
   // --- Canvas sizing ---
@@ -10938,8 +10960,15 @@ const ThemeFx = (() => {
   }
 
   function bindNav() {
-    UI.el['btn-play'].addEventListener('click', () => {
-      Audio_.sfx.uiTap();
+    UI.el['btn-play'].addEventListener('click', (ev) => {
+      // Ignore taps if we are not on the start screen (stale hit-area)
+      const start = document.getElementById('screen-start');
+      if (!start || !start.classList.contains('screen--active')) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        return;
+      }
+      try { Audio_.sfx.uiTap(); } catch (_) {}
       Game.startCountdown(loadVisuals().gameMode || 'standard');
     });
     // The redesigned menu has no How-To button (yet). This used to throw
@@ -13416,6 +13445,19 @@ html[data-theme="matrix"] .ambient-canvas { opacity: 0.25 !important; }
   opacity: 0.75;
   pointer-events: none;
   text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+
+/* Play button only works on the active start menu — never during gameplay */
+.start-screen:not(.screen--active) .play-hit-area,
+body:not([data-screen="start"]) .play-hit-area,
+#screen-start:not(.screen--active) #btn-play {
+  pointer-events: none !important;
+  display: none !important;
+}
+.game-screen.screen--active {
+  z-index: 10 !important;
+  pointer-events: auto !important;
 }
 
 </style>
