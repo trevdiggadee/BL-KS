@@ -6596,8 +6596,8 @@ const Input = (() => {
 
   // --- Keyboard, with DAS (delay) then ARR (repeat rate) for movement ---
   // Snappy defaults (Guideline-ish / competitive-friendly)
-  const DAS_MS = 110;
-  const ARR_MS = 28;
+  const DAS_MS = 120;
+  const ARR_MS = 30;
   let dasTimer = null, arrTimer = null, activeDir = null;
   const pressed = new Set();
 
@@ -8663,10 +8663,13 @@ const Game = (() => {
     lastMoveWasRotation = false;
     lockResets = 0;
     isLocking = false;
+    lockTimer = 0;
+    gravityAcc = 0;
+    softDropActive = false;
     UI.resetTrail();
-    UI.drawMiniPiece(UI.nextCtx, nextType);
+    try { UI.drawMiniPiece(UI.nextCtx, nextType); } catch (_) {}
     if (!Collision.fits(grid, active)) {
-      triggerGameOver();
+      triggerGameOver(mode && mode.jewels ? 'STACKED OUT' : 'GAME OVER');
     }
   }
 
@@ -8975,37 +8978,100 @@ const Game = (() => {
   }
 
 
-  // ========== GEMS MODE: animated domino cascade (tetris.com/gems style) ==========
-  // Player clear → rows shatter into independent minos → columns fall with a
-  // left↔right wave delay → settled full rows clear → repeat until stable.
-  // Green gem cells never clear; they trigger a shockwave after the chain ends.
+
+  // ========== GEMS MODE: animated cascade (tetris.com/gems style) ==========
+  // Shattered lines → column-wise fall with L↔R wave delay → clear full rows →
+  // repeat. Hard caps prevent softlocks. Green gems survive clears and arm shockwave.
 
   function gemsStartCascade(fullRows, isPlayerClear) {
+    if (!jewels || !fullRows || !fullRows.length) {
+      state = 'playing';
+      spawnNext();
+      return;
+    }
+    try {
+      const C = Board.COLS;
+      const collected = [];
+      // Shatter completed rows (green gem cells stay)
+      fullRows.forEach((r) => {
+        if (!grid[r]) return;
+        for (let c = 0; c < C; c++) {
+          const cell = grid[r][c];
+          if (cell == null) continue;
+          const t = Jewels.gemType(cell);
+          if (t && t !== 'green') collected.push(t);
+          if (t !== 'green') grid[r][c] = null;
+        }
+      });
+
+      if (isPlayerClear) {
+        try {
+          const scoreMult = jewels.multiplier || 1;
+          const result = Scoring.scoreLineClear({
+            linesCleared: fullRows.length, level, multiplier: scoreMult,
+            combo, backToBack, tspin: lastTSpin, allClear: false,
+          });
+          score += Math.round((result.points || 0) * mode.score);
+          combo = result.combo;
+          backToBack = result.backToBack;
+          bestComboThisGame = Math.max(bestComboThisGame, combo);
+          lines += fullRows.length;
+          level = Scoring.levelForLines(lines);
+          saveData.stats.totalLines += fullRows.length;
+          if (result.isTetris) saveData.stats.totalTetrises += 1;
+          UI.updateHud(score, level);
+          const n = fullRows.length;
+          Effects.toast(n >= 4 ? 'TETRIS!' : n === 3 ? 'TRIPLE!' : n === 2 ? 'DOUBLE!' : 'CLEAR', n >= 3 ? 'tetris' : 'combo', 700);
+          Effects.shake(3 + n);
+          const cs = UI.cellSize || 24;
+          Particles.spawnLineClearBurst(
+            fullRows.map((r) => (r - Board.HIDDEN_ROWS) * cs),
+            C, cs, ['#55ff88','#39d9ff','#ff5c9d','#ffd45a'], n >= 4
+          );
+        } catch (_) {}
+      }
+
+      if (collected.length) {
+        try {
+          const fx = Jewels.applyGemEffects(jewels, collected, mode);
+          if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 900);
+          if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 900);
+          refreshMbHud();
+        } catch (_) {}
+      }
+
+      jewels.cascadeWave = -(jewels.cascadeWave || 1);
+      gemsCascade = {
+        phase: 'falling',
+        actors: gemsBuildActors(jewels.cascadeWave),
+        dir: jewels.cascadeWave,
+        timer: 0,
+        waves: 0,
+        maxWaves: 20,
+      };
+      state = 'gems_cascade';
+      if (!gemsCascade.actors.length) {
+        gemsCascade.phase = 'check';
+      }
+    } catch (err) {
+      console.error('gemsStartCascade', err);
+      gemsCascade = null;
+      state = 'playing';
+      try { spawnNext(); } catch (_) {}
+    }
+  }
+
+  function gemsBuildActors(dir) {
     const C = Board.COLS;
     const T = grid.length;
-    const dir = (jewels.cascadeWave = -(jewels.cascadeWave || 1)); // alternate L→R / R→L
-    const collected = [];
-    fullRows.forEach((r) => {
-      if (!grid[r]) return;
-      for (let c = 0; c < C; c++) {
-        const cell = grid[r][c];
-        if (cell == null) continue;
-        const t = Jewels.gemType(cell);
-        if (t && t !== 'green') collected.push(t);
-        // Shatter: keep green, clear others (will fall from above)
-        if (t !== 'green') grid[r][c] = null;
-      }
-    });
-    // Build falling actors: every non-empty cell that needs to drop
     const actors = [];
     for (let c = 0; c < C; c++) {
-      const colCells = [];
+      const stack = [];
       for (let r = T - 1; r >= 0; r--) {
-        if (grid[r][c] != null) colCells.push({ r, cell: grid[r][c] });
+        if (grid[r][c] != null) stack.push({ r, cell: grid[r][c] });
       }
-      // Targets packed to bottom
       let target = T - 1;
-      for (const item of colCells) {
+      for (const item of stack) {
         if (item.r !== target) {
           actors.push({
             c,
@@ -9013,88 +9079,7 @@ const Game = (() => {
             toR: target,
             cell: item.cell,
             progress: 0,
-            delay: (dir > 0 ? c : (C - 1 - c)) * 0.028, // domino wave
-            done: false,
-          });
-          grid[item.r][c] = null; // lift from board while animating
-        }
-        target--;
-      }
-    }
-    // Also place already-settled cells back (those that didn't move)
-    // Rebuild settled part after animation from actors + stationary
-    gemsCascade = {
-      phase: actors.length ? 'falling' : 'check',
-      actors,
-      dir,
-      timer: 0,
-      gems: collected,
-      chainLines: fullRows.length,
-      wave: 0,
-      isPlayerClear: !!isPlayerClear,
-    };
-    state = 'gems_cascade';
-    // Initial guideline score for the player-made clear only (cascade bonus later)
-    if (isPlayerClear) {
-      const scoreMult = jewels.multiplier;
-      const result = Scoring.scoreLineClear({
-        linesCleared: fullRows.length, level, multiplier: scoreMult, combo, backToBack,
-        tspin: lastTSpin, allClear: false,
-      });
-      score += Math.round(result.points * mode.score);
-      combo = result.combo;
-      backToBack = result.backToBack;
-      bestComboThisGame = Math.max(bestComboThisGame, combo);
-      lines += fullRows.length;
-      level = Scoring.levelForLines(lines);
-      saveData.stats.totalLines += fullRows.length;
-      if (result.isTetris) saveData.stats.totalTetrises += 1;
-      UI.updateHud(score, level);
-      Effects.toast(fullRows.length >= 4 ? 'TETRIS!' : fullRows.length === 3 ? 'TRIPLE!' : fullRows.length === 2 ? 'DOUBLE!' : 'CLEAR', fullRows.length >= 3 ? 'tetris' : 'combo', 700);
-      Effects.shake(4 + fullRows.length);
-      try {
-        const cs = UI.cellSize || 24;
-        const ys = fullRows.map((r) => (r - Board.HIDDEN_ROWS) * cs);
-        Particles.spawnLineClearBurst(ys, C, cs, ['#55ff88','#39d9ff','#ff5c9d','#ffd45a'], fullRows.length >= 4);
-      } catch (_) {}
-    }
-    if (collected.length) {
-      const fx = Jewels.applyGemEffects(jewels, collected, mode);
-      if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 900);
-      if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 900);
-      refreshMbHud();
-    }
-  }
-
-  function gemsSettleActors() {
-    const T = grid.length;
-    // Write actors to their target rows
-    gemsCascade.actors.forEach((a) => {
-      if (a.toR >= 0 && a.toR < T && a.c >= 0) {
-        grid[a.toR][a.c] = a.cell;
-      }
-    });
-    gemsCascade.actors = [];
-  }
-
-  function gemsStartFallFromGrid() {
-    const C = Board.COLS;
-    const T = grid.length;
-    const dir = gemsCascade.dir || 1;
-    const actors = [];
-    // snapshot columns
-    for (let c = 0; c < C; c++) {
-      const colCells = [];
-      for (let r = T - 1; r >= 0; r--) {
-        if (grid[r][c] != null) colCells.push({ r, cell: grid[r][c] });
-      }
-      let target = T - 1;
-      for (const item of colCells) {
-        if (item.r !== target) {
-          actors.push({
-            c, fromR: item.r, toR: target, cell: item.cell,
-            progress: 0,
-            delay: (dir > 0 ? c : (C - 1 - c)) * 0.028 + gemsCascade.wave * 0.02,
+            delay: (dir > 0 ? c : (C - 1 - c)) * 0.032,
             done: false,
           });
           grid[item.r][c] = null;
@@ -9102,31 +9087,63 @@ const Game = (() => {
         target--;
       }
     }
-    gemsCascade.actors = actors;
-    gemsCascade.phase = actors.length ? 'falling' : 'check';
-    gemsCascade.timer = 0;
+    return actors;
+  }
+
+  function gemsSettleActors() {
+    if (!gemsCascade || !gemsCascade.actors) return;
+    const T = grid.length;
+    gemsCascade.actors.forEach((a) => {
+      if (a.toR >= 0 && a.toR < T && a.c >= 0 && a.c < Board.COLS) {
+        grid[a.toR][a.c] = a.cell;
+      }
+    });
+    gemsCascade.actors = [];
+  }
+
+  function gemsFinishCascade() {
+    // Top up a little garbage if stack is very low (never enough to soft-kill spawn)
+    try {
+      let filled = 0;
+      for (let r = Board.HIDDEN_ROWS; r < grid.length; r++) {
+        if (grid[r] && grid[r].some((c) => c != null)) filled++;
+      }
+      if (filled < 3) {
+        grid = Jewels.pushGarbage(grid, jewels, Math.min(2, 4 - filled));
+      }
+    } catch (_) {}
+    gemsCascade = null;
+    pendingClearRows = null;
+    state = 'playing';
+    // Spawn next piece — if it does not fit, game over (normal)
+    try { spawnNext(); } catch (_) { state = 'playing'; }
   }
 
   function gemsUpdateCascade(dt) {
-    if (!gemsCascade) return;
-    const sec = dt / 1000;
+    if (!gemsCascade) {
+      state = 'playing';
+      return;
+    }
+    const sec = Math.min(0.05, dt / 1000);
     gemsCascade.timer += sec;
 
     if (gemsCascade.phase === 'falling') {
-      const FALL_SPEED = 7.5; // rows per second once delay elapsed
+      const SPEED = 9; // rows/sec
       let allDone = true;
-      gemsCascade.actors.forEach((a) => {
-        if (a.done) return;
-        if (gemsCascade.timer < a.delay) { allDone = false; return; }
-        a.progress += FALL_SPEED * sec;
-        const dist = Math.abs(a.toR - a.fromR) || 0.001;
+      const actors = gemsCascade.actors || [];
+      for (let i = 0; i < actors.length; i++) {
+        const a = actors[i];
+        if (a.done) continue;
+        if (gemsCascade.timer < a.delay) { allDone = false; continue; }
+        const dist = Math.max(0.001, Math.abs(a.toR - a.fromR));
+        a.progress += SPEED * sec;
         if (a.progress >= dist) {
           a.progress = dist;
           a.done = true;
         } else {
           allDone = false;
         }
-      });
+      }
       if (allDone) {
         gemsSettleActors();
         gemsCascade.phase = 'pause';
@@ -9136,87 +9153,70 @@ const Game = (() => {
     }
 
     if (gemsCascade.phase === 'pause') {
-      if (gemsCascade.timer < 0.12) return;
+      if (gemsCascade.timer < 0.1) return;
       gemsCascade.phase = 'check';
       gemsCascade.timer = 0;
       return;
     }
 
     if (gemsCascade.phase === 'check') {
+      gemsCascade.waves = (gemsCascade.waves || 0) + 1;
+      if (gemsCascade.waves > gemsCascade.maxWaves) {
+        gemsCascade.phase = 'done';
+        return;
+      }
       const full = Board.findFullRows(grid);
       if (full.length) {
-        // Sequential clear flash, then null (keep green), then fall again
-        gemsCascade.clearRows = full.slice();
-        gemsCascade.phase = 'clearing';
-        gemsCascade.timer = 0;
-        gemsCascade.chainLines += full.length;
-        lines += full.length;
-        level = Scoring.levelForLines(lines);
-        // cascade score after mult applied
-        score += 100 * full.length * jewels.multiplier;
-        UI.updateHud(score, level);
-        Effects.toast(`CASCADE ×${full.length}`, 'combo', 800);
-        Effects.shake(3 + full.length);
-        try {
-          const cs = UI.cellSize || 24;
-          const ys = full.map((r) => (r - Board.HIDDEN_ROWS) * cs);
-          Particles.spawnLineClearBurst(ys, Board.COLS, cs, ['#55ff88','#39d9ff','#ff5c9d','#ffd45a'], full.length >= 3);
-        } catch (_) {}
+        // Clear full rows (keep green), score cascade bonus
         const gems = [];
         full.forEach((r) => {
           if (!grid[r]) return;
           for (let c = 0; c < Board.COLS; c++) {
             const cell = grid[r][c];
+            if (cell == null) continue;
             const t = Jewels.gemType(cell);
-            if (t && t !== 'green') {
-              gems.push(t);
-              grid[r][c] = null;
-            } else if (t !== 'green') {
-              grid[r][c] = null;
-            }
+            if (t === 'green') continue;
+            if (t) gems.push(t);
+            grid[r][c] = null;
           }
         });
+        try {
+          score += 100 * full.length * (jewels.multiplier || 1);
+          lines += full.length;
+          level = Scoring.levelForLines(lines);
+          UI.updateHud(score, level);
+          Effects.toast(`CASCADE ×${full.length}`, 'combo', 750);
+          Effects.shake(3 + full.length);
+          const cs = UI.cellSize || 24;
+          Particles.spawnLineClearBurst(
+            full.map((r) => (r - Board.HIDDEN_ROWS) * cs),
+            Board.COLS, cs, ['#55ff88','#39d9ff','#ff5c9d','#ffd45a'], full.length >= 3
+          );
+        } catch (_) {}
         if (gems.length) {
-          const fx = Jewels.applyGemEffects(jewels, gems, mode);
-          if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 800);
-          if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 800);
-          refreshMbHud();
+          try {
+            const fx = Jewels.applyGemEffects(jewels, gems, mode);
+            if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 800);
+            if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 800);
+            refreshMbHud();
+          } catch (_) {}
         }
+        gemsCascade.phase = 'clearing';
+        gemsCascade.timer = 0;
         return;
       }
-      // Stable — maybe shockwave
+      // No more full rows — shockwave?
       if (jewels.pendingShockwave) {
         jewels.pendingShockwave = false;
-        Effects.toast('💎 SHOCKWAVE', 'tetris', 1400);
-        Effects.shake(16);
-        Effects.flash('80,255,140', 0.45);
-        // Shatter ALL cells into falling actors (grey-ish keep color)
-        const C = Board.COLS, T = grid.length;
-        const actors = [];
-        for (let c = 0; c < C; c++) {
-          const colCells = [];
-          for (let r = T - 1; r >= 0; r--) {
-            if (grid[r][c] != null) {
-              colCells.push({ r, cell: grid[r][c] });
-              grid[r][c] = null;
-            }
-          }
-          let target = T - 1;
-          for (const item of colCells) {
-            actors.push({
-              c, fromR: item.r, toR: target, cell: item.cell,
-              progress: 0,
-              delay: (c * 0.02) + Math.random() * 0.05,
-              done: false,
-            });
-            target--;
-          }
-        }
-        gemsCascade.actors = actors;
-        gemsCascade.phase = actors.length ? 'falling' : 'done';
+        try {
+          Effects.toast('💎 SHOCKWAVE', 'tetris', 1200);
+          Effects.shake(14);
+          Effects.flash('80,255,140', 0.4);
+        } catch (_) {}
+        // Drop everything again
+        gemsCascade.actors = gemsBuildActors(1);
+        gemsCascade.phase = gemsCascade.actors.length ? 'falling' : 'done';
         gemsCascade.timer = 0;
-        gemsCascade.wave++;
-        gemsCascade.didShock = true;
         return;
       }
       gemsCascade.phase = 'done';
@@ -9224,35 +9224,23 @@ const Game = (() => {
     }
 
     if (gemsCascade.phase === 'clearing') {
-      if (gemsCascade.timer < 0.22) return;
-      gemsCascade.wave++;
-      gemsStartFallFromGrid();
+      if (gemsCascade.timer < 0.18) return;
+      gemsCascade.actors = gemsBuildActors(gemsCascade.dir || 1);
+      gemsCascade.phase = gemsCascade.actors.length ? 'falling' : 'check';
+      gemsCascade.timer = 0;
       return;
     }
 
     if (gemsCascade.phase === 'done') {
-      // Refill garbage
-      let filled = 0;
-      for (let r = 0; r < grid.length; r++) {
-        if (grid[r].some((c) => c != null)) filled++;
-      }
-      const target = filled < 4 ? 5 : filled < 8 ? 3 : filled < 12 ? 2 : 0;
-      if (target > 0) {
-        grid = Jewels.pushGarbage(grid, jewels, target);
-      }
-      gemsCascade = null;
-      pendingClearRows = null;
-      state = 'playing';
-      spawnNext();
+      gemsFinishCascade();
     }
   }
 
-  /** Current visual row for an animating actor (float). */
   function gemsActorY(a) {
     const dist = a.toR - a.fromR;
-    const p = Math.min(1, a.progress / (Math.abs(dist) || 1));
-    // ease-in
-    const e = p * p;
+    const span = Math.abs(dist) || 1;
+    const p = Math.min(1, a.progress / span);
+    const e = p * p; // ease-in
     return a.fromR + dist * e;
   }
 
@@ -9384,6 +9372,11 @@ const Game = (() => {
 
   // --- Player actions ---
   function tryMoveActive(dRow, dCol) {
+    // Recover if cascade left us stuck
+    if (state === 'gems_cascade' && (!gemsCascade || gemsCascade.phase === 'done')) {
+      gemsCascade = null;
+      state = 'playing';
+    }
     if (state !== 'playing' || !active) return false;
     const moved = Collision.tryMove(grid, active, dRow, dCol);
     if (moved) {
