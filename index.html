@@ -6006,7 +6006,7 @@ const Modes = (() => {
     bomb: { id:'bomb', name:'BOMB BLOCKS', icon:'💣', desc:'Some pieces contain bombs. Clear a bomb line to blast nearby blocks.', gravity:1.0, score:1.2, bombChance:0.55 },
     stackattack: { id:'stackattack', name:'STACK ATTACK', icon:'⬆', desc:'Rising danger rows build pressure from below. Hold the stack back before it reaches the top.', gravity:0.81, score:1.3, garbageEvery:11719 },
     tide: { id:'tide', name:'RISING TIDE', icon:'🌊', desc:'A liquid level slowly rises from the bottom. Clearing lines pushes it back down.', gravity:1, score:1.2, tideEvery:9000 },
-    magnet: { id:'magnet', name:'MAGNETIC STORM', icon:'🧲', desc:'Periodically pulls the stack toward one side of the board.', gravity:1, score:1.25, magnetEvery:7000 },
+    magnet: { id:'magnet', name:'MAGNETIC STORM', icon:'🧲', desc:'Periodically pulls the stack toward one side of the board.', gravity:1, score:1.25, magnetEvery:10500 },
     quake: { id:'quake', name:'EARTHQUAKE', icon:'⛰️', desc:'Occasionally shakes the stack and unsupported blocks shift and fall.', gravity:1, score:1.25, quakeEvery:13000 },
   };
   function get(id){ return LIST[id] || LIST.standard; }
@@ -9524,17 +9524,17 @@ const Game = (() => {
   // --- Earthquake ---
   /** Shakes the stack loose: any block with empty space beneath it (an
    *  overhang left behind by a T-spin or an awkward drop) falls straight
-   *  down until it lands on something, compacting each column. */
+   *  down until it lands on something, compacting each column. The rumble
+   *  itself always fires so the mode reads as distinctly "Earthquake" even
+   *  on a tick where the stack happens to have no overhangs to settle. */
   function applyEarthquakeShift() {
     const before = grid;
     grid = Board.compactColumns(grid);
     const moved = before.some((row, r) => row.some((cell, c) => cell !== grid[r][c]));
-    if (moved) {
-      Effects.toast('⛰️ EARTHQUAKE!', 'tetris', 900);
-      Effects.shake(10);
-      if (typeof Effects.flash === 'function') Effects.flash('200,150,60', 0.16);
-      try { vibrate([30, 20, 30, 20, 50]); } catch (_) {}
-    }
+    Effects.toast(moved ? '⛰️ EARTHQUAKE!' : '⛰️ TREMOR', 'tetris', 900);
+    Effects.shake(moved ? 10 : 6);
+    if (typeof Effects.flash === 'function') Effects.flash('200,150,60', moved ? 0.16 : 0.1);
+    try { vibrate(moved ? [30, 20, 30, 20, 50] : [25, 15, 25]); } catch (_) {}
     settleEnvironmentalShift();
   }
 
