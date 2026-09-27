@@ -7820,7 +7820,7 @@ const UI = (() => {
     ctx.restore();
   }
 
-  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb }) {
+  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null }) {
     visualTime = performance.now() * 0.001;
     const phase = visualTime;
     const infernoActive = document.body.classList.contains('mode-inferno');
@@ -7901,6 +7901,29 @@ const UI = (() => {
           }
         }
       }
+    }
+
+    // Tetris Gems-style cascade: after a completed row disappears, every remaining
+    // mino is released independently.  The Game module supplies each mino's
+    // start/end row so the collapse is visible instead of teleporting to the
+    // final packed columns.
+    if (jewelCollapse && jewelCollapse.cells) {
+      const ease = (t) => 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
+      jewelCollapse.cells.forEach((p) => {
+        const distance = p.toRow - p.fromRow;
+        const delay = Math.min(110, Math.abs(distance) * 24);
+        const t = ease((jewelCollapse.elapsed - delay) / Math.max(1, jewelCollapse.duration - delay));
+        const row = p.fromRow + distance * t;
+        if (row < hiddenOffset) return;
+        const isJewel = typeof Jewels !== 'undefined' && Jewels.isGem(p.cell);
+        const isItem = MindBender.isItem(p.cell);
+        const stripped = (typeof p.cell === 'string' && p.cell.endsWith('!')) ? p.cell.slice(0,-1) : p.cell;
+        const cell = typeof Jewels !== 'undefined' ? Jewels.baseColor(stripped) : MindBender.baseColor(stripped);
+        drawCell(boardCtx, row - hiddenOffset, p.col, cell, 1, false, true);
+        if (isItem) drawItemMark(boardCtx, row - hiddenOffset, p.col, 0, 1);
+        if (isJewel) drawGemMark(boardCtx, row - hiddenOffset, p.col, Jewels.gemType(p.cell), 1);
+        if (typeof p.cell === 'string' && p.cell.endsWith('!')) drawBombMark(boardCtx, row - hiddenOffset, p.col, 1);
+      });
     }
 
     if (ghostOn && ghostCells) {
@@ -8454,6 +8477,7 @@ const Game = (() => {
   let isLocking = false;
   let pendingClearRows = null;
   let clearTimer = 0;
+  let jewelCollapseAnim = null;
   let rafId = null;
   let lastTs = 0;
   let sessionStartTs = 0;
@@ -8602,6 +8626,7 @@ const Game = (() => {
     softDropActive = false;
     gravityAcc = 0; lockTimer = 0; lockResets = 0; isLocking = false;
     pendingClearRows = null;
+    jewelCollapseAnim = null;
     UI.resetTrail();
     UI.setCombo('');
     UI.updateHud(score, level);
@@ -8919,54 +8944,74 @@ const Game = (() => {
     refreshMbHud();
   }
 
-  function finishLineClear() {
-    if (jewels && mode.jewels) {
-      // Cascade clear: cells fall independently and may chain
-      let g = Board.clearRows(grid, pendingClearRows);
-      g = Jewels.cascade(g);
-      let chain = Jewels.cascadeClear(g);
-      grid = chain.grid;
-      if (chain.totalLines > 0) {
-        const bonus = 100 * chain.totalLines * jewels.multiplier;
-        score += bonus;
-        lines += chain.totalLines;
+  function finishJewelsCascade() {
+    if (!jewelCollapseAnim) return;
+    const firstGrid = jewelCollapseAnim.target;
+    jewelCollapseAnim = null;
+    grid = firstGrid;
+
+    // Resolve any additional rows only after the first independent-mino fall
+    // has settled, matching Gems' cascade order.
+    const chain = Jewels.cascadeClear(grid);
+    grid = chain.grid;
+    if (chain.totalLines > 0) {
+      const bonus = 100 * chain.totalLines * jewels.multiplier;
+      score += bonus;
+      lines += chain.totalLines;
+      level = Scoring.levelForLines(lines);
+      UI.updateHud(score, level);
+      if (chain.gems.length) {
+        const fx = Jewels.applyGemEffects(jewels, chain.gems, mode);
+        if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
+        if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1000);
+      }
+      Effects.toast(`CASCADE ×${chain.totalLines}`, 'combo', 900);
+    }
+
+    // Green gem shockwave after the first cascade settles.
+    if (jewels.pendingShockwave) {
+      jewels.pendingShockwave = false;
+      const sw = Jewels.shockwave(grid);
+      grid = sw.grid;
+      if (sw.totalLines > 0) {
+        score += 100 * sw.totalLines * jewels.multiplier;
+        lines += sw.totalLines;
         level = Scoring.levelForLines(lines);
         UI.updateHud(score, level);
-        if (chain.gems.length) {
-          const fx = Jewels.applyGemEffects(jewels, chain.gems, mode);
-          if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
-          if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1000);
-        }
-        Effects.toast(`CASCADE ×${chain.totalLines}`, 'combo', 900);
+        Effects.toast('SHOCKWAVE CLEAR', 'tetris', 1400);
+        Effects.shake(14);
       }
-      // Green gem shockwave after first cascade settles
-      if (jewels.pendingShockwave) {
-        jewels.pendingShockwave = false;
-        const sw = Jewels.shockwave(grid);
-        grid = sw.grid;
-        if (sw.totalLines > 0) {
-          score += 100 * sw.totalLines * jewels.multiplier;
-          lines += sw.totalLines;
-          level = Scoring.levelForLines(lines);
-          UI.updateHud(score, level);
-          Effects.toast('SHOCKWAVE CLEAR', 'tetris', 1400);
-          Effects.shake(14);
+      const height = grid.filter((row) => row.some((c) => c != null)).length;
+      if (height < 8) grid = Jewels.pushGarbage(grid, jewels, Math.min(4, 5 - Math.floor(height / 2)));
+    } else {
+      const height = grid.filter((row) => row.some((c) => c != null)).length;
+      if (height < 5) grid = Jewels.pushGarbage(grid, jewels, Math.min(3, 5 - height));
+    }
+
+    state = 'playing';
+    spawnNext();
+  }
+
+  function finishLineClear() {
+    if (jewels && mode.jewels) {
+      // Tetris Gems-style first collapse: remove the completed line, then let
+      // every remaining mino fall independently.  Do not pack the board
+      // instantly; animate the actual gravity step before resolving chains.
+      const clearedGrid = Board.clearRows(grid, pendingClearRows);
+      const firstGrid = Jewels.cascade(clearedGrid);
+      const cells = [];
+      for (let c = 0; c < Board.COLS; c++) {
+        const stack = [];
+        for (let r = Board.TOTAL_ROWS - 1; r >= 0; r--) {
+          if (clearedGrid[r][c] != null) stack.push({ cell: clearedGrid[r][c], fromRow: r });
         }
-        // refill some garbage if stack is low
-        const height = grid.filter((row) => row.some((c) => c != null)).length;
-        if (height < 8) {
-          grid = Jewels.pushGarbage(grid, jewels, Math.min(4, 5 - Math.floor(height / 2)));
-        }
-      } else {
-        const height = grid.filter((row) => row.some((c) => c != null)).length;
-        if (height < 5) {
-          grid = Jewels.pushGarbage(grid, jewels, Math.min(3, 5 - height));
-        }
+        stack.forEach((p, i) => cells.push({ ...p, col: c, toRow: Board.TOTAL_ROWS - 1 - i }));
       }
+      grid = Board.create();
+      jewelCollapseAnim = { cells, target: firstGrid, elapsed: 0, duration: 340 };
       pendingClearRows = null;
       pendingEffect = null;
-      state = 'playing';
-      spawnNext();
+      state = 'jewel-cascade';
       return;
     }
 
@@ -9172,6 +9217,13 @@ const Game = (() => {
       if (clearTimer <= 0) finishLineClear();
       return;
     }
+    if (state === 'jewel-cascade') {
+      if (jewelCollapseAnim) {
+        jewelCollapseAnim.elapsed += dt;
+        if (jewelCollapseAnim.elapsed >= jewelCollapseAnim.duration) finishJewelsCascade();
+      }
+      return;
+    }
     if (state !== 'playing') return;
 
     const fxFactor = MindBender.gravityFactor(mb);          // Slow Down x2, Speed Up x0.5
@@ -9219,6 +9271,7 @@ const Game = (() => {
       ghostCells: ghost ? Pieces.getCells(ghost) : null,
       ghostOn: !!ghost,
       lockFlashRows: state === 'clearing' ? pendingClearRows : null,
+      jewelCollapse: jewelCollapseAnim,
       mb: mb ? {
         urgency: MindBender.urgency(mb),
         blurMs: mb.effect && mb.effect.id === 'blur' ? mb.effect.totalMs - mb.effect.remainingMs : null,
