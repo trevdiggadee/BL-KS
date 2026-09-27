@@ -5980,7 +5980,7 @@ const Achievements = (() => {
 const Modes = (() => {
   const LIST = {
     standard: { id:'standard', name:'STANDARD', icon:'◆', desc:'Classic endless NEONBLOCK.', gravity:1, score:1 },
-    zen: { id:'zen', name:'JEWELS', icon:'💎', desc:'Cascade mode with Red, Orange & Green gems. Beat the clock.', gravity:0.85, score:1, jewels:true, timeLimit:60000 },
+    zen: { id:'zen', name:'JEWELS', icon:'💎', desc:'Cascade mode with Red, Orange & Green gems. No clock — play until you top out.', gravity:0.85, score:1, jewels:true, timeLimit:0 },
     blitz: { id:'blitz', name:'MIND BENDER', icon:'🌀', desc:'Clear flashing item blocks to raise the multiplier and trigger wild effects.', gravity:1.0, score:1.0, mindBender:true },
     inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'Every block burns with living flame. Clear lines through the fire before the heat overwhelms you.', gravity:1.12, score:1.25, garbageEvery:10000 },
     bomb: { id:'bomb', name:'BOMB BLOCKS', icon:'💣', desc:'Some pieces contain bombs. Clear a bomb line to blast nearby blocks.', gravity:1.0, score:1.2, bombChance:0.55 },
@@ -7820,7 +7820,7 @@ const UI = (() => {
     ctx.restore();
   }
 
-  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null }) {
+  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null, jewelClear = null }) {
     visualTime = performance.now() * 0.001;
     const phase = visualTime;
     const infernoActive = document.body.classList.contains('mode-inferno');
@@ -7862,6 +7862,34 @@ const UI = (() => {
       for (let c = 0; c < Board.COLS; c++) {
         const rawCell = grid[r][c];
         if (rawCell) {
+          // Domino row-clear wipe: while a completed row is playing its
+          // disappear animation, each cell pops in left-to-right order
+          // instead of the whole row vanishing at once. Work out whether
+          // this cell is untouched, mid-pop, or already gone.
+          let wipeSkip = false, wipeScale = 1, wipeAlpha = 1, wipeFlash = 0;
+          if (jewelClear && jewelClear.rows.includes(r)) {
+            const rowIdx = jewelClear.rows.indexOf(r);
+            const cellStart = c * jewelClear.staggerMs + rowIdx * jewelClear.rowStagger;
+            const localT = (jewelClear.elapsed - cellStart) / jewelClear.cellMs;
+            if (localT >= 1) wipeSkip = true;
+            else if (localT > 0) {
+              wipeScale = 1 - localT;
+              wipeAlpha = 1 - localT * 0.85;
+              wipeFlash = localT < 0.35 ? (0.35 - localT) / 0.35 : 0;
+            }
+          }
+          if (wipeSkip) continue;
+
+          boardCtx.save();
+          if (wipeScale !== 1) {
+            const wcx = c * cellSize + cellSize / 2;
+            const wcy = (r - hiddenOffset) * cellSize + cellSize / 2;
+            boardCtx.globalAlpha *= wipeAlpha;
+            boardCtx.translate(wcx, wcy);
+            boardCtx.scale(wipeScale, wipeScale);
+            boardCtx.translate(-wcx, -wcy);
+          }
+
           const isItem = MindBender.isItem(rawCell);
           const isJewel = typeof Jewels !== 'undefined' && Jewels.isGem(rawCell);
           const bombSuffix = typeof rawCell === 'string' && rawCell.endsWith('!');
@@ -7899,9 +7927,19 @@ const UI = (() => {
             boardCtx.fill();
             boardCtx.restore();
           }
+          if (wipeFlash > 0) {
+            boardCtx.save();
+            boardCtx.globalAlpha = wipeFlash * 0.9;
+            boardCtx.fillStyle = '#ffffff';
+            roundRect(boardCtx, c * cellSize + 2, (r - hiddenOffset) * cellSize + 2, cellSize - 4, cellSize - 4, cellSize * 0.18);
+            boardCtx.fill();
+            boardCtx.restore();
+          }
+          boardCtx.restore();
         }
       }
     }
+
 
     // Tetris Gems-style cascade animation.  The important visual difference
     // from ordinary gravity is that the loose minos do NOT all snap together.
@@ -8045,7 +8083,7 @@ const UI = (() => {
     el['countdown-num'].textContent = n > 0 ? String(n) : 'GO!';
   }
 
-  function setModeHud(mode, { timeLeft = 0, bossHp = 0, bossMaxHp = 0, gravityIndex = 0 } = {}) {
+  function setModeHud(mode, { timeLeft = 0, bossHp = 0, bossMaxHp = 0, gravityIndex = 0, multiplier = 1 } = {}) {
     const name = el['hud-mode-name'];
     const status = el['hud-mode-status'];
     const meter = el['boss-meter'];
@@ -8066,8 +8104,13 @@ const UI = (() => {
     } else if (mode && mode.id === 'inferno') {
       text = 'RISING';
     } else if (mode && mode.id === 'zen') {
-      const sec = Math.max(0, Math.ceil((timeLeft || 0) / 1000));
-      text = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+      if (mode.timeLimit) {
+        const sec = Math.max(0, Math.ceil((timeLeft || 0) / 1000));
+        text = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+      } else {
+        // No clock in this mode — show the cascade multiplier instead of a countdown.
+        text = `\u00D7${multiplier || 1}`;
+      }
     } else {
       text = 'CLASSIC';
     }
@@ -8486,6 +8529,7 @@ const Game = (() => {
   let pendingClearRows = null;
   let clearTimer = 0;
   let jewelCollapseAnim = null;
+  let jewelClearAnim = null;
   let rafId = null;
   let lastTs = 0;
   let sessionStartTs = 0;
@@ -8622,7 +8666,7 @@ const Game = (() => {
     MindBender.setEnabled(!!mode.mindBender);
     if (jewels) {
       grid = Jewels.seedStartStack(grid);
-      jewels.timeLeftMs = mode.timeLimit || 60000;
+      jewels.timeLeftMs = mode.timeLimit || 0;
       jewels.multiplier = 1;
     }
     UI.resetMindBenderHud(); UI.setMindBender(mb.multiplier, '');
@@ -8635,10 +8679,11 @@ const Game = (() => {
     gravityAcc = 0; lockTimer = 0; lockResets = 0; isLocking = false;
     pendingClearRows = null;
     jewelCollapseAnim = null;
+    jewelClearAnim = null;
     UI.resetTrail();
     UI.setCombo('');
     UI.updateHud(score, level);
-    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : (mode.timeLimit || 0), bossHp, bossMaxHp, gravityIndex });
+    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : (mode.timeLimit || 0), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1 });
   }
 
   function spawnNext() {
@@ -8857,7 +8902,7 @@ const Game = (() => {
     }
     if (jewelGems.length && jewels) {
       const fx = Jewels.applyGemEffects(jewels, jewelGems, mode);
-      if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s TIME`, 'highscore', 1200);
+      if (fx.timeBonus && mode.timeLimit) Effects.toast(`+${fx.timeBonus / 1000}s TIME`, 'highscore', 1200);
       if (fx.multUp) Effects.toast(`GEM \u00D7${jewels.multiplier}`, 'combo', 1200);
       if (fx.shock) Effects.toast('SHOCKWAVE', 'tetris', 1400);
       Effects.flash('255,120,200', 0.28);
@@ -8978,6 +9023,37 @@ const Game = (() => {
     state = 'jewel-cascade';
   }
 
+  /**
+   * Domino-style row-clear wipe. Plays *after* the loose minos have
+   * finished falling and a completed row is found (both on the very first
+   * clear and on every cascade step after it). Cells in each full row
+   * disappear one at a time, left to right, instead of the whole row
+   * vanishing at once — with a short offset between rows when more than
+   * one clears together. `onDone` runs the actual row-removal + next
+   * cascade step once the wipe finishes.
+   */
+  function beginJewelsRowClear(rows, onDone) {
+    const cols = Board.COLS;
+    const staggerMs = 28;   // delay between adjacent columns (left -> right)
+    const cellMs = 140;     // how long one cell takes to flash + shrink away
+    const rowStagger = 80;  // offset between rows when several clear at once
+    jewelClearAnim = {
+      rows: rows.slice(),
+      elapsed: 0,
+      duration: (cols - 1) * staggerMs + cellMs + Math.max(0, rows.length - 1) * rowStagger + 40,
+      staggerMs, cellMs, rowStagger,
+      onDone,
+    };
+    state = 'jewel-rowclear';
+  }
+
+  function finishJewelsRowClear() {
+    if (!jewelClearAnim) return;
+    const { onDone } = jewelClearAnim;
+    jewelClearAnim = null;
+    if (onDone) onDone();
+  }
+
   function finishJewelsCascade() {
     if (!jewelCollapseAnim) return;
     const settled = jewelCollapseAnim.target;
@@ -8996,9 +9072,11 @@ const Game = (() => {
       }));
       jewels._cascadeGems = (jewels._cascadeGems || []).concat(gemsFound);
       jewels._cascadeLines = (jewels._cascadeLines || 0) + full.length;
-      const cleared = Board.clearRows(grid, full);
-      const next = Jewels.cascade(cleared);
-      beginJewelsCollapse(cleared, next);
+      beginJewelsRowClear(full, () => {
+        const cleared = Board.clearRows(grid, full);
+        const next = Jewels.cascade(cleared);
+        beginJewelsCollapse(cleared, next);
+      });
       return;
     }
 
@@ -9015,7 +9093,7 @@ const Game = (() => {
       level = Scoring.levelForLines(lines);
       UI.updateHud(score, level);
       const fx = Jewels.applyGemEffects(jewels, cascadeGems, mode);
-      if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
+      if (fx.timeBonus && mode.timeLimit) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
       if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1000);
       Effects.toast(`CASCADE ×${cascadeLines}`, 'combo', 900);
     }
@@ -9038,17 +9116,20 @@ const Game = (() => {
 
   function finishLineClear() {
     if (jewels && mode.jewels) {
-      jewels._cascadeLines = pendingClearRows ? pendingClearRows.length : 0;
+      const rowsToClear = pendingClearRows || [];
+      jewels._cascadeLines = rowsToClear.length;
       jewels._cascadeGems = [];
-      (pendingClearRows || []).forEach((r) => grid[r]?.forEach((cell) => {
+      rowsToClear.forEach((r) => grid[r]?.forEach((cell) => {
         const t = Jewels.gemType(cell);
         if (t) jewels._cascadeGems.push(t);
       }));
-      const clearedGrid = Board.clearRows(grid, pendingClearRows);
-      const firstGrid = Jewels.cascade(clearedGrid);
       pendingClearRows = null;
       pendingEffect = null;
-      beginJewelsCollapse(clearedGrid, firstGrid);
+      beginJewelsRowClear(rowsToClear, () => {
+        const clearedGrid = Board.clearRows(grid, rowsToClear);
+        const firstGrid = Jewels.cascade(clearedGrid);
+        beginJewelsCollapse(clearedGrid, firstGrid);
+      });
       return;
     }
 
@@ -9194,7 +9275,7 @@ const Game = (() => {
     modeElapsed += dt;
     modeEventTimer += dt;
 
-    if (jewels && mode.jewels) {
+    if (jewels && mode.jewels && mode.timeLimit) {
       jewels.timeLeftMs -= dt;
       if (jewels.timeLeftMs <= 0) {
         jewels.timeLeftMs = 0;
@@ -9222,7 +9303,7 @@ const Game = (() => {
       if (typeof Effects.flash === 'function') Effects.flash('255,55,25', 0.14);
     }
 
-    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex });
+    UI.setModeHud(mode, { timeLeft: jewels ? jewels.timeLeftMs : Math.max(0, (mode.timeLimit || 0) - modeElapsed), bossHp, bossMaxHp, gravityIndex, multiplier: jewels ? jewels.multiplier : 1 });
   }
 
   function addGarbageRows(count) {
@@ -9258,6 +9339,13 @@ const Game = (() => {
       if (jewelCollapseAnim) {
         jewelCollapseAnim.elapsed += dt;
         if (jewelCollapseAnim.elapsed >= jewelCollapseAnim.duration) finishJewelsCascade();
+      }
+      return;
+    }
+    if (state === 'jewel-rowclear') {
+      if (jewelClearAnim) {
+        jewelClearAnim.elapsed += dt;
+        if (jewelClearAnim.elapsed >= jewelClearAnim.duration) finishJewelsRowClear();
       }
       return;
     }
@@ -9309,6 +9397,7 @@ const Game = (() => {
       ghostOn: !!ghost,
       lockFlashRows: state === 'clearing' ? pendingClearRows : null,
       jewelCollapse: jewelCollapseAnim,
+      jewelClear: jewelClearAnim,
       mb: mb ? {
         urgency: MindBender.urgency(mb),
         blurMs: mb.effect && mb.effect.id === 'blur' ? mb.effect.totalMs - mb.effect.remainingMs : null,
