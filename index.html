@@ -6095,22 +6095,27 @@ const Jewels = (() => {
 
   /** Seed bottom rows with garbage + at least one red gem. */
   function seedStartStack(grid) {
-    const C = Board.COLS;
-    const T = grid.length;
-    const rows = 5;
-    for (let i = 0; i < rows; i++) {
-      const r = T - 1 - i;
-      const hole = (i * 3 + 2) % C;
-      for (let c = 0; c < C; c++) {
-        if (c === hole) grid[r][c] = null;
-        else grid[r][c] = COLORS[(i + c) % COLORS.length];
+    try {
+      const C = Board.COLS;
+      const T = grid.length;
+      const rows = 5;
+      for (let i = 0; i < rows; i++) {
+        const r = T - 1 - i;
+        if (r < 0 || !grid[r]) continue;
+        const hole = (i * 3 + 2) % C;
+        for (let c = 0; c < C; c++) {
+          if (c === hole) grid[r][c] = null;
+          else grid[r][c] = COLORS[(i + c) % COLORS.length];
+        }
       }
-    }
-    // Red gem on bottom row, filled cell
-    const br = T - 1;
-    let gc = 0;
-    for (let c = 0; c < C; c++) if (grid[br][c]) { gc = c; break; }
-    grid[br][gc] = withGem(grid[br][gc], GEM_RED);
+      // Red gem on bottom row, filled cell
+      const br = T - 1;
+      if (grid[br]) {
+        let gc = 0;
+        for (let c = 0; c < C; c++) if (grid[br][c]) { gc = c; break; }
+        if (grid[br][gc]) grid[br][gc] = withGem(grid[br][gc], GEM_RED);
+      }
+    } catch (e) { console.error('seedStartStack', e); }
     return grid;
   }
 
@@ -6590,8 +6595,8 @@ const Input = (() => {
 
   // --- Keyboard, with DAS (delay) then ARR (repeat rate) for movement ---
   // Snappy defaults (Guideline-ish / competitive-friendly)
-  const DAS_MS = 90;
-  const ARR_MS = 18;
+  const DAS_MS = 110;
+  const ARR_MS = 28;
   let dasTimer = null, arrTimer = null, activeDir = null;
   const pressed = new Set();
 
@@ -6599,7 +6604,8 @@ const Input = (() => {
     if (activeDir === dir) return;
     stopAutoRepeat();
     activeDir = dir;
-    const move = dir === 'left' ? handlers.left : handlers.right;
+    const raw = dir === 'left' ? handlers.left : handlers.right;
+    const move = () => { try { raw(); } catch (_) {} };
     move();
     dasTimer = setTimeout(() => {
       arrTimer = setInterval(move, ARR_MS);
@@ -6664,26 +6670,28 @@ const Input = (() => {
     let dasT = null, arrT = null;
     const start = (e) => {
       e.preventDefault();
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
       el.classList.add('btn--active');
-      downFn();
+      try { downFn(); } catch (_) {}
       if (useDasArr) {
         clearTimeout(dasT); clearInterval(arrT);
         dasT = setTimeout(() => {
-          arrT = setInterval(downFn, ARR_MS);
+          arrT = setInterval(() => { try { downFn(); } catch (_) {} }, ARR_MS);
         }, DAS_MS);
       }
     };
     const end = (e) => {
       if (e) e.preventDefault();
+      try { if (e.pointerId != null) el.releasePointerCapture(e.pointerId); } catch (_) {}
       el.classList.remove('btn--active');
       clearTimeout(dasT); clearInterval(arrT);
       dasT = null; arrT = null;
-      if (upFn) upFn();
+      if (upFn) try { upFn(); } catch (_) {}
     };
     el.addEventListener('pointerdown', start);
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
-    el.addEventListener('pointerleave', end);
+    el.addEventListener('lostpointercapture', end);
   }
 
   function bindTapButton(el, fn) {
@@ -8621,11 +8629,20 @@ const Game = (() => {
       jewels.timeLeftMs = mode.timeLimit || 60000;
       jewels.multiplier = 1;
     }
-    UI.resetMindBenderHud(); UI.setMindBender(mb.multiplier, '');
+    UI.resetMindBenderHud();
+    if (jewels) {
+      UI.setMindBender(jewels.multiplier, '');
+    } else {
+      UI.setMindBender(mb.multiplier, '');
+    }
     const mbHudEl = document.getElementById('hud-mb');
-    if (mbHudEl) mbHudEl.hidden = !mode.mindBender;
+    if (mbHudEl) mbHudEl.hidden = !(mode.mindBender || mode.jewels);
     const mbFxEl = document.getElementById('hud-mb-effect');
-    if (mbFxEl && !mode.mindBender) { mbFxEl.hidden = true; mbFxEl.textContent = ''; }
+    if (mbFxEl && !(mode.mindBender || mode.jewels)) { mbFxEl.hidden = true; mbFxEl.textContent = ''; }
+    if (jewels) {
+      const m = document.getElementById('hud-mb');
+      if (m) { m.hidden = false; m.textContent = `GEM ×${jewels.multiplier}`; }
+    }
     piecesPlaced = 0;
     softDropActive = false;
     gravityAcc = 0; lockTimer = 0; lockResets = 0; isLocking = false;
@@ -8951,30 +8968,33 @@ const Game = (() => {
 
   function finishLineClear() {
     if (jewels && mode.jewels) {
+      try {
+      const rows = pendingClearRows || [];
       // tetris.com/gems: shatter → cascade gravity → chain clears
       const firstGems = [];
-      pendingClearRows.forEach((r) => {
+      rows.forEach((r) => {
+        if (!grid[r]) return;
         grid[r].forEach((cell) => {
           const t = Jewels.gemType(cell);
-          if (t && t !== Jewels.GEM_GREEN) firstGems.push(t);
-          // leave green gem cells; null others in the completed rows
+          if (t && t !== 'green') firstGems.push(t);
         });
       });
       // Null completed-row cells except green gems, then cascade
       {
         const C = Board.COLS;
-        pendingClearRows.forEach((r) => {
+        rows.forEach((r) => {
+          if (!grid[r]) return;
           for (let c = 0; c < C; c++) {
             const cell = grid[r][c];
             if (cell == null) continue;
-            if (Jewels.gemType(cell) === Jewels.GEM_GREEN) continue;
+            if (Jewels.gemType(cell) === 'green') continue;
             grid[r][c] = null;
           }
         });
       }
       let g = Jewels.cascade(grid);
-      let chain = Jewels.cascadeClear(g);
-      grid = chain.grid;
+      let chain = Jewels.cascadeClear(g) || { grid: g, totalLines: 0, gems: [] };
+      grid = chain.grid || g;
       const allGems = firstGems.concat(chain.gems || []);
       // Apply gem effects before cascade bonus so orange mult applies to cascade score
       if (allGems.length) {
@@ -8993,10 +9013,13 @@ const Game = (() => {
         level = Scoring.levelForLines(lines);
         UI.updateHud(score, level);
         Effects.toast(`CASCADE ×${cascadeLines}`, 'combo', 900);
-        Particles.spawnLineClearBurst(
-          [UI.cellSize * 10], Board.COLS, UI.cellSize,
-          ['#55ff88', '#39d9ff', '#ff5c9d', '#ffd45a'], cascadeLines >= 4
-        );
+        try {
+          const cs = UI.cellSize || 24;
+          Particles.spawnLineClearBurst(
+            [cs * 10], Board.COLS, cs,
+            ['#55ff88', '#39d9ff', '#ff5c9d', '#ffd45a'], cascadeLines >= 4
+          );
+        } catch (_) {}
       }
       // Green shockwave after the first cascade fully settles
       if (jewels.pendingShockwave) {
@@ -9033,6 +9056,17 @@ const Game = (() => {
       pendingEffect = null;
       state = 'playing';
       spawnNext();
+      } catch (err) {
+        console.error('Gems clear error', err);
+        try {
+          grid = Board.clearRows(grid, pendingClearRows || []);
+          grid = Jewels.cascade(grid);
+        } catch (_) {}
+        pendingClearRows = null;
+        pendingEffect = null;
+        state = 'playing';
+        try { spawnNext(); } catch (_) {}
+      }
       return;
     }
 
@@ -9060,13 +9094,13 @@ const Game = (() => {
 
   // --- Player actions ---
   function tryMoveActive(dRow, dCol) {
-    if (state !== 'playing') return;
+    if (state !== 'playing' || !active) return false;
     const moved = Collision.tryMove(grid, active, dRow, dCol);
     if (moved) {
       active = moved;
       lastMoveWasRotation = false;
-      if (dCol !== 0) Audio_.sfx.move();
-      resetLockIfGrounded();
+      if (dCol !== 0) { try { Audio_.sfx.move(); } catch (_) {} }
+      try { resetLockIfGrounded(); } catch (_) {}
       return true;
     }
     return false;
