@@ -5567,8 +5567,8 @@ const Audio_ = (() => {
  */
 const Particles = (() => {
   let particles = [], shocks = [], beams = [], bombRings = [], clearRings = [];
-  const MAX_PARTICLES = 180;
-  const MAX_CLEAR_RINGS = 80;
+  const MAX_PARTICLES = 240;
+  const MAX_CLEAR_RINGS = 48;
   function pushClearRing(r){ if(clearRings.length < MAX_CLEAR_RINGS) clearRings.push(r); }
   const style = () => document.documentElement.dataset.blockStyle || 'neon';
 
@@ -5581,58 +5581,145 @@ const Particles = (() => {
   function push(p){ if(particles.length<MAX_PARTICLES) particles.push(p); }
 
   function spawnLineClearBurst(rows, cols, cellSize, colors, big=false){
-    // Tiered line-clear explosions. The caller passes one row for a single,
-    // two for a double, three for a triple and four for a Tetris.
-    const st=style(), tier=Math.max(1, Math.min(4, rows.length));
-    const boardWidth=cols*cellSize, boardHeight=Math.max(1, (22)*cellSize);
-    const cx=boardWidth/2;
-    const palette=(colors&&colors.length)?colors:['#4cf3ff','#ff4fd8','#ffd45a','#6dff7a'];
-    const step=tier>=3?1:(tier===2?1:2);
-    const per=tier===4?3:(tier===3?2:1);
+    // Spectacular tiered clear explosions — unique signature per 1x / 2x / 3x / 4x.
+    const tier = Math.max(1, Math.min(4, rows.length || (big ? 4 : 1)));
+    const boardWidth = cols * cellSize;
+    const boardHeight = Math.max(cellSize * 20, rows.length ? (Math.max(...rows) + cellSize * 4) : cellSize * 20);
+    const cx = boardWidth / 2;
+    const palette = (colors && colors.length) ? colors : ['#4cf3ff', '#ff4fd8', '#ffd45a', '#6dff7a', '#ffffff'];
 
-    // Horizontal energy wave for every cleared row.
-    rows.forEach((y,idx)=>{
-      const cy=y+cellSize/2, color=palette[idx%palette.length];
-      shocks.push({y:cy,width:boardWidth,height:6,maxHeight:tier===4?62:tier===3?48:tier===2?38:30,life:1,color,kind:st});
-      pushClearRing({x:cx,y:cy,r:cellSize*.08,maxR:cellSize*(tier===4?3.8:tier===3?3.0:tier===2?2.4:1.8),life:1,decay:tier===4?.025:tier===3?.032:.045,color,width:tier===4?4:tier>=3?3:2,kind:'clear'});
-
-      // Pieces of the cleared line explode outward instead of simply fading.
-      for(let i=0;i<cols;i+=step){
-        const x=i*cellSize+cellSize/2, c=palette[(i+idx)%palette.length];
-        for(let n=0;n<per;n++){
-          const a=Math.random()*Math.PI*2;
-          const speed=(tier===4?3.2:tier===3?2.5:tier===2?2.0:1.55)+Math.random()*(tier===4?6.5:tier===3?5:3.5);
-          let kind='fast';
-          if(tier>=3) kind=(st==='chrome'?'chrome':st==='holo'?'glitch':st==='voxel'?'voxel':st==='fire'?'fast':st==='crystal'||st==='glass'?'sparkle':'electric');
-          push({x,y:cy,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed-(tier>=3?1.6:.8),life:1,decay:.018+Math.random()*.018,size:(tier>=3?2.5:2)+Math.random()*3.5,color:c,grav:true,kind});
+    function blastLine(y, color, power) {
+      const cy = y + cellSize / 2;
+      shocks.push({
+        y: cy, width: boardWidth, height: 4,
+        maxHeight: 22 + power * 18, life: 1, color, kind: 'neon'
+      });
+      // Cell shards along the line
+      for (let i = 0; i < cols; i++) {
+        const x = i * cellSize + cellSize / 2;
+        const n = power >= 3 ? 3 : power >= 2 ? 2 : 1;
+        for (let k = 0; k < n; k++) {
+          const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
+          const spd = 1.2 + Math.random() * (1.5 + power * 1.4);
+          push({
+            x, y: cy,
+            vx: Math.cos(ang) * spd * (0.6 + Math.random()),
+            vy: Math.sin(ang) * spd - (0.5 + power * 0.35),
+            life: 1, decay: 0.022 + Math.random() * 0.02,
+            size: 1.8 + Math.random() * (1.5 + power * 0.6),
+            color: palette[(i + k) % palette.length],
+            grav: true, kind: 'fast'
+          });
         }
       }
-    });
+    }
 
-    // Tier signatures: each step is visually distinct, not just "more particles".
-    if(tier===2){
-      // Double = crossing shockwave / twin detonation.
-      for(const y of rows){
-        pushClearRing({x:cx*.58,y:y+cellSize/2,r:2,maxR:cellSize*1.5,life:.9,decay:.05,color:palette[0],width:2,kind:'clear'});
-        pushClearRing({x:cx*1.42,y:y+cellSize/2,r:2,maxR:cellSize*1.5,life:.9,decay:.05,color:palette[1%palette.length],width:2,kind:'clear'});
+    // --- 1x SINGLE: crisp cyan spark line + small rings ---
+    if (tier === 1) {
+      const y = rows[0];
+      const cy = y + cellSize / 2;
+      blastLine(y, palette[0], 1);
+      pushClearRing({ x: cx, y: cy, r: 2, maxR: cellSize * 2.2, life: 1, decay: 0.05, color: palette[0], width: 2.5, kind: 'clear' });
+      for (let i = 0; i < cols; i += 2) {
+        const x = i * cellSize + cellSize / 2;
+        push({ x, y: cy, vx: (Math.random() - 0.5) * 2, vy: -2 - Math.random() * 2.5, life: 1, decay: 0.03, size: 2 + Math.random() * 2, color: '#ffffff', grav: true, kind: 'sparkle' });
       }
-    } else if(tier===3){
-      // Triple = vertical energy lance plus three concentric bursts.
-      beams.push({x:cx,yTop:0,yBottom:boardHeight,color:palette[2%palette.length],width:Math.max(4,cellSize*.18),life:1,kind:st});
-      for(const y of rows) pushClearRing({x:cx,y:y+cellSize/2,r:2,maxR:cellSize*3.8,life:1,decay:.035,color:palette[1%palette.length],width:3,kind:'clear'});
-    } else if(tier>=4){
-      // Tetris = full-board supernova: giant center rings, cross beams and a
-      // dense second wave of spectral/electric shards.
-      pushClearRing({x:cx,y:boardHeight*.48,r:cellSize*.15,maxR:Math.max(boardWidth,boardHeight)*.72,life:1,decay:.018,color:'#ffffff',width:6,kind:'clear'});
-      pushClearRing({x:cx,y:boardHeight*.48,r:cellSize*.08,maxR:Math.max(boardWidth,boardHeight)*.42,life:1,decay:.028,color:palette[0],width:3,kind:'clear'});
-      beams.push({x:cx,yTop:0,yBottom:boardHeight,color:'#ffffff',width:Math.max(6,cellSize*.28),life:1,kind:'super'});
-      for(let n=0;n<36;n++){
-        const a=Math.random()*Math.PI*2, radius=cellSize*(.3+Math.random()*1.5);
-        const x=cx+Math.cos(a)*radius, y=boardHeight*.48+Math.sin(a)*radius;
-        const speed=4+Math.random()*7;
-        const c=palette[n%palette.length];
-        push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,life:1,decay:.014+Math.random()*.014,size:2.5+Math.random()*4.5,color:c,grav:false,kind:st==='chrome'?'chrome':st==='holo'?'glitch':'electric'});
+      return;
+    }
+
+    // --- 2x DOUBLE: twin magenta detonations + crossing arcs ---
+    if (tier === 2) {
+      rows.forEach((y, idx) => {
+        const cy = y + cellSize / 2;
+        const col = palette[idx % palette.length];
+        blastLine(y, col, 2);
+        pushClearRing({ x: boardWidth * 0.28, y: cy, r: 2, maxR: cellSize * 2.0, life: 1, decay: 0.04, color: palette[0], width: 2.5, kind: 'clear' });
+        pushClearRing({ x: boardWidth * 0.72, y: cy, r: 2, maxR: cellSize * 2.0, life: 1, decay: 0.04, color: palette[1 % palette.length], width: 2.5, kind: 'clear' });
+      });
+      // Crossing particle streams
+      for (let n = 0; n < 18; n++) {
+        const y = rows[n % rows.length] + cellSize / 2;
+        const left = n % 2 === 0;
+        push({
+          x: left ? 0 : boardWidth, y,
+          vx: (left ? 1 : -1) * (3 + Math.random() * 4),
+          vy: (Math.random() - 0.5) * 2,
+          life: 1, decay: 0.025, size: 2.2 + Math.random() * 2,
+          color: palette[n % palette.length], grav: false, kind: 'fast'
+        });
       }
+      return;
+    }
+
+    // --- 3x TRIPLE: gold vertical lance + stacked rings + upward fountain ---
+    if (tier === 3) {
+      const midY = rows.reduce((s, y) => s + y, 0) / rows.length + cellSize / 2;
+      rows.forEach((y, idx) => blastLine(y, palette[idx % palette.length], 3));
+      beams.push({
+        x: cx, yTop: Math.max(0, midY - cellSize * 6), yBottom: midY + cellSize * 4,
+        color: palette[2 % palette.length] || '#ffd45a',
+        width: Math.max(5, cellSize * 0.22), life: 1, kind: 'neon'
+      });
+      beams.push({
+        x: cx, yTop: Math.max(0, midY - cellSize * 4), yBottom: midY + cellSize * 3,
+        color: '#ffffff', width: Math.max(2, cellSize * 0.08), life: 1, kind: 'super'
+      });
+      for (let i = 0; i < 3; i++) {
+        pushClearRing({
+          x: cx, y: midY, r: 2 + i * 4,
+          maxR: cellSize * (2.2 + i * 1.1),
+          life: 1, decay: 0.03 + i * 0.008,
+          color: palette[i % palette.length], width: 3, kind: 'clear'
+        });
+      }
+      // Fountain of sparks upward
+      for (let n = 0; n < 28; n++) {
+        const ang = -Math.PI / 2 + (Math.random() - 0.5) * 1.2;
+        const spd = 3 + Math.random() * 5;
+        push({
+          x: cx + (Math.random() - 0.5) * cellSize * 2, y: midY,
+          vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
+          life: 1, decay: 0.018 + Math.random() * 0.015,
+          size: 2 + Math.random() * 3.5,
+          color: n % 3 === 0 ? '#ffffff' : palette[n % palette.length],
+          grav: true, kind: n % 4 === 0 ? 'sparkle' : 'fast'
+        });
+      }
+      return;
+    }
+
+    // --- 4x TETRIS: board-wide supernova ---
+    rows.forEach((y, idx) => blastLine(y, palette[idx % palette.length], 4));
+    const midY = boardHeight * 0.45;
+    // Giant expanding rings
+    pushClearRing({ x: cx, y: midY, r: cellSize * 0.2, maxR: Math.max(boardWidth, boardHeight) * 0.85, life: 1, decay: 0.016, color: '#ffffff', width: 7, kind: 'clear' });
+    pushClearRing({ x: cx, y: midY, r: cellSize * 0.1, maxR: Math.max(boardWidth, boardHeight) * 0.55, life: 1, decay: 0.022, color: palette[0], width: 4, kind: 'clear' });
+    pushClearRing({ x: cx, y: midY, r: 4, maxR: cellSize * 4.5, life: 1, decay: 0.03, color: palette[1 % palette.length], width: 3, kind: 'clear' });
+    // Cross beams
+    beams.push({ x: cx, yTop: 0, yBottom: boardHeight, color: '#ffffff', width: Math.max(7, cellSize * 0.3), life: 1, kind: 'super' });
+    beams.push({ x: cx * 0.55, yTop: 0, yBottom: boardHeight, color: palette[0], width: Math.max(3, cellSize * 0.12), life: 0.9, kind: 'neon' });
+    beams.push({ x: cx * 1.45, yTop: 0, yBottom: boardHeight, color: palette[1 % palette.length], width: Math.max(3, cellSize * 0.12), life: 0.9, kind: 'neon' });
+    // Radial star burst
+    for (let n = 0; n < 48; n++) {
+      const ang = (n / 48) * Math.PI * 2 + Math.random() * 0.15;
+      const spd = 3.5 + Math.random() * 8;
+      push({
+        x: cx, y: midY,
+        vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
+        life: 1, decay: 0.012 + Math.random() * 0.014,
+        size: 2.5 + Math.random() * 4.5,
+        color: n % 5 === 0 ? '#ffffff' : palette[n % palette.length],
+        grav: false, kind: n % 6 === 0 ? 'sparkle' : 'fast'
+      });
+    }
+    // Secondary debris rain
+    for (let n = 0; n < 20; n++) {
+      push({
+        x: Math.random() * boardWidth, y: midY + (Math.random() - 0.5) * cellSize * 3,
+        vx: (Math.random() - 0.5) * 3, vy: -1 - Math.random() * 4,
+        life: 1, decay: 0.02, size: 2 + Math.random() * 3,
+        color: palette[n % palette.length], grav: true, kind: 'fast'
+      });
     }
   }
 
@@ -8781,8 +8868,8 @@ const Game = (() => {
       tier===1 ? '76,243,255' : tier===2 ? '255,79,216' : tier===3 ? '255,190,60' : '255,255,255',
       tier===4 ? '255,255,255' : '255,255,255'
     ];
-    Effects.flash(flashColors[Math.min(flashColors.length-1,tier-1)], tier===4 ? 0.42 : tier===3 ? 0.32 : tier===2 ? 0.24 : 0.16);
-    Effects.shake(tier===4 ? 12 : tier===3 ? 9 : tier===2 ? 6 : 4);
+    Effects.flash(flashColors[Math.min(flashColors.length-1,tier-1)], tier===4 ? 0.55 : tier===3 ? 0.38 : tier===2 ? 0.28 : 0.18);
+    Effects.shake(tier===4 ? 14 : tier===3 ? 10 : tier===2 ? 7 : 5);
     try {
       if (tier===4) vibrate([55,25,80,25,120]);
       else if (tier===3) vibrate([45,20,70]);
