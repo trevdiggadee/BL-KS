@@ -7903,17 +7903,25 @@ const UI = (() => {
       }
     }
 
-    // Tetris Gems-style cascade: after a completed row disappears, every remaining
-    // mino is released independently.  The Game module supplies each mino's
-    // start/end row so the collapse is visible instead of teleporting to the
-    // final packed columns.
+    // Tetris Gems-style cascade animation.  The important visual difference
+    // from ordinary gravity is that the loose minos do NOT all snap together.
+    // They fall as individual pieces in a staggered, domino-like wave: the
+    // lower minos settle first, then the minos above them follow.  Each cascade
+    // step is animated separately by Game, so a newly completed line can start
+    // another visible wave instead of resolving instantly.
     if (jewelCollapse && jewelCollapse.cells) {
       const ease = (t) => 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
       jewelCollapse.cells.forEach((p) => {
-        const distance = p.toRow - p.fromRow;
-        const delay = Math.min(110, Math.abs(distance) * 24);
+        const distance = Math.max(0, p.toRow - p.fromRow);
+        // Bottom pieces lead; pieces above them wait for the lower pieces to
+        // land. A small column offset creates the characteristic ripple rather
+        // than a single simultaneous vertical translation.
+        const lowestTarget = Math.max(...jewelCollapse.cells.map(x => x.toRow));
+        const waveDelay = (lowestTarget - p.toRow) * 34;
+        const fallDelay = Math.max(0, jewelCollapse.maxDrop - distance) * 18;
+        const delay = Math.min(700, waveDelay + fallDelay);
         const t = ease((jewelCollapse.elapsed - delay) / Math.max(1, jewelCollapse.duration - delay));
-        const row = p.fromRow + distance * t;
+        const row = p.fromRow + (p.toRow - p.fromRow) * t;
         if (row < hiddenOffset) return;
         const isJewel = typeof Jewels !== 'undefined' && Jewels.isGem(p.cell);
         const isItem = MindBender.isItem(p.cell);
@@ -8944,74 +8952,103 @@ const Game = (() => {
     refreshMbHud();
   }
 
+  function makeJewelsCollapse(sourceGrid, targetGrid) {
+    const cells = [];
+    let maxDrop = 0;
+    for (let c = 0; c < Board.COLS; c++) {
+      const stack = [];
+      for (let r = Board.TOTAL_ROWS - 1; r >= 0; r--) {
+        if (sourceGrid[r][c] != null) stack.push({ cell: sourceGrid[r][c], fromRow: r });
+      }
+      stack.forEach((p, i) => {
+        const toRow = Board.TOTAL_ROWS - 1 - i;
+        maxDrop = Math.max(maxDrop, toRow - p.fromRow);
+        cells.push({ ...p, col: c, toRow });
+      });
+    }
+    const lowest = cells.length ? Math.max(...cells.map(p => p.toRow)) : 0;
+    const highest = cells.length ? Math.min(...cells.map(p => p.toRow)) : 0;
+    const waveSpan = Math.max(0, lowest - highest) * 34;
+    return { cells, target: targetGrid, elapsed: 0, duration: Math.max(520, 520 + maxDrop * 42 + waveSpan), maxDrop };
+  }
+
+  function beginJewelsCollapse(sourceGrid, targetGrid) {
+    grid = Board.create();
+    jewelCollapseAnim = makeJewelsCollapse(sourceGrid, targetGrid);
+    state = 'jewel-cascade';
+  }
+
   function finishJewelsCascade() {
     if (!jewelCollapseAnim) return;
-    const firstGrid = jewelCollapseAnim.target;
+    const settled = jewelCollapseAnim.target;
     jewelCollapseAnim = null;
-    grid = firstGrid;
+    grid = settled;
 
-    // Resolve any additional rows only after the first independent-mino fall
-    // has settled, matching Gems' cascade order.
-    const chain = Jewels.cascadeClear(grid);
-    grid = chain.grid;
-    if (chain.totalLines > 0) {
-      const bonus = 100 * chain.totalLines * jewels.multiplier;
-      score += bonus;
-      lines += chain.totalLines;
+    // A Gems cascade is recursive: once the loose minos settle, test the new
+    // board, remove the next completed line, and launch another visible domino
+    // collapse. Nothing is resolved invisibly between cascade steps.
+    const full = Board.findFullRows(grid);
+    if (full.length) {
+      const gemsFound = [];
+      full.forEach((r) => grid[r].forEach((cell) => {
+        const t = Jewels.gemType(cell);
+        if (t) gemsFound.push(t);
+      }));
+      jewels._cascadeGems = (jewels._cascadeGems || []).concat(gemsFound);
+      jewels._cascadeLines = (jewels._cascadeLines || 0) + full.length;
+      const cleared = Board.clearRows(grid, full);
+      const next = Jewels.cascade(cleared);
+      beginJewelsCollapse(cleared, next);
+      return;
+    }
+
+    // No more line: the cascade is finally settled. Award all cascade lines
+    // and gem effects together, then handle the green-gem shockwave.
+    const cascadeLines = jewels._cascadeLines || 0;
+    const cascadeGems = jewels._cascadeGems || [];
+    jewels._cascadeLines = 0;
+    jewels._cascadeGems = [];
+
+    if (cascadeLines > 0) {
+      score += 100 * cascadeLines * jewels.multiplier;
+      lines += cascadeLines;
       level = Scoring.levelForLines(lines);
       UI.updateHud(score, level);
-      if (chain.gems.length) {
-        const fx = Jewels.applyGemEffects(jewels, chain.gems, mode);
-        if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
-        if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1000);
-      }
-      Effects.toast(`CASCADE ×${chain.totalLines}`, 'combo', 900);
+      const fx = Jewels.applyGemEffects(jewels, cascadeGems, mode);
+      if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
+      if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1000);
+      Effects.toast(`CASCADE ×${cascadeLines}`, 'combo', 900);
     }
 
-    // Green gem shockwave after the first cascade settles.
     if (jewels.pendingShockwave) {
       jewels.pendingShockwave = false;
-      const sw = Jewels.shockwave(grid);
-      grid = sw.grid;
-      if (sw.totalLines > 0) {
-        score += 100 * sw.totalLines * jewels.multiplier;
-        lines += sw.totalLines;
-        level = Scoring.levelForLines(lines);
-        UI.updateHud(score, level);
-        Effects.toast('SHOCKWAVE CLEAR', 'tetris', 1400);
-        Effects.shake(14);
-      }
-      const height = grid.filter((row) => row.some((c) => c != null)).length;
-      if (height < 8) grid = Jewels.pushGarbage(grid, jewels, Math.min(4, 5 - Math.floor(height / 2)));
-    } else {
-      const height = grid.filter((row) => row.some((c) => c != null)).length;
-      if (height < 5) grid = Jewels.pushGarbage(grid, jewels, Math.min(3, 5 - height));
+      // Green gem turns the stack loose. Animate that shockwave through the
+      // exact same domino-collapse pipeline instead of snapping it.
+      const shattered = Jewels.cascade(grid);
+      beginJewelsCollapse(grid, shattered);
+      jewels._shockwavePending = true;
+      return;
     }
 
+    const height = grid.filter((row) => row.some((c) => c != null)).length;
+    if (height < 5) grid = Jewels.pushGarbage(grid, jewels, Math.min(3, 5 - height));
     state = 'playing';
     spawnNext();
   }
 
   function finishLineClear() {
     if (jewels && mode.jewels) {
-      // Tetris Gems-style first collapse: remove the completed line, then let
-      // every remaining mino fall independently.  Do not pack the board
-      // instantly; animate the actual gravity step before resolving chains.
+      jewels._cascadeLines = pendingClearRows ? pendingClearRows.length : 0;
+      jewels._cascadeGems = [];
+      (pendingClearRows || []).forEach((r) => grid[r]?.forEach((cell) => {
+        const t = Jewels.gemType(cell);
+        if (t) jewels._cascadeGems.push(t);
+      }));
       const clearedGrid = Board.clearRows(grid, pendingClearRows);
       const firstGrid = Jewels.cascade(clearedGrid);
-      const cells = [];
-      for (let c = 0; c < Board.COLS; c++) {
-        const stack = [];
-        for (let r = Board.TOTAL_ROWS - 1; r >= 0; r--) {
-          if (clearedGrid[r][c] != null) stack.push({ cell: clearedGrid[r][c], fromRow: r });
-        }
-        stack.forEach((p, i) => cells.push({ ...p, col: c, toRow: Board.TOTAL_ROWS - 1 - i }));
-      }
-      grid = Board.create();
-      jewelCollapseAnim = { cells, target: firstGrid, elapsed: 0, duration: 340 };
       pendingClearRows = null;
       pendingEffect = null;
-      state = 'jewel-cascade';
+      beginJewelsCollapse(clearedGrid, firstGrid);
       return;
     }
 
