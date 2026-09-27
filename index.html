@@ -6458,8 +6458,9 @@ const Input = (() => {
   function on(map) { Object.assign(handlers, map); }
 
   // --- Keyboard, with DAS (delay) then ARR (repeat rate) for movement ---
-  const DAS_MS = 170;
-  const ARR_MS = 45;
+  // Snappy defaults (Guideline-ish / competitive-friendly)
+  const DAS_MS = 90;
+  const ARR_MS = 18;
   let dasTimer = null, arrTimer = null, activeDir = null;
   const pressed = new Set();
 
@@ -6526,24 +6527,26 @@ const Input = (() => {
     window.addEventListener('keyup', keyUp);
   }
 
-  // --- Touch buttons: press-and-hold repeat for left/right/soft-drop ---
-  function bindHoldButton(el, downFn, upFn, repeatMs) {
+  // --- Touch buttons: press-and-hold with DAS then ARR (same as keyboard) ---
+  function bindHoldButton(el, downFn, upFn, useDasArr) {
     if (!el) return;
-    let timer = null;
+    let dasT = null, arrT = null;
     const start = (e) => {
       e.preventDefault();
       el.classList.add('btn--active');
       downFn();
-      if (repeatMs) {
-        clearInterval(timer);
-        timer = setInterval(downFn, repeatMs);
+      if (useDasArr) {
+        clearTimeout(dasT); clearInterval(arrT);
+        dasT = setTimeout(() => {
+          arrT = setInterval(downFn, ARR_MS);
+        }, DAS_MS);
       }
     };
     const end = (e) => {
       if (e) e.preventDefault();
       el.classList.remove('btn--active');
-      clearInterval(timer);
-      timer = null;
+      clearTimeout(dasT); clearInterval(arrT);
+      dasT = null; arrT = null;
       if (upFn) upFn();
     };
     el.addEventListener('pointerdown', start);
@@ -6565,9 +6568,9 @@ const Input = (() => {
   }
 
   function initButtons(refs) {
-    bindHoldButton(refs.left, handlers.left, null, ARR_MS + 60);
-    bindHoldButton(refs.right, handlers.right, null, ARR_MS + 60);
-    bindHoldButton(refs.softDrop, handlers.softDropStart, handlers.softDropEnd, null);
+    bindHoldButton(refs.left, handlers.left, null, true);
+    bindHoldButton(refs.right, handlers.right, null, true);
+    bindHoldButton(refs.softDrop, handlers.softDropStart, handlers.softDropEnd, false);
     bindTapButton(refs.rotate, handlers.rotateCW);
     bindTapButton(refs.hardDrop, handlers.hardDrop);
     bindTapButton(refs.hold, handlers.hold);
@@ -6593,10 +6596,10 @@ const Input = (() => {
     let yRemainder = 0;
 
     const TAP_LIMIT = 10;
-    const AXIS_LOCK = 6;
-    const MOVE_RATIO = 0.28;
-    const HARD_DROP_MIN = 42;
-    const HOLD_MIN = 34;
+    const AXIS_LOCK = 5;
+    const MOVE_RATIO = 0.16; // smaller = fewer pixels per cell → more responsive
+    const HARD_DROP_MIN = 36;
+    const HOLD_MIN = 30;
 
     function playing() {
       return typeof Game === 'undefined' || Game.state === 'playing';
@@ -9086,7 +9089,7 @@ const Game = (() => {
     const fxFactor = MindBender.gravityFactor(mb);          // Slow Down x2, Speed Up x0.5
     const baseGravity = (Scoring.gravityMsForLevel(level) / mode.gravity) * fxFactor * (mode.id === 'bomb' ? bombSpeedMultiplier : 1);
     const gravityMs = softDropActive && mode.id !== 'gravity'
-      ? Math.min(baseGravity, 45 * fxFactor)
+      ? Math.min(baseGravity, 22 * fxFactor) // was 45 — snappier soft drop
       : baseGravity;
 
     gravityAcc += dt;
