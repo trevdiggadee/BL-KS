@@ -4611,7 +4611,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
           <div class="popup-kicker">ARENA PROTOCOL / 03</div><h2 id="popup-mode-title">CHOOSE GAME MODE</h2><p>Pick the challenge you want to take on.</p>
           <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
-            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button>
+            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> GEMS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button>
           </div>
           <div class="mode-description" id="mode-description">Classic endless BLØKS. Mind Bender mode adds flashing item blocks and ten chaotic effects.</div>
         </section>
@@ -6044,7 +6044,7 @@ const Achievements = (() => {
 const Modes = (() => {
   const LIST = {
     standard: { id:'standard', name:'STANDARD', icon:'◆', desc:'Classic endless NEONBLOCK.', gravity:1, score:1 },
-    zen: { id:'zen', name:'JEWELS', icon:'💎', desc:'Cascade mode with Red, Orange & Green gems. Beat the clock.', gravity:0.85, score:1, jewels:true, timeLimit:60000 },
+    zen: { id:'zen', name:'GEMS', icon:'💎', desc:'Cascade like tetris.com/gems — Red (+time), Orange (×mult), Green (shockwave). 60s clock.', gravity:0.85, score:1, jewels:true, timeLimit:60000 },
     blitz: { id:'blitz', name:'MIND BENDER', icon:'🌀', desc:'Clear flashing item blocks to raise the multiplier and trigger wild effects.', gravity:1.0, score:1.0, mindBender:true },
     inferno: { id:'inferno', name:'INFERNO', icon:'🔥', desc:'Every block burns with living flame. Clear lines through the fire before the heat overwhelms you.', gravity:1.12, score:1.25, garbageEvery:10000 },
     bomb: { id:'bomb', name:'BOMB BLOCKS', icon:'💣', desc:'Some pieces contain bombs. Clear a bomb line to blast nearby blocks.', gravity:1.0, score:1.2, bombChance:0.55 },
@@ -6133,33 +6133,64 @@ const Jewels = (() => {
     return next;
   }
 
+  /**
+   * Clear full rows (green-gem cells survive), then cascade, repeat.
+   * Matches tetris.com/gems cascade clears after the initial shatter.
+   */
+  function clearFullRowsKeepGreen(grid, fullRows) {
+    const C = Board.COLS;
+    let g = grid.map((row) => row.slice());
+    const gems = [];
+    fullRows.forEach((r) => {
+      for (let c = 0; c < C; c++) {
+        const cell = g[r][c];
+        if (cell == null) continue;
+        const t = gemType(cell);
+        if (t === GEM_GREEN) {
+          // Official: green gem block does not clear with its row
+          continue;
+        }
+        if (t) gems.push(t);
+        g[r][c] = null;
+      }
+    });
+    return { grid: g, gems };
+  }
+
   /** Clear full rows then cascade until stable. Returns { grid, totalLines, gems }. */
   function cascadeClear(grid) {
     let g = grid.map((row) => row.slice());
     let totalLines = 0;
     const gems = [];
     let guard = 0;
-    while (guard++ < 40) {
+    while (guard++ < 48) {
       const full = Board.findFullRows(g);
       if (!full.length) break;
-      // collect gems from full rows
-      full.forEach((r) => {
-        g[r].forEach((cell) => {
-          const t = gemType(cell);
-          if (t) gems.push(t);
-        });
-      });
+      const step = clearFullRowsKeepGreen(g, full);
+      gems.push(...step.gems);
       totalLines += full.length;
-      g = Board.clearRows(g, full);
-      g = cascade(g);
+      g = cascade(step.grid);
     }
     return { grid: g, totalLines, gems };
   }
 
-  /** Shatter entire stack into loose cells and cascade-clear (green gem shockwave). */
+  /**
+   * Player-initiated clear (tetris.com/gems): completed lines shatter into
+   * independent minos, the whole stack falls, then cascade clears chain.
+   */
+  function playerClearAndCascade(grid, fullRows) {
+    // Shatter: full rows become independent cells (already true in grid model).
+    // Drop everything with column gravity, then cascade-clear any new lines.
+    let g = cascade(grid.map((row) => row.slice()));
+    // First pass: clear the original full rows after gravity may have shifted —
+    // re-find full rows so physics stays consistent.
+    const after = cascadeClear(g);
+    return after;
+  }
+
+  /** Green gem shockwave: entire stack becomes loose minos and cascades again. */
   function shockwave(grid) {
-    // Already cell-based; cascade + clear loops handles it
-    let g = cascade(grid);
+    let g = cascade(grid.map((row) => row.slice()));
     return cascadeClear(g);
   }
 
@@ -6179,11 +6210,13 @@ const Jewels = (() => {
         st.gemsCleared.green++;
       }
     });
-    if (multUp) st.multiplier = Math.min(20, st.multiplier + multUp);
+    // Official Gems: multiplier has no upper limit and never decreases
+    if (multUp) st.multiplier += multUp;
+    // Red gems add 5s, clock soft-caps at 60s
     if (timeBonus) {
-      st.timeLeftMs = Math.min(90000, st.timeLeftMs + timeBonus);
+      st.timeLeftMs = Math.min(60000, st.timeLeftMs + timeBonus);
     }
-    st.pendingShockwave = shock;
+    st.pendingShockwave = shock || st.pendingShockwave;
     return { timeBonus, multUp, shock };
   }
 
@@ -6197,9 +6230,20 @@ const Jewels = (() => {
     if (r < 0 || !grid[r] || grid[r][c] == null) return;
     const base = baseColor(grid[r][c]);
     if (isTetris) {
-      // red + chance of green
-      grid[r][c] = withGem(base, Math.random() < 0.45 ? GEM_GREEN : GEM_RED);
+      // Official Gems: Tetris can award red and/or green
+      const primary = Math.random() < 0.5 ? GEM_GREEN : GEM_RED;
+      grid[r][c] = withGem(base, primary);
+      if (candidates.length > 1 && Math.random() < 0.45) {
+        const other = candidates.find(([rr, cc]) => rr !== r || cc !== c);
+        if (other) {
+          const [r2, c2] = other;
+          if (grid[r2] && grid[r2][c2] != null && !isGem(grid[r2][c2])) {
+            grid[r2][c2] = withGem(baseColor(grid[r2][c2]), primary === GEM_GREEN ? GEM_RED : GEM_GREEN);
+          }
+        }
+      }
     } else if (isTSpin && linesCleared > 0) {
+      // T-Spin clear awards orange (score multiplier)
       grid[r][c] = withGem(base, GEM_ORANGE);
     }
   }
@@ -6236,7 +6280,7 @@ const Jewels = (() => {
 
   return {
     isGem, gemType, baseColor, withGem, createState, seedStartStack,
-    cascade, cascadeClear, shockwave, applyGemEffects, maybeAwardGems, pushGarbage,
+    cascade, cascadeClear, playerClearAndCascade, shockwave, applyGemEffects, maybeAwardGems, pushGarbage,
     GEM_RED, GEM_ORANGE, GEM_GREEN,
   };
 })();
@@ -8907,46 +8951,82 @@ const Game = (() => {
 
   function finishLineClear() {
     if (jewels && mode.jewels) {
-      // Cascade clear: cells fall independently and may chain
-      let g = Board.clearRows(grid, pendingClearRows);
-      g = Jewels.cascade(g);
+      // tetris.com/gems: shatter → cascade gravity → chain clears
+      const firstGems = [];
+      pendingClearRows.forEach((r) => {
+        grid[r].forEach((cell) => {
+          const t = Jewels.gemType(cell);
+          if (t && t !== Jewels.GEM_GREEN) firstGems.push(t);
+          // leave green gem cells; null others in the completed rows
+        });
+      });
+      // Null completed-row cells except green gems, then cascade
+      {
+        const C = Board.COLS;
+        pendingClearRows.forEach((r) => {
+          for (let c = 0; c < C; c++) {
+            const cell = grid[r][c];
+            if (cell == null) continue;
+            if (Jewels.gemType(cell) === Jewels.GEM_GREEN) continue;
+            grid[r][c] = null;
+          }
+        });
+      }
+      let g = Jewels.cascade(grid);
       let chain = Jewels.cascadeClear(g);
       grid = chain.grid;
-      if (chain.totalLines > 0) {
-        const bonus = 100 * chain.totalLines * jewels.multiplier;
+      const allGems = firstGems.concat(chain.gems || []);
+      // Apply gem effects before cascade bonus so orange mult applies to cascade score
+      if (allGems.length) {
+        const fx = Jewels.applyGemEffects(jewels, allGems, mode);
+        if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s TIME`, 'highscore', 1100);
+        if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1100);
+        if (fx.shock) Effects.toast('SHOCKWAVE READY', 'tetris', 1000);
+        refreshMbHud();
+      }
+      const cascadeLines = chain.totalLines || 0;
+      if (cascadeLines > 0) {
+        // Official: cascade score = 100 × lines × multiplier
+        const bonus = 100 * cascadeLines * jewels.multiplier;
         score += bonus;
-        lines += chain.totalLines;
+        lines += cascadeLines;
         level = Scoring.levelForLines(lines);
         UI.updateHud(score, level);
-        if (chain.gems.length) {
-          const fx = Jewels.applyGemEffects(jewels, chain.gems, mode);
-          if (fx.timeBonus) Effects.toast(`+${fx.timeBonus / 1000}s`, 'highscore', 1000);
-          if (fx.multUp) Effects.toast(`GEM ×${jewels.multiplier}`, 'combo', 1000);
-        }
-        Effects.toast(`CASCADE ×${chain.totalLines}`, 'combo', 900);
+        Effects.toast(`CASCADE ×${cascadeLines}`, 'combo', 900);
+        Particles.spawnLineClearBurst(
+          [UI.cellSize * 10], Board.COLS, UI.cellSize,
+          ['#55ff88', '#39d9ff', '#ff5c9d', '#ffd45a'], cascadeLines >= 4
+        );
       }
-      // Green gem shockwave after first cascade settles
+      // Green shockwave after the first cascade fully settles
       if (jewels.pendingShockwave) {
         jewels.pendingShockwave = false;
+        Effects.toast('💎 SHOCKWAVE', 'tetris', 1400);
+        Effects.shake(16);
+        Effects.flash('80,255,140', 0.4);
         const sw = Jewels.shockwave(grid);
         grid = sw.grid;
+        if (sw.gems && sw.gems.length) {
+          Jewels.applyGemEffects(jewels, sw.gems, mode);
+          refreshMbHud();
+        }
         if (sw.totalLines > 0) {
           score += 100 * sw.totalLines * jewels.multiplier;
           lines += sw.totalLines;
           level = Scoring.levelForLines(lines);
           UI.updateHud(score, level);
-          Effects.toast('SHOCKWAVE CLEAR', 'tetris', 1400);
-          Effects.shake(14);
+          Effects.toast(`SHOCK ×${sw.totalLines}`, 'tetris', 1200);
         }
-        // refill some garbage if stack is low
-        const height = grid.filter((row) => row.some((c) => c != null)).length;
-        if (height < 8) {
-          grid = Jewels.pushGarbage(grid, jewels, Math.min(4, 5 - Math.floor(height / 2)));
+      }
+      // Refill garbage like official (2–5 rows based on stack height)
+      {
+        let filled = 0;
+        for (let r = 0; r < grid.length; r++) {
+          if (grid[r].some((c) => c != null)) filled++;
         }
-      } else {
-        const height = grid.filter((row) => row.some((c) => c != null)).length;
-        if (height < 5) {
-          grid = Jewels.pushGarbage(grid, jewels, Math.min(3, 5 - height));
+        const target = filled < 4 ? 5 : filled < 8 ? 3 : filled < 12 ? 2 : 0;
+        if (target > 0) {
+          grid = Jewels.pushGarbage(grid, jewels, target);
         }
       }
       pendingClearRows = null;
