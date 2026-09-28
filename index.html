@@ -7845,34 +7845,141 @@ const UI = (() => {
     ctx.restore();
   }
 
-  /** Rising Tide: a translucent, gently bobbing water fill over every
-   *  flooded cell, with a soft crest line and a rising bubble so the
-   *  waterline reads clearly against the rest of the stack. */
-  function drawTideWater(ctx, row, col, phase) {
-    const x = col * cellSize, y = row * cellSize, s = cellSize;
-    const wave = Math.sin(phase * 2.4 + col * 0.9) * s * 0.06;
+  /** Rising Tide water body. Water is NOT made of grid cells any more: it is
+   *  one continuous volume drawn over the whole board (blocks and the falling
+   *  piece stay visible and tinted underneath), with a multi-wave surface,
+   *  depth gradient, drifting caustics, rising bubbles and a foam crest.
+   *  `rows` is the (eased) water depth measured in board rows and `splash`
+   *  (0..1) briefly agitates the surface, e.g. right after lines are cleared. */
+  function drawTideBody(ctx, rows, splash, t) {
+    if (rows <= 0.02) return;
+    const W = Board.COLS * cellSize, H = Board.ROWS * cellSize;
+    const depth = Math.min(H, rows * cellSize);
+    const surf = H - depth;
+    const amp = cellSize * (0.045 + 0.09 * splash);
+    const surfaceY = (x) => surf
+      + Math.sin(x * 0.045 + t * 1.7) * amp
+      + Math.sin(x * 0.11 - t * 2.4) * amp * 0.55
+      + Math.sin(x * 0.021 + t * 0.9) * amp * 1.1;
+    const step = Math.max(4, cellSize * 0.22);
+
     ctx.save();
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = '#1c9dff';
-    roundRect(ctx, x + 1, y + 1 + wave, s - 2, s - 2 - wave, s * 0.12);
-    ctx.fill();
+    // --- body path ---
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    ctx.lineTo(0, surfaceY(0));
+    for (let x = step; x < W; x += step) ctx.lineTo(x, surfaceY(x));
+    ctx.lineTo(W, surfaceY(W));
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.save();
+    ctx.clip();
+
+    // depth gradient: bright & clear at the surface, deep blue below
+    const g = ctx.createLinearGradient(0, surf - amp, 0, H);
+    g.addColorStop(0, 'rgba(120,215,255,0.34)');
+    g.addColorStop(0.18, 'rgba(40,150,235,0.40)');
+    g.addColorStop(0.6, 'rgba(12,80,175,0.52)');
+    g.addColorStop(1, 'rgba(4,28,90,0.68)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, surf - amp * 2, W, H - surf + amp * 2);
+
+    // caustic light patches drifting near the surface
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 0.4;
-    ctx.strokeStyle = 'rgba(180,235,255,.9)';
-    ctx.lineWidth = Math.max(1, s * 0.05);
-    ctx.beginPath();
-    ctx.moveTo(x + s * 0.08, y + s * 0.22 + wave);
-    ctx.quadraticCurveTo(x + s * 0.5, y + s * 0.1 + wave, x + s * 0.92, y + s * 0.22 + wave);
+    const causticDepth = Math.min(depth, cellSize * 6);
+    for (let i = 0; i < 9; i++) {
+      const dir = i % 2 ? 1 : -1;
+      const cx = (((i * 0.137 + t * 0.018 * dir) % 1) + 1) % 1 * W;
+      const cy = surf + causticDepth * (0.18 + 0.7 * ((i * 0.31 + Math.sin(t * 0.6 + i)) * 0.5 + 0.5) % 1);
+      const r = cellSize * (0.9 + 0.5 * Math.sin(t * 1.3 + i * 2.1));
+      const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      rg.addColorStop(0, 'rgba(170,235,255,0.16)');
+      rg.addColorStop(1, 'rgba(170,235,255,0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    }
+    // slanted light shafts from above
+    ctx.globalAlpha = 0.07;
+    for (let i = 0; i < 4; i++) {
+      const sx = (((i * 0.27 + t * 0.012) % 1) + 1) % 1 * W;
+      const sg = ctx.createLinearGradient(sx, surf, sx + cellSize * 1.5, surf + causticDepth * 1.6);
+      sg.addColorStop(0, 'rgba(200,240,255,1)');
+      sg.addColorStop(1, 'rgba(200,240,255,0)');
+      ctx.fillStyle = sg;
+      ctx.beginPath();
+      ctx.moveTo(sx, surf);
+      ctx.lineTo(sx + cellSize * 0.9, surf);
+      ctx.lineTo(sx + cellSize * 2.4, surf + causticDepth * 1.6);
+      ctx.lineTo(sx + cellSize * 1.2, surf + causticDepth * 1.6);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+
+    // rising bubbles (deterministic so they don't flicker)
+    for (let i = 0; i < 16; i++) {
+      const speed = 0.05 + (i % 5) * 0.018;
+      const life = (((t * speed + i * 0.173) % 1) + 1) % 1;
+      const bx = ((i * 0.6180339 + Math.sin(t * 0.7 + i) * 0.015) % 1) * W;
+      const by = H - life * depth;
+      if (by < surf + amp) continue;
+      const br = cellSize * (0.05 + (i % 4) * 0.02);
+      ctx.globalAlpha = 0.55 * Math.min(1, (by - surf) / (cellSize * 0.8));
+      ctx.strokeStyle = 'rgba(220,245,255,0.9)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.beginPath(); ctx.arc(bx - br * 0.3, by - br * 0.3, br * 0.28, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // --- surface: foam glow, bright crest, and a second offset ripple line ---
+    const trace = (yOff, xShift) => {
+      ctx.beginPath();
+      ctx.moveTo(0, surfaceY(xShift) + yOff);
+      for (let x = step; x <= W; x += step) ctx.lineTo(x, surfaceY(x + xShift) + yOff);
+    };
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineJoin = 'round';
+    trace(0, 0);
+    ctx.strokeStyle = 'rgba(120,210,255,0.22)';
+    ctx.lineWidth = cellSize * (0.22 + 0.2 * splash);
     ctx.stroke();
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = 'rgba(220,245,255,.7)';
-    ctx.beginPath();
-    ctx.arc(x + s * (0.3 + ((phase * 0.22 + col * 0.17) % 0.5)), y + s * 0.65, Math.max(1, s * 0.04), 0, Math.PI * 2);
-    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    trace(0, 0);
+    ctx.strokeStyle = 'rgba(215,245,255,0.92)';
+    ctx.lineWidth = Math.max(1.5, cellSize * 0.06);
+    ctx.stroke();
+    trace(cellSize * 0.16, 17);
+    ctx.strokeStyle = 'rgba(160,220,255,0.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // glints riding the surface
+    for (let i = 0; i < 7; i++) {
+      const gx = (((i * 0.19 + t * 0.05) % 1) + 1) % 1 * W;
+      const tw = 0.5 + 0.5 * Math.sin(t * 3 + i * 1.7);
+      ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.5 * tw})`;
+      ctx.beginPath();
+      ctx.ellipse(gx, surfaceY(gx) - 1, cellSize * 0.16, Math.max(1, cellSize * 0.028), 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // splash droplets thrown from the surface after a clear
+    if (splash > 0.05) {
+      ctx.fillStyle = `rgba(210,242,255,${0.7 * splash})`;
+      for (let i = 0; i < 12; i++) {
+        const dx = ((i * 0.083 + 0.03) % 1) * W;
+        const rise = Math.abs(Math.sin(t * 5 + i * 1.3)) * cellSize * 0.9 * splash;
+        ctx.beginPath();
+        ctx.arc(dx, surfaceY(dx) - rise, Math.max(1, cellSize * 0.045), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
     ctx.restore();
   }
 
-  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null, jewelClear = null }) {
+  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null, jewelClear = null, tideRows = 0, tideSplash = 0 }) {
     visualTime = performance.now() * 0.001;
     const phase = visualTime;
     const infernoActive = document.body.classList.contains('mode-inferno');
@@ -7972,7 +8079,6 @@ const UI = (() => {
           if (isJewel) drawGemMark(boardCtx, visRow, c, Jewels.gemType(rawCell), cellAlpha);
           if (isBomb) drawBombMark(boardCtx, visRow, c, cellAlpha);
           if (stackActive && rawCell === 'danger') drawStackDanger(boardCtx, visRow, c, phase);
-          if (tideActive && rawCell === 'tide') drawTideWater(boardCtx, visRow, c, phase);
           if (flashing) {
             boardCtx.save();
             boardCtx.globalAlpha = 0.7;
@@ -8041,6 +8147,10 @@ const UI = (() => {
         }
       });
     }
+
+    // Rising Tide: the water sits in front of everything, so submerged
+    // blocks and the falling piece are tinted by it rather than hidden.
+    if (tideActive && tideRows > 0) drawTideBody(boardCtx, tideRows, tideSplash, phase);
   }
 
   function applyShake() {
@@ -8158,7 +8268,7 @@ const UI = (() => {
     } else if (mode && mode.id === 'inferno') {
       text = 'RISING';
     } else if (mode && mode.id === 'tide') {
-      text = tideLevel > 0 ? `🌊 ${tideLevel}` : 'CALM';
+      text = tideLevel >= 0.5 ? `🌊 ${Math.round(tideLevel)}` : 'CALM';
     } else if (mode && mode.id === 'magnet') {
       text = magnetDir === 'left' ? '🧲 ←' : magnetDir === 'right' ? '🧲 →' : 'CALM';
     } else if (mode && mode.id === 'quake') {
@@ -8602,7 +8712,7 @@ const Game = (() => {
   // Mind Bender + spin tracking
   let mb = null;                     // MindBender.createState()
   let jewels = null;                 // Jewels.createState()
-  let tide = null;                   // Rising Tide: { level } — rows of water from the bottom
+  let tide = null;                   // Rising Tide: { level, shown, splash } — water depth in rows (float); water is an overlay, never grid cells
   let magnetDir = null;              // Magnetic Storm: current pull direction ('left' | 'right')
   let lastMoveWasRotation = false;   // T-spin rule: last successful action must be a rotation
   let pendingEffect = null;          // effect id waiting for the line-clear animation to end
@@ -8726,7 +8836,7 @@ const Game = (() => {
     combo = -1; bestComboThisGame = 0; backToBack = 0;
     mb = MindBender.createState();
     jewels = (mode.jewels && typeof Jewels !== 'undefined') ? Jewels.createState() : null;
-    tide = (mode.id === 'tide') ? { level: 0 } : null;
+    tide = (mode.id === 'tide') ? { level: 0, shown: 0, splash: 0, lastT: performance.now(), warned: false } : null;
     magnetDir = null;
     lastMoveWasRotation = false; pendingEffect = null;
     MindBender.setEnabled(!!mode.mindBender);
@@ -8931,8 +9041,16 @@ const Game = (() => {
     if (mode.id === 'bomb') detonateNearbyBombs(fullRows);
 
     // Rising Tide: every cleared line pushes the water back down.
+    // Only genuinely completed lines count: water is no longer stored in
+    // the grid, so flooded rows can't be mistaken for cleared ones.
     if (mode.id === 'tide' && tide) {
+      const before = tide.level;
       tide.level = Math.max(0, tide.level - fullRows.length);
+      if (before > 0.05) {
+        tide.splash = Math.min(1, 0.45 + 0.2 * fullRows.length);
+        tide.warned = false;
+        if (before - tide.level >= 0.5) Effects.toast('🌊 WATER RECEDES', 'combo', 800);
+      }
     }
 
     // perfect clear = nothing left once the full rows are gone
@@ -9261,7 +9379,6 @@ const Game = (() => {
     pendingClearRows = null;
     if (pendingEffect) applyMindBenderEffect(pendingEffect);
     pendingEffect = null;
-    if (mode.id === 'tide' && tide) syncTideLevel();
     state = 'playing';
     maybeSpawnItem();
     spawnNext();
@@ -9428,12 +9545,25 @@ const Game = (() => {
       if (typeof Effects.flash === 'function') Effects.flash('255,55,25', 0.14);
     }
 
-    if (mode.id === 'tide' && tide && modeEventTimer >= mode.tideEvery) {
-      modeEventTimer = 0;
-      riseTide(1);
-      Effects.toast('🌊 TIDE RISING', 'tetris', 900);
-      Effects.shake(3);
-      if (typeof Effects.flash === 'function') Effects.flash('60,170,255', 0.12);
+    if (mode.id === 'tide' && tide) {
+      // The water climbs continuously (1 row per `tideEvery` ms, a bit
+      // faster at higher levels) instead of jumping a full row at a time.
+      const rate = (1 / mode.tideEvery) * (1 + 0.06 * Math.max(0, level - 1));
+      const prevFloor = Math.floor(tide.level);
+      tide.level = Math.min(Board.ROWS, tide.level + dt * rate);
+      if (Math.floor(tide.level) > prevFloor) {
+        Effects.toast('🌊 TIDE RISING', 'tetris', 700);
+        if (typeof Effects.flash === 'function') Effects.flash('60,170,255', 0.08);
+      }
+      if (!tide.warned && tide.level >= Board.ROWS * 0.7) {
+        tide.warned = true;
+        Effects.toast('⚠ WATER CRITICAL', 'tetris', 1100);
+        Effects.shake(4);
+      }
+      if (tide.level >= Board.ROWS - 1) {
+        triggerGameOver('DROWNED');
+        return;
+      }
     }
 
     if (mode.id === 'magnet' && modeEventTimer >= mode.magnetEvery) {
@@ -9465,35 +9595,6 @@ const Game = (() => {
       const row = Array.from({length: Board.COLS}, (_, c) => c === hole ? null : 'danger');
       grid.push(row);
     }
-  }
-
-  // --- Rising Tide ---
-  /** Re-marks the bottom `tide.level` rows as flooded (only cells that are
-   *  still empty become 'tide' cells — a real locked block never gets
-   *  overwritten), and clears any stray 'tide' markers left above the
-   *  current level (e.g. after clearing lines pushed the water back down).
-   *  Called any time `tide.level` or the grid changes, so the two always
-   *  stay in sync no matter how the rows above shifted around. */
-  function syncTideLevel() {
-    if (!tide) return;
-    for (let r = 0; r < Board.TOTAL_ROWS; r++) {
-      for (let c = 0; c < Board.COLS; c++) {
-        if (grid[r][c] === 'tide') grid[r][c] = null;
-      }
-    }
-    for (let n = 1; n <= tide.level; n++) {
-      const r = Board.TOTAL_ROWS - n;
-      if (r < 0) break;
-      for (let c = 0; c < Board.COLS; c++) {
-        if (grid[r][c] == null) grid[r][c] = 'tide';
-      }
-    }
-  }
-
-  function riseTide(rows) {
-    if (!tide) return;
-    tide.level = Math.min(Board.TOTAL_ROWS - 1, tide.level + rows);
-    syncTideLevel();
   }
 
   // --- Magnetic Storm ---
@@ -9614,7 +9715,6 @@ const Game = (() => {
    *  same clear treatment a normal line clear gets instead of leaving a
    *  completed row sitting on the board unrewarded. */
   function settleEnvironmentalShift() {
-    if (tide) syncTideLevel();
     const full = Board.findFullRows(grid);
     if (full.length && state === 'playing') beginLineClear(full);
   }
@@ -9653,9 +9753,15 @@ const Game = (() => {
 
     const fxFactor = MindBender.gravityFactor(mb);          // Slow Down x2, Speed Up x0.5
     const baseGravity = (Scoring.gravityMsForLevel(level) / mode.gravity) * fxFactor * (mode.id === 'bomb' ? bombSpeedMultiplier : 1);
+    // Rising Tide: a piece whose lowest cell is submerged sinks more slowly.
+    let waterDrag = 1;
+    if (tide && active && tide.shown > 0.3) {
+      const surfaceRow = Board.TOTAL_ROWS - tide.shown;
+      if (Pieces.getCells(active).some(([r]) => r + 1 > surfaceRow)) waterDrag = 1.6;
+    }
     const gravityMs = softDropActive && mode.id !== 'gravity'
       ? Math.min(baseGravity, 45 * fxFactor)
-      : baseGravity;
+      : baseGravity * waterDrag;
 
     gravityAcc += dt;
     while (gravityAcc >= gravityMs) {
@@ -9688,7 +9794,17 @@ const Game = (() => {
       // Pass color *name* so the trail uses the Block Studio material, not a solid hex.
       UI.recordTrail(activeCells, active.color);
     }
+    if (tide) {
+      const now = performance.now();
+      const dtR = Math.min(100, now - tide.lastT); tide.lastT = now;
+      // ease the drawn depth toward the real level (fast drain, slow swell)
+      const k = 1 - Math.exp(-dtR * (tide.shown > tide.level ? 0.006 : 0.004));
+      tide.shown += (tide.level - tide.shown) * k;
+      tide.splash = Math.max(0, tide.splash - dtR * 0.0009);
+    }
     UI.renderBoard({
+      tideRows: tide ? tide.shown : 0,
+      tideSplash: tide ? tide.splash : 0,
       grid,
       activeCells,
       activeColor: active ? active.color : 'cyan',
