@@ -5591,6 +5591,7 @@ const Audio_ = (() => {
  */
 const Particles = (() => {
   let particles = [], shocks = [], beams = [], bombRings = [], rays = [], cores = [], sweeps = [], cracks = [], queue = [];
+  let smolders = [], haze = [], bombSweepT = 0;
   const MAX_PARTICLES = 420;
   const style = () => document.documentElement.dataset.blockStyle || 'neon';
 
@@ -5925,6 +5926,8 @@ const Particles = (() => {
   function spawnBombExplosion(x, y, cellSize, power=1) {
     bombRings.push({x,y,r:cellSize*.18,maxR:cellSize*(2.4+power*.6),life:1,color:'#ff3b20',width:cellSize*.1});
     bombRings.push({x,y,r:cellSize*.10,maxR:cellSize*(1.6+power*.4),life:.85,color:'#ffd45a',width:cellSize*.05});
+    // Punchy white-hot flash right at the core, on top of the color rings.
+    core(x, y, cellSize * (1.1 + power * 0.3), '#fff6d8', 1, 0.16);
     for(let n=0;n<36;n++){
       const a=Math.random()*Math.PI*2;
       const speed=(1.6+Math.random()*6)*power;
@@ -5940,6 +5943,22 @@ const Particles = (() => {
         decay:.018+Math.random()*.015,size:2.5+Math.random()*5,
         color:n%2?'#3b3030':'#151515',grav:true,kind:'smoke'});
     }
+    // A handful of tumbling debris chunks flung outward and downward.
+    for(let n=0;n<7;n++){
+      const a=Math.random()*Math.PI*2, speed=1.2+Math.random()*3.2;
+      push({x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed*.6-1.4,life:1,
+        decay:.012+Math.random()*.01,size:2+Math.random()*2.5,
+        color:n%2?'#5a4636':'#2b2320',grav:true,rot:Math.random()*Math.PI*2,
+        vr:(Math.random()-.5)*.5,kind:'shard'});
+    }
+    spawnScorch(x, y, cellSize * (1.6 + power * 0.4));
+  }
+
+  /** A charred smudge left behind on the board after a blast — cools and
+   *  fades over several seconds instead of the scene resetting instantly
+   *  back to normal the moment the sparks are gone. */
+  function spawnScorch(x, y, r) {
+    smolders.push({ x, y, r, life: 1, seed: Math.random() * 6.28 });
   }
 
   function update(){
@@ -5965,6 +5984,7 @@ const Particles = (() => {
     bombRings.forEach(r=>{r.r+=(r.maxR-r.r)*.19; r.life-=.055;});
     rays=rays.filter(r=>r.life>0);
     rays.forEach(r=>{r.len+=(r.maxLen-r.len)*.3; r.life-=.045;});
+    smolders=smolders.filter(s=>s.life>0); smolders.forEach(s=>{s.life-=.0045;});
   }
 
   function drawElectric(ctx,p,a){
@@ -6004,7 +6024,76 @@ const Particles = (() => {
     ctx.restore();
   }
 
+  /** Bomb Blocks: a live minefield mood, drawn every frame regardless of
+   *  how many particles are active — a slow warning-light sweep, drifting
+   *  haze, and the board's own edges pulsing hotter the more it's recently
+   *  been hit, so the mode reads as tense and alive even between blasts. */
+  function drawBombAtmosphere(ctx, W, H) {
+    if (haze.length < 14 && Math.random() < 0.06) {
+      haze.push({ x: Math.random() * W, y: H + 20, vy: 6 + Math.random() * 10, vx: (Math.random() - 0.5) * 6, size: 30 + Math.random() * 60, life: 1, decay: 0.0035 + Math.random() * 0.002 });
+    }
+    haze = haze.filter((p) => p.life > 0);
+    haze.forEach((p) => { p.x += p.vx * 0.02; p.y -= p.vy * 0.06; p.life -= p.decay; });
+    ctx.save();
+    haze.forEach((p) => {
+      ctx.globalAlpha = Math.max(0, p.life) * 0.05;
+      ctx.fillStyle = '#3a1410';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+
+    bombSweepT += 0.006;
+    const sweepX = ((Math.sin(bombSweepT) + 1) / 2) * W;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createLinearGradient(sweepX - W * 0.16, 0, sweepX + W * 0.16, 0);
+    g.addColorStop(0, 'rgba(255,40,20,0)'); g.addColorStop(0.5, 'rgba(255,50,25,0.05)'); g.addColorStop(1, 'rgba(255,40,20,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    // Recent detonations make the edges of the board itself glow hotter.
+    const heat = Math.min(1, smolders.reduce((m, s) => Math.max(m, s.life), 0) * 0.6 + Math.min(0.4, smolders.length * 0.06));
+    if (heat > 0.01) {
+      const pulse = 0.6 + 0.4 * Math.sin(bombSweepT * 12);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const eg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
+      eg.addColorStop(0, 'rgba(255,60,20,0)'); eg.addColorStop(1, `rgba(255,50,20,${0.16 * heat * pulse})`);
+      ctx.fillStyle = eg; ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    }
+  }
+
+  function drawSmolders(ctx) {
+    smolders.forEach((s) => {
+      const a = Math.max(0, s.life);
+      ctx.save();
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+      g.addColorStop(0, `rgba(15,10,8,${0.55 * a})`);
+      g.addColorStop(0.6, `rgba(20,12,10,${0.32 * a})`);
+      g.addColorStop(1, 'rgba(20,12,10,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+      // A few embers still glowing in the char, fading with the scorch.
+      if (a > 0.15) {
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 4; i++) {
+          const ang = s.seed + i * 1.6, rr = s.r * (0.15 + 0.35 * ((i * 0.6) % 1));
+          const ex = s.x + Math.cos(ang) * rr, ey = s.y + Math.sin(ang) * rr * 0.6;
+          const flick = 0.5 + 0.5 * Math.sin(s.life * 40 + i * 2);
+          ctx.fillStyle = `rgba(255,120,40,${0.5 * a * flick})`;
+          ctx.beginPath(); ctx.arc(ex, ey, Math.max(1, s.r * 0.045), 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ctx.restore();
+    });
+  }
+
   function draw(ctx){
+    if (typeof document !== 'undefined' && document.body.classList.contains('mode-bomb')) {
+      drawBombAtmosphere(ctx, ctx.canvas.clientWidth || ctx.canvas.width || 1, ctx.canvas.clientHeight || ctx.canvas.height || 1);
+    }
+    if (smolders.length) drawSmolders(ctx);
     // Skip ambient particles when the board is busy — was drawing 12–20
     // shadowBlur arcs every frame even with no gameplay events.
     if (particles.length < 8 && shocks.length === 0 && beams.length === 0) {
@@ -6085,8 +6174,8 @@ const Particles = (() => {
     });
     ctx.globalAlpha=1;ctx.shadowBlur=0;
   }
-  function clear(){particles=[];shocks=[];beams=[];bombRings=[];rays=[];cores=[];sweeps=[];cracks=[];queue=[];} function count(){return particles.length;}
-  return {spawnLineClearBurst,spawnLineClearExplosion,spawnBurstAt,spawnDropBeam,spawnBombExplosion,update,draw,clear,count};
+  function clear(){particles=[];shocks=[];beams=[];bombRings=[];rays=[];cores=[];sweeps=[];cracks=[];queue=[];smolders=[];haze=[];} function count(){return particles.length;}
+  return {spawnLineClearBurst,spawnLineClearExplosion,spawnBurstAt,spawnDropBeam,spawnBombExplosion,spawnScorch,update,draw,clear,count};
 })();
 
 </script>
@@ -9738,6 +9827,7 @@ const Game = (() => {
               '#ff8a3c',
               8
             );
+            Particles.spawnScorch((c + 0.5) * UI.cellSize, (r - fxOffset + 0.5) * UI.cellSize, UI.cellSize * 0.7);
           }
         }
       }
