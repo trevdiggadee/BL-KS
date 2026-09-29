@@ -1285,6 +1285,15 @@ html[data-block-style="voxel"] .board-frame { filter: drop-shadow(0 8px 10px rgb
 
 body.mode-inferno .ambient-canvas { filter: saturate(1.35) contrast(1.08); }
 body.mode-bomb .board-frame { animation: bomb-pulse 1.8s ease-in-out infinite; }
+.board-frame.quake-impact { animation: quake-impact 0.5s ease-out; }
+@keyframes quake-impact {
+  0% { filter: brightness(1) contrast(1); }
+  8% { filter: brightness(1.55) contrast(1.15); }
+  22% { filter: brightness(0.88) contrast(1.05); }
+  40% { filter: brightness(1.18) contrast(1); }
+  100% { filter: brightness(1) contrast(1); }
+}
+@media (prefers-reduced-motion: reduce) { .board-frame.quake-impact { animation: none; } }
 body.mode-stackattack .board-frame { box-shadow: 0 0 0 1px rgba(255,92,92,.12), 0 0 34px rgba(255,70,70,.12); }
 @keyframes bomb-pulse { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-1px) scale(1.003); } }
 
@@ -5961,6 +5970,33 @@ const Particles = (() => {
     smolders.push({ x, y, r, life: 1, seed: Math.random() * 6.28 });
   }
 
+  /** Earthquake: loose dust and grit shaken free, drifting down across the
+   *  whole board width instead of a single localized effect. */
+  function spawnQuakeDust(W, count = 26) {
+    for (let n = 0; n < count; n++) {
+      push({
+        x: Math.random() * W, y: -4 - Math.random() * 30,
+        vx: (Math.random() - 0.5) * 0.6, vy: 0.7 + Math.random() * 1.5,
+        life: 1, decay: 0.006 + Math.random() * 0.007,
+        size: 1 + Math.random() * 2.4, color: Math.random() < 0.5 ? '#cbb89a' : '#9a8a76',
+        kind: 'smoke',
+      });
+    }
+  }
+
+  /** Earthquake: a jagged fissure of light that races across the board on
+   *  a big tremor, then fades — reuses the existing crack renderer. */
+  function spawnGroundCrack(W, H) {
+    const y0 = H * (0.3 + Math.random() * 0.4);
+    const pts = [];
+    let x = -10;
+    while (x < W + 10) {
+      pts.push([x, y0 + (Math.random() - 0.5) * H * 0.14]);
+      x += W / 7 + Math.random() * W * 0.05;
+    }
+    cracks.push({ pts, life: 1 });
+  }
+
   function update(){
     particles=particles.filter(p=>p.life>0);
     particles.forEach(p=>{
@@ -6175,7 +6211,7 @@ const Particles = (() => {
     ctx.globalAlpha=1;ctx.shadowBlur=0;
   }
   function clear(){particles=[];shocks=[];beams=[];bombRings=[];rays=[];cores=[];sweeps=[];cracks=[];queue=[];smolders=[];haze=[];} function count(){return particles.length;}
-  return {spawnLineClearBurst,spawnLineClearExplosion,spawnBurstAt,spawnDropBeam,spawnBombExplosion,spawnScorch,update,draw,clear,count};
+  return {spawnLineClearBurst,spawnLineClearExplosion,spawnBurstAt,spawnDropBeam,spawnBombExplosion,spawnScorch,spawnQuakeDust,spawnGroundCrack,update,draw,clear,count};
 })();
 
 </script>
@@ -6418,6 +6454,7 @@ const GemFx = (() => {
 const Effects = (() => {
   let shakeMagnitude = 0;
   let shakeDecay = 0.82;
+  let rumbleMag = 0, rumbleUntil = 0, rumbleSeed = Math.random() * 1000;
   let flashAlpha = 0;
   let flashColor = '255,255,255';
   let animationsEnabled = true;
@@ -6427,6 +6464,18 @@ const Effects = (() => {
   function shake(magnitude = 6) {
     if (!animationsEnabled) return;
     shakeMagnitude = Math.max(shakeMagnitude, magnitude);
+  }
+
+  /** A sustained, rolling tremor instead of one quick jolt — layered
+   *  low-frequency waves (so it reads as the ground actually moving, not
+   *  just jittering) plus a gentle tilt, fading out over the last part of
+   *  its duration. Used for Earthquake instead of a single shake() hit. */
+  function rumble(magnitude = 16, durationMs = 700) {
+    if (!animationsEnabled) return;
+    const now = performance.now();
+    rumbleMag = Math.max(rumbleMag, magnitude);
+    rumbleUntil = Math.max(rumbleUntil, now + durationMs);
+    rumbleSeed = Math.random() * 1000;
   }
 
   function flash(color = '255,255,255', alpha = 0.35) {
@@ -6450,11 +6499,29 @@ const Effects = (() => {
   }
 
   function getShakeOffset() {
-    if (shakeMagnitude < 0.1) { shakeMagnitude = 0; return { x: 0, y: 0 }; }
-    const x = (Math.random() - 0.5) * shakeMagnitude;
-    const y = (Math.random() - 0.5) * shakeMagnitude;
-    shakeMagnitude *= shakeDecay;
-    return { x, y };
+    const now = performance.now();
+    let x = 0, y = 0, rot = 0;
+    if (now < rumbleUntil) {
+      const remain = rumbleUntil - now;
+      const envelope = Math.min(1, remain / 300);          // fade out over the last 300ms
+      const t = now * 0.001;
+      const m = rumbleMag * envelope;
+      // A few mismatched sine frequencies summed = a rolling tremor rather
+      // than a clean, repeating wobble.
+      x += Math.sin(t * 26 + rumbleSeed) * m * 0.6 + Math.sin(t * 53 + rumbleSeed * 1.7) * m * 0.28;
+      y += Math.cos(t * 31 + rumbleSeed * 1.3) * m * 0.45 + Math.sin(t * 71 + rumbleSeed * 2.1) * m * 0.22;
+      rot += Math.sin(t * 17 + rumbleSeed * 0.7) * m * 0.05;
+    } else {
+      rumbleMag = 0;
+    }
+    if (shakeMagnitude >= 0.1) {
+      x += (Math.random() - 0.5) * shakeMagnitude;
+      y += (Math.random() - 0.5) * shakeMagnitude;
+      shakeMagnitude *= shakeDecay;
+    } else {
+      shakeMagnitude = 0;
+    }
+    return { x, y, rot };
   }
 
   function getFlashOverlayStyle() {
@@ -6533,7 +6600,7 @@ const Effects = (() => {
   }
 
   return {
-    setAnimationsEnabled, shake, flash, getShakeOffset, getFlashOverlayStyle,
+    setAnimationsEnabled, shake, rumble, flash, getShakeOffset, getFlashOverlayStyle,
     initToasts, toast, pulse, rippleFromEvent
   };
 })();
@@ -9159,8 +9226,20 @@ const UI = (() => {
   }
 
   function applyShake() {
-    const { x, y } = Effects.getShakeOffset();
-    el['board-frame'].style.transform = (x || y) ? `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)` : '';
+    const { x, y, rot } = Effects.getShakeOffset();
+    el['board-frame'].style.transform = (x || y || rot) ? `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${rot.toFixed(2)}deg)` : '';
+  }
+
+  /** A quick brightness/contrast punch on the board frame — used for a big
+   *  hit (Earthquake's main tremor) to sell the impact of the first jolt,
+   *  separate from the ongoing rumble offset. Restarts cleanly even if
+   *  called again before the previous punch finished. */
+  function impactPunch() {
+    const frame = el['board-frame'];
+    if (!frame) return;
+    frame.classList.remove('quake-impact');
+    void frame.offsetWidth; // force reflow so the animation restarts
+    frame.classList.add('quake-impact');
   }
 
   function renderFx() {
@@ -9419,7 +9498,7 @@ const UI = (() => {
   function stopAmbientBackground() { if (ambientRaf) cancelAnimationFrame(ambientRaf); ambientRaf=0; }
 
   return {
-    cacheEls, startAmbientBackground, stopAmbientBackground, showScreen, resizeBoardCanvas, renderBoard, renderFx, applyShake,
+    cacheEls, startAmbientBackground, stopAmbientBackground, showScreen, resizeBoardCanvas, renderBoard, renderFx, applyShake, impactPunch,
     drawMiniPiece, updateHud, setCombo, setOverlay, setCountdown,
     showGameOver, setModeHud, updateStartStats, showAchievementPopup,
     clearColorCache, recordTrail, resetTrail, resolveColor: colorFor, setMindBender, resetMindBenderHud,
@@ -10728,10 +10807,21 @@ const Game = (() => {
     // When there was nothing to settle, knock a block loose ourselves so the
     // mode always visibly does something once there's a stack to shake.
     if (!moved) moved = toppleRandomColumn();
-    Effects.toast(moved ? '⛰️ EARTHQUAKE!' : '⛰️ TREMOR', 'tetris', 900);
-    Effects.shake(moved ? 10 : 6);
-    if (typeof Effects.flash === 'function') Effects.flash('200,150,60', moved ? 0.16 : 0.1);
-    try { vibrate(moved ? [30, 20, 30, 20, 50] : [25, 15, 25]); } catch (_) {}
+
+    const boardW = UI.cellSize * Board.COLS, boardH = UI.cellSize * Board.ROWS;
+    Effects.toast(moved ? '⛰️ EARTHQUAKE!' : '⛰️ TREMOR', 'tetris', moved ? 1100 : 800);
+    // A sharp initial jolt (quick decaying jitter + a brightness punch),
+    // then a longer rolling tremor on top of it — a real quake isn't one
+    // clean shake, it's a hit followed by the ground still moving after.
+    Effects.shake(moved ? 16 : 7);
+    Effects.rumble(moved ? 13 : 5, moved ? 1100 : 500);
+    if (typeof UI.impactPunch === 'function') UI.impactPunch();
+    if (typeof Effects.flash === 'function') Effects.flash('200,150,60', moved ? 0.2 : 0.1);
+    if (typeof Particles !== 'undefined') {
+      Particles.spawnQuakeDust(boardW, moved ? 34 : 14);
+      if (moved) Particles.spawnGroundCrack(boardW, boardH);
+    }
+    try { vibrate(moved ? [40, 25, 20, 20, 60, 30, 80] : [25, 15, 25]); } catch (_) {}
     settleEnvironmentalShift();
   }
 
