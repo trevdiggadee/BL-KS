@@ -4511,7 +4511,6 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 }
 
 </style>
-<link rel="preload" as="image" href="game-mode-popup.webp" fetchpriority="high">
 </head>
 <body>
 <canvas id="theme-fx-canvas" aria-hidden="true"></canvas>
@@ -4637,20 +4636,29 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           <div class="block-fx-grid block-fx-grid--texture" id="block-fx-grid"><button class="block-fx-card is-active" data-preview-fx="glow" title="glow" aria-label="glow"><span class="block-fx-card__swatch fx-swatch--glow"></span></button><button class="block-fx-card is-active" data-preview-fx="shadow" title="shadow" aria-label="shadow"><span class="block-fx-card__swatch fx-swatch--shadow"></span></button><button class="block-fx-card is-active" data-preview-fx="sparkle" title="sparkle" aria-label="sparkle"><span class="block-fx-card__swatch fx-swatch--sparkle"></span></button><button class="block-fx-card" data-preview-fx="pulse" title="pulse" aria-label="pulse"><span class="block-fx-card__swatch fx-swatch--pulse"></span></button><button class="block-fx-card" data-preview-fx="fire" title="fire" aria-label="fire"><span class="block-fx-card__swatch fx-swatch--fire"></span></button><button class="block-fx-card" data-preview-fx="smoke" title="smoke" aria-label="smoke"><span class="block-fx-card__swatch fx-swatch--smoke"></span></button><button class="block-fx-card" data-preview-fx="lightning" title="lightning" aria-label="lightning"><span class="block-fx-card__swatch fx-swatch--lightning"></span></button><button class="block-fx-card" data-preview-fx="chromatic" title="chromatic" aria-label="chromatic"><span class="block-fx-card__swatch fx-swatch--chromatic"></span></button><button class="block-fx-card" data-preview-fx="shimmer" title="shimmer" aria-label="shimmer"><span class="block-fx-card__swatch fx-swatch--shimmer"></span></button><button class="block-fx-card" data-preview-fx="ripple" title="ripple" aria-label="ripple"><span class="block-fx-card__swatch fx-swatch--ripple"></span></button><button class="block-fx-card" data-preview-fx="plasma" title="plasma" aria-label="plasma"><span class="block-fx-card__swatch fx-swatch--plasma"></span></button><button class="block-fx-card" data-preview-fx="stars" title="stars" aria-label="stars"><span class="block-fx-card__swatch fx-swatch--stars"></span></button><button class="block-fx-card" data-preview-fx="aura" title="aura" aria-label="aura"><span class="block-fx-card__swatch fx-swatch--aura"></span></button><button class="block-fx-card" data-preview-fx="glitch" title="glitch" aria-label="glitch"><span class="block-fx-card__swatch fx-swatch--glitch"></span></button><button class="block-fx-card" data-preview-fx="comet" title="comet" aria-label="comet"><span class="block-fx-card__swatch fx-swatch--comet"></span></button><button class="block-fx-card" data-preview-fx="dust" title="dust" aria-label="dust"><span class="block-fx-card__swatch fx-swatch--dust"></span></button><button class="block-fx-card" data-preview-fx="wave" title="wave" aria-label="wave"><span class="block-fx-card__swatch fx-swatch--wave"></span></button><button class="block-fx-card" data-preview-fx="scan" title="scan" aria-label="scan"><span class="block-fx-card__swatch fx-swatch--scan"></span></button><button class="block-fx-card" data-preview-fx="flicker" title="flicker" aria-label="flicker"><span class="block-fx-card__swatch fx-swatch--flicker"></span></button><button class="block-fx-card" data-preview-fx="orbit" title="orbit" aria-label="orbit"><span class="block-fx-card__swatch fx-swatch--orbit"></span></button><button class="block-fx-card" data-preview-fx="mist" title="mist" aria-label="mist"><span class="block-fx-card__swatch fx-swatch--mist"></span></button><button class="block-fx-card" data-preview-fx="ring" title="ring" aria-label="ring"><span class="block-fx-card__swatch fx-swatch--ring"></span></button><button class="block-fx-card" data-preview-fx="edge" title="edge" aria-label="edge"><span class="block-fx-card__swatch fx-swatch--edge"></span></button><button class="block-fx-card" data-preview-fx="spark" title="spark" aria-label="spark"><span class="block-fx-card__swatch fx-swatch--spark"></span></button></div>
           </div>
         </section>
-        <section class="selector-popup selector-popup--mode" id="popup-mode" role="dialog" aria-modal="true" aria-label="Choose game mode" hidden>
-          <img class="mode-popup-art" src="game-mode-popup.webp" alt="Choose Game Mode" draggable="false">
-          <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
-            <button class="mode-pill is-selected" data-game-mode="standard" aria-label="Standard mode"><span>STANDARD</span></button>
-            <button class="mode-pill" data-game-mode="zen" aria-label="Jewels mode"><span>JEWELS</span></button>
-            <button class="mode-pill" data-game-mode="blitz" aria-label="Mind Bender mode"><span>MIND BENDER</span></button>
-            <button class="mode-pill" data-game-mode="inferno" aria-label="Inferno mode"><span>INFERNO</span></button>
-            <button class="mode-pill" data-game-mode="bomb" aria-label="Bomb Blocks mode"><span>BOMB BLOCKS</span></button>
-            <button class="mode-pill" data-game-mode="stackattack" aria-label="Stack Attack mode"><span>STACK ATTACK</span></button>
-            <button class="mode-pill" data-game-mode="tide" aria-label="Rising Tide mode"><span>RISING TIDE</span></button>
-            <button class="mode-pill" data-game-mode="magnet" aria-label="Magnetic Storm mode"><span>MAGNETIC STORM</span></button>
-            <button class="mode-pill" data-game-mode="quake" aria-label="Earthquake mode"><span>EARTHQUAKE</span></button>
-            <button class="mode-pill" data-game-mode="mirror" aria-label="Mirror World mode"><span>MIRROR WORLD</span></button>
+        <section class="selector-popup selector-popup--mode selector-popup--art" id="popup-mode" role="dialog" aria-modal="true" aria-labelledby="popup-mode-title" hidden>
+          <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
+          <h2 id="popup-mode-title" class="sr-only-title">CHOOSE GAME MODE</h2>
+          <div class="mode-art" id="special-mode-choices" role="group" aria-label="Game modes">
+            <img class="mode-art__img" src="game-modes.webp" alt="Choose game mode: pick the challenge you want to take on." width="928" height="1147" decoding="async" draggable="false" onerror="this.closest('.mode-art').classList.add('is-fallback')">
+            <button class="mode-hot" data-game-mode="standard" aria-label="Standard" style="left:6.47%;top:23.71%;width:42.67%;height:12.21%"></button>
+            <button class="mode-hot" data-game-mode="zen" aria-label="Jewels" style="left:50.86%;top:23.71%;width:42.24%;height:12.21%"></button>
+            <button class="mode-hot" data-game-mode="blitz" aria-label="Mind Bender" style="left:6.47%;top:37.31%;width:42.67%;height:12.90%"></button>
+            <button class="mode-hot" data-game-mode="inferno" aria-label="Inferno" style="left:50.86%;top:37.31%;width:42.24%;height:12.90%"></button>
+            <button class="mode-hot" data-game-mode="bomb" aria-label="Bomb Blocks" style="left:6.47%;top:51.44%;width:42.67%;height:12.73%"></button>
+            <button class="mode-hot" data-game-mode="stackattack" aria-label="Stack Attack" style="left:50.86%;top:51.44%;width:42.24%;height:12.73%"></button>
+            <button class="mode-hot" data-game-mode="tide" aria-label="Rising Tide" style="left:6.47%;top:65.56%;width:42.67%;height:12.55%"></button>
+            <button class="mode-hot" data-game-mode="magnet" aria-label="Magnetic Storm" style="left:50.86%;top:65.56%;width:42.24%;height:12.55%"></button>
+            <button class="mode-hot" data-game-mode="quake" aria-label="Earthquake" style="left:6.47%;top:79.69%;width:42.67%;height:12.55%"></button>
+            <button class="mode-hot" data-game-mode="mirror" aria-label="Mirror World" style="left:50.86%;top:79.69%;width:42.24%;height:12.55%"></button>
+            <div class="mode-art__fallback">
+              <div class="popup-kicker">ARENA PROTOCOL / 03</div><div class="mode-art__fallback-title">CHOOSE GAME MODE</div><p>Pick the challenge you want to take on.</p>
+              <div class="mode-pills" aria-label="Special game modes">
+            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button><button class="mode-pill" data-game-mode="tide"><span>🌊</span> RISING TIDE</button><button class="mode-pill" data-game-mode="magnet"><span>🧲</span> MAGNETIC STORM</button><button class="mode-pill" data-game-mode="quake"><span>⛰️</span> EARTHQUAKE</button><button class="mode-pill" data-game-mode="mirror"><span>🪞</span> MIRROR WORLD</button>
           </div>
+            </div>
+          </div>
+          <div class="mode-description" id="mode-description">Classic endless BLØKS. Mind Bender mode adds flashing item blocks and ten chaotic effects.</div>
         </section>
       </div>
     </div>
@@ -13750,6 +13758,7 @@ const GameBg = (() => {
       const key = b.getAttribute('data-theme-choice');
       b.classList.toggle('is-selected', key === theme);
     });
+    document.querySelectorAll('.mode-art').forEach(a => a.classList.add('has-selection'));
     document.querySelectorAll('[data-game-mode]').forEach(b => {
       const key = b.getAttribute('data-game-mode');
       b.classList.toggle('is-selected', key === gameMode);
@@ -16406,22 +16415,21 @@ html[data-theme="matrix"] .ambient-canvas { opacity: 0.25 !important; }
 #game-bg-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 body.game-bg-live #theme-fx-canvas { display: none !important; }
 
-/* ============================================================
-   GAME MODE POPUP — NEW GRAPHIC ONLY
-   The supplied artwork is the entire menu. HTML buttons are invisible
-   hit areas positioned over the ten illustrated mode panels.
-   ============================================================ */
-.selector-popup--mode{position:relative !important;width:min(94vw,560px) !important;max-width:560px !important;height:auto !important;aspect-ratio:928 / 1147 !important;max-height:calc(100dvh - 20px) !important;padding:0 !important;overflow:hidden !important;border:0 !important;border-radius:0 !important;background:transparent !important;box-shadow:0 0 38px rgba(255,157,60,.30),0 28px 90px rgba(0,0,0,.78) !important;}
-.selector-popup--mode .mode-popup-art{position:absolute !important;inset:0 !important;width:100% !important;height:100% !important;display:block !important;object-fit:fill !important;pointer-events:none !important;user-select:none !important;-webkit-user-drag:none !important;}
-.selector-popup--mode .mode-pills{position:absolute !important;inset:0 !important;z-index:3 !important;display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr)) !important;grid-template-rows:repeat(5,minmax(0,1fr)) !important;column-gap:2.1% !important;row-gap:1.35% !important;padding:23.25% 6.25% 7.4% !important;margin:0 !important;}
-.selector-popup--mode .mode-pill{position:relative !important;min-width:0 !important;min-height:0 !important;width:100% !important;height:100% !important;padding:0 !important;margin:0 !important;border:2px solid transparent !important;border-radius:14px !important;background:transparent !important;box-shadow:none !important;color:transparent !important;font-size:0 !important;line-height:0 !important;overflow:visible !important;cursor:pointer !important;outline:none !important;-webkit-tap-highlight-color:transparent !important;transition:transform .12s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease !important;}
-.selector-popup--mode .mode-pill span{position:absolute !important;width:1px !important;height:1px !important;overflow:hidden !important;clip:rect(0 0 0 0) !important;white-space:nowrap !important;}
-.selector-popup--mode .mode-pill:active{transform:scale(.985) !important;}
-.selector-popup--mode .mode-pill.is-selected{border:2px solid rgba(255,255,255,.98) !important;background:rgba(255,255,255,.025) !important;box-shadow:inset 0 0 18px rgba(255,255,255,.10),0 0 7px rgba(255,255,255,.95),0 0 18px rgba(72,226,255,.90),0 0 34px rgba(255,174,57,.52) !important;animation:mode-selected-pulse 1.45s ease-in-out infinite !important;}
-.selector-popup--mode .mode-pill:focus-visible{border-color:rgba(255,255,255,.95) !important;box-shadow:0 0 0 3px rgba(92,225,255,.55),0 0 25px rgba(92,225,255,.75) !important;}
-@keyframes mode-selected-pulse{0%,100%{filter:brightness(1);box-shadow:inset 0 0 18px rgba(255,255,255,.08),0 0 7px rgba(255,255,255,.90),0 0 18px rgba(72,226,255,.75),0 0 32px rgba(255,174,57,.42)}50%{filter:brightness(1.10);box-shadow:inset 0 0 22px rgba(255,255,255,.13),0 0 9px rgba(255,255,255,1),0 0 25px rgba(72,226,255,1),0 0 42px rgba(255,174,57,.62)}}
-.selector-popup--mode .popup-kicker,.selector-popup--mode h2,.selector-popup--mode > p,.selector-popup--mode .mode-description,.selector-popup--mode .popup-close{display:none !important;}
-@media (max-width:390px){.selector-popup--mode{width:min(95vw,560px) !important;}.selector-popup--mode .mode-pills{padding-left:6.2% !important;padding-right:6.2% !important;padding-top:23.25% !important;padding-bottom:7.4% !important;}}
-@media (max-height:700px) and (orientation:landscape){.selector-popup--mode{height:calc(100dvh - 12px) !important;width:auto !important;}}
-
+/* ---- Game mode picker: artwork with tappable buttons ---- */
+.sr-only-title { position:absolute!important; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; margin:0!important; padding:0!important; }
+.selector-popup.selector-popup--art { width:min(100%,540px); max-height:min(90dvh,780px); padding:8px !important; background:#000 !important; border-radius:22px; }
+.mode-art { position:relative; line-height:0; -webkit-tap-highlight-color:transparent; }
+.mode-art__img { display:block; width:100%; height:auto; border-radius:16px; user-select:none; -webkit-user-select:none; -webkit-user-drag:none; pointer-events:none; }
+.mode-art .mode-hot { position:absolute; padding:0; margin:0; border:0; border-radius:4.5% / 11%; background:transparent; cursor:pointer; touch-action:manipulation; transition:background .15s, box-shadow .2s, transform .12s; outline:none; }
+.mode-art.has-selection .mode-hot:not(.is-selected) { background:rgba(0,4,20,.30); }
+.mode-art .mode-hot:hover:not(.is-selected) { background:rgba(255,255,255,.07); }
+.mode-art .mode-hot:active { transform:scale(.975); background:rgba(255,255,255,.16) !important; }
+.mode-art .mode-hot:focus-visible { box-shadow:0 0 0 2px #fff; }
+.mode-art .mode-hot.is-selected { box-shadow:0 0 0 2px #fff, 0 0 0 4px rgba(255,214,110,.55), 0 0 20px 6px rgba(255,200,90,.55); animation:mode-hot-pulse 1.6s ease-in-out infinite; }
+@keyframes mode-hot-pulse { 0%,100% { box-shadow:0 0 0 2px #fff, 0 0 0 4px rgba(255,214,110,.55), 0 0 16px 4px rgba(255,200,90,.45); } 50% { box-shadow:0 0 0 2px #fff, 0 0 0 4px rgba(255,230,150,.85), 0 0 28px 9px rgba(255,205,100,.7); } }
+.mode-art__fallback { display:none; line-height:normal; padding:20px 12px 8px; }
+.mode-art__fallback-title { margin:0 0 7px; font-size:clamp(1.15rem,5vw,1.65rem); font-weight:1000; }
+.mode-art.is-fallback .mode-art__img, .mode-art.is-fallback .mode-hot { display:none; }
+.mode-art.is-fallback .mode-art__fallback { display:block; }
+@media (prefers-reduced-motion: reduce) { .mode-art .mode-hot.is-selected { animation:none; } }
 </style>
