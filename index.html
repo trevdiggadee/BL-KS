@@ -4600,10 +4600,26 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 
       <div class="selector-popups" id="selector-popups">
         <div class="selector-backdrop" data-popup-close="all"></div>
-        <section class="selector-popup selector-popup--theme" id="popup-theme" role="dialog" aria-modal="true" aria-labelledby="popup-theme-title" hidden>
+        <section class="selector-popup selector-popup--theme selector-popup--art" id="popup-theme" role="dialog" aria-modal="true" aria-labelledby="popup-theme-title" hidden>
           <button class="popup-close" data-popup-close="all" aria-label="Close theme selector">×</button>
-          <div class="popup-kicker">VISUAL CONFIGURATION / 01</div><h2 id="popup-theme-title">CHOOSE YOUR THEME</h2><p>Set the atmosphere of your arena.</p>
-          <div class="theme-pills theme-pills--textures" id="quick-theme-choices">
+                    <h2 id="popup-theme-title" class="sr-only-title">CHOOSE YOUR THEME</h2>
+          <div class="mode-art theme-art" id="quick-theme-choices" role="group" aria-label="Themes">
+            <img class="mode-art__img" src="game-themes.webp" alt="Choose your theme: set the atmosphere of your arena." width="960" height="1106" decoding="async" draggable="false" onerror="this.closest('.mode-art').classList.add('is-fallback')">
+            <button class="mode-hot" data-theme-choice="neon" aria-label="Neon" style="left:8.33%;top:24.41%;width:26.35%;height:15.55%"></button>
+            <button class="mode-hot" data-theme-choice="matrix" aria-label="Matrix" style="left:36.88%;top:24.41%;width:26.35%;height:15.55%"></button>
+            <button class="mode-hot" data-theme-choice="minecraft" aria-label="Craft" style="left:65.31%;top:24.41%;width:26.46%;height:15.55%"></button>
+            <button class="mode-hot" data-theme-choice="lava" aria-label="Lava" style="left:8.33%;top:41.77%;width:26.35%;height:15.82%"></button>
+            <button class="mode-hot" data-theme-choice="plasma" aria-label="Plasma" style="left:36.88%;top:41.77%;width:26.35%;height:15.82%"></button>
+            <button class="mode-hot" data-theme-choice="candy" aria-label="Candy" style="left:65.31%;top:41.77%;width:26.46%;height:15.82%"></button>
+            <button class="mode-hot" data-theme-choice="frost" aria-label="Frost" style="left:8.33%;top:59.22%;width:26.35%;height:15.82%"></button>
+            <button class="mode-hot" data-theme-choice="cyber" aria-label="Cyber" style="left:36.88%;top:59.22%;width:26.35%;height:15.82%"></button>
+            <button class="mode-hot" data-theme-choice="arcade" aria-label="Arcade" style="left:65.31%;top:59.22%;width:26.46%;height:15.82%"></button>
+            <button class="mode-hot" data-theme-choice="midnight" aria-label="Night" style="left:8.33%;top:76.67%;width:26.35%;height:15.73%"></button>
+            <button class="mode-hot" data-theme-choice="ember" aria-label="Ember" style="left:36.88%;top:76.67%;width:26.35%;height:15.73%"></button>
+            <button class="mode-hot" data-theme-choice="forest" aria-label="Forest" style="left:65.31%;top:76.67%;width:26.46%;height:15.73%"></button>
+            <div class="mode-art__fallback">
+              <div class="popup-kicker">VISUAL CONFIGURATION / 01</div><div class="mode-art__fallback-title">CHOOSE YOUR THEME</div><p>Set the atmosphere of your arena.</p>
+              <div class="theme-pills theme-pills--textures" id="quick-theme-choices">
             <button class="theme-pill is-selected" data-theme-choice="neon" title="Neon"><span class="theme-pill__icon" aria-hidden="true">⚡</span><span class="theme-pill__name">Neon</span><span class="theme-pill__match">Neon · Vapor</span></button>
             <button class="theme-pill" data-theme-choice="matrix" title="Matrix"><span class="theme-pill__icon" aria-hidden="true">カタ</span><span class="theme-pill__name">Matrix</span><span class="theme-pill__match">Circuit</span></button>
             <button class="theme-pill" data-theme-choice="minecraft" title="Craft"><span class="theme-pill__icon" aria-hidden="true">▣</span><span class="theme-pill__name">Craft</span><span class="theme-pill__match">Minecraft</span></button>
@@ -4616,6 +4632,8 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
             <button class="theme-pill" data-theme-choice="midnight" title="Night"><span class="theme-pill__icon" aria-hidden="true">☾</span><span class="theme-pill__name">Night</span><span class="theme-pill__match">Midnight · Obsidian</span></button>
             <button class="theme-pill" data-theme-choice="ember" title="Ember"><span class="theme-pill__icon" aria-hidden="true">✦</span><span class="theme-pill__name">Ember</span><span class="theme-pill__match">Ruby · Coral</span></button>
             <button class="theme-pill" data-theme-choice="forest" title="Forest"><span class="theme-pill__icon" aria-hidden="true">▤</span><span class="theme-pill__name">Forest</span><span class="theme-pill__match">Wood · Paper</span></button>
+          </div>
+            </div>
           </div>
         </section>
         <section class="selector-popup selector-popup--blocks" id="popup-blocks" role="dialog" aria-modal="true" aria-labelledby="popup-blocks-title" hidden>
@@ -13754,6 +13772,7 @@ const GameBg = (() => {
       const key = b.getAttribute('data-block-style');
       b.classList.toggle('is-selected', key === blockStyle);
     });
+    document.querySelectorAll('.theme-art').forEach(a => a.classList.add('has-selection'));
     document.querySelectorAll('[data-theme-choice]').forEach(b => {
       const key = b.getAttribute('data-theme-choice');
       b.classList.toggle('is-selected', key === theme);
