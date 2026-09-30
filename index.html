@@ -1285,27 +1285,7 @@ html[data-block-style="voxel"] .board-frame { filter: drop-shadow(0 8px 10px rgb
 
 body.mode-inferno .ambient-canvas { filter: saturate(1.35) contrast(1.08); }
 body.mode-bomb .board-frame { animation: bomb-pulse 1.8s ease-in-out infinite; }
-.board-frame.quake-impact { animation: quake-impact 0.5s ease-out; }
-@keyframes quake-impact {
-  0% { filter: brightness(1) contrast(1); }
-  8% { filter: brightness(1.55) contrast(1.15); }
-  22% { filter: brightness(0.88) contrast(1.05); }
-  40% { filter: brightness(1.18) contrast(1); }
-  100% { filter: brightness(1) contrast(1); }
-}
-@media (prefers-reduced-motion: reduce) { .board-frame.quake-impact { animation: none; } }
 body.mode-stackattack .board-frame { box-shadow: 0 0 0 1px rgba(255,92,92,.12), 0 0 34px rgba(255,70,70,.12); }
-body.mode-magnet .board-frame { animation: magnet-frame 3.2s ease-in-out infinite; }
-@keyframes magnet-frame {
-  0%,100% { box-shadow: 0 0 0 1px rgba(76,243,255,.3), -16px 0 38px rgba(70,150,255,.16), 16px 0 38px rgba(255,80,220,.16), inset 0 0 30px rgba(80,100,255,.08); }
-  50% { box-shadow: 0 0 0 1px rgba(160,140,255,.5), -24px 0 52px rgba(70,150,255,.3), 24px 0 52px rgba(255,80,220,.3), inset 0 0 40px rgba(120,90,255,.14); }
-}
-body.mode-mirror .board-frame { animation: mirror-frame 5s ease-in-out infinite; }
-@keyframes mirror-frame {
-  0%,100% { border-color: rgba(200,225,255,.4); box-shadow: 0 0 0 1px rgba(200,225,255,.25), 0 0 36px rgba(160,190,255,.16), inset 0 0 30px rgba(190,215,255,.06); }
-  50% { border-color: rgba(255,255,255,.7); box-shadow: 0 0 0 1px rgba(255,255,255,.4), 0 0 54px rgba(200,225,255,.34), inset 0 0 44px rgba(220,235,255,.14); }
-}
-@media (prefers-reduced-motion: reduce) { body.mode-magnet .board-frame, body.mode-mirror .board-frame { animation: none; } }
 @keyframes bomb-pulse { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-1px) scale(1.003); } }
 
 
@@ -3577,17 +3557,11 @@ html, body, #app {
   text-shadow: 0 0 10px rgba(255, 200, 80, 0.6);
 }
 body.mode-blitz .board-frame {
-  animation: mb-frame-psy 8s linear infinite;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent),
+    0 0 40px color-mix(in srgb, var(--accent-2) 18%, transparent),
+    inset 0 0 30px rgba(120, 80, 255, 0.06) !important;
 }
-@keyframes mb-frame-psy {
-  0%, 100% { border-color: rgba(76,243,255,.55); box-shadow: 0 0 0 1px rgba(76,243,255,.35), 0 0 44px rgba(76,243,255,.24), inset 0 0 30px rgba(120,80,255,.10); }
-  25% { border-color: rgba(255,62,165,.55); box-shadow: 0 0 0 1px rgba(255,62,165,.35), 0 0 44px rgba(255,62,165,.24), inset 0 0 30px rgba(255,62,165,.08); }
-  50% { border-color: rgba(198,255,61,.5); box-shadow: 0 0 0 1px rgba(198,255,61,.3), 0 0 44px rgba(198,255,61,.2), inset 0 0 30px rgba(76,243,255,.08); }
-  75% { border-color: rgba(155,107,255,.55); box-shadow: 0 0 0 1px rgba(155,107,255,.35), 0 0 44px rgba(155,107,255,.26), inset 0 0 30px rgba(255,62,165,.08); }
-}
-body.mode-blitz .ambient-canvas { animation: mb-ambient-hue 18s linear infinite; }
-@keyframes mb-ambient-hue { from { filter: hue-rotate(0deg) saturate(1.35); } to { filter: hue-rotate(360deg) saturate(1.35); } }
-@media (prefers-reduced-motion: reduce) { body.mode-blitz .board-frame, body.mode-blitz .ambient-canvas { animation: none; } }
 body.mode-blitz .mode-hud__mb { display: inline-flex !important; }
 /* Effect flash overlays */
 .mb-fx-flash {
@@ -3613,6 +3587,61 @@ body.mode-blitz .mode-hud__mb { display: inline-flex !important; }
 .mb-fx-flash[data-fx="speed"] { background: radial-gradient(circle, rgba(255,220,80,0.4), transparent 70%); }
 .mb-fx-flash[data-fx="turn"] { background: conic-gradient(from 0deg, rgba(180,100,255,0.25), transparent, rgba(180,100,255,0.25)); }
 .mb-fx-flash[data-fx="twist"] { background: linear-gradient(90deg, rgba(255,100,180,0.25), rgba(80,200,255,0.25)); }
+
+/* Mind Bender: each effect gets its own real motion on the board frame,
+   not just a color wash — so FISSION visibly splits, TWIST visibly
+   mirrors, TURN visibly flips, etc. Applied as a class toggled by JS for
+   the effect's duration, layered on top of the ambient shake transform. */
+#screen-game .board-frame { transform-style: preserve-3d; perspective: 900px; }
+.board-frame.mb-anim-fission { animation: mb-fission 0.6s cubic-bezier(.36,.07,.19,.97); }
+@keyframes mb-fission {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.03) translateX(-3px); filter: brightness(1.25); }
+  55% { transform: scale(0.97) translateX(3px); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.board-frame.mb-anim-fusion { animation: mb-fusion 0.55s ease-in-out; }
+@keyframes mb-fusion {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.92); filter: brightness(1.3) saturate(1.4); }
+  70% { transform: scale(1.04); }
+  100% { transform: scale(1); filter: brightness(1) saturate(1); }
+}
+.board-frame.mb-anim-turn { animation: mb-turn 0.7s cubic-bezier(.45,.05,.55,.95); }
+@keyframes mb-turn {
+  0% { transform: rotateX(0deg); }
+  50% { transform: rotateX(-16deg) scale(0.97); filter: brightness(1.3); }
+  100% { transform: rotateX(0deg); filter: brightness(1); }
+}
+.board-frame.mb-anim-twist { animation: mb-twist 0.7s cubic-bezier(.45,.05,.55,.95); }
+@keyframes mb-twist {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(18deg) scale(0.97); filter: brightness(1.3) hue-rotate(30deg); }
+  100% { transform: rotateY(0deg); filter: brightness(1) hue-rotate(0deg); }
+}
+.board-frame.mb-anim-shift { animation: mb-shift 0.45s ease-out; }
+@keyframes mb-shift {
+  0% { transform: translateX(0); filter: blur(0); }
+  35% { transform: translateX(var(--mb-shift-dx, 14px)); filter: blur(2.5px); }
+  100% { transform: translateX(0); filter: blur(0); }
+}
+.board-frame.mb-anim-erosion { animation: mb-erosion 0.5s ease-in-out; }
+@keyframes mb-erosion {
+  0%, 100% { transform: translate(0,0); filter: saturate(1) brightness(1); }
+  20% { transform: translate(-2px,1px); filter: saturate(0.4) brightness(0.85); }
+  40% { transform: translate(2px,-1px); }
+  60% { transform: translate(-1px,2px); filter: saturate(0.6) brightness(0.95); }
+  80% { transform: translate(1px,-1px); }
+}
+.board-frame.mb-anim-invasion { animation: mb-invasion 0.55s cubic-bezier(.25,.9,.3,1.1); }
+@keyframes mb-invasion {
+  0% { transform: translateY(-10px); filter: brightness(1.4); }
+  55% { transform: translateY(4px); }
+  100% { transform: translateY(0); filter: brightness(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .board-frame[class*="mb-anim-"] { animation: none !important; }
+}
 
 
 body.mode-zen { --jewel-glow: 255,120,200; }
@@ -4639,8 +4668,8 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
         <section class="selector-popup selector-popup--mode" id="popup-mode" role="dialog" aria-modal="true" aria-labelledby="popup-mode-title" hidden>
           <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
           <div class="popup-kicker">ARENA PROTOCOL / 03</div><h2 id="popup-mode-title">CHOOSE GAME MODE</h2><p>Pick the challenge you want to take on.</p>
-          <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
-            <button class="mode-pill is-selected" data-game-mode="standard"><span>◆</span> STANDARD</button><button class="mode-pill" data-game-mode="zen"><span>💎</span> JEWELS</button><button class="mode-pill" data-game-mode="blitz"><span>🌀</span> MIND BENDER</button><button class="mode-pill" data-game-mode="inferno"><span>🔥</span> INFERNO</button><button class="mode-pill" data-game-mode="bomb"><span>💣</span> BOMB BLOCKS</button><button class="mode-pill" data-game-mode="stackattack"><span>⬆</span> STACK ATTACK</button><button class="mode-pill" data-game-mode="tide"><span>🌊</span> RISING TIDE</button><button class="mode-pill" data-game-mode="magnet"><span>🧲</span> MAGNETIC STORM</button><button class="mode-pill" data-game-mode="quake"><span>⛰️</span> EARTHQUAKE</button><button class="mode-pill" data-game-mode="mirror"><span>🪞</span> MIRROR WORLD</button>
+          <div class="mode-pills mode-pills--art" id="special-mode-choices" aria-label="Special game modes">
+            <button class="mode-pill mode-pill--art is-selected" data-game-mode="standard" aria-label="Standard"><span class="mode-pill__art" style="background-image:url(buttons/standard.webp)"></span><span class="sr-only">Standard</span></button><button class="mode-pill mode-pill--art" data-game-mode="zen" aria-label="Jewels"><span class="mode-pill__art" style="background-image:url(buttons/jewels.webp)"></span><span class="sr-only">Jewels</span></button><button class="mode-pill mode-pill--art" data-game-mode="blitz" aria-label="Mind Bender"><span class="mode-pill__art" style="background-image:url(buttons/mindbender.webp)"></span><span class="sr-only">Mind Bender</span></button><button class="mode-pill mode-pill--art" data-game-mode="inferno" aria-label="Inferno"><span class="mode-pill__art" style="background-image:url(buttons/inferno.webp)"></span><span class="sr-only">Inferno</span></button><button class="mode-pill mode-pill--art" data-game-mode="bomb" aria-label="Bomb Blocks"><span class="mode-pill__art" style="background-image:url(buttons/bombblocks.webp)"></span><span class="sr-only">Bomb Blocks</span></button><button class="mode-pill mode-pill--art" data-game-mode="stackattack" aria-label="Stack Attack"><span class="mode-pill__art" style="background-image:url(buttons/stackattack.webp)"></span><span class="sr-only">Stack Attack</span></button><button class="mode-pill mode-pill--art" data-game-mode="tide" aria-label="Rising Tide"><span class="mode-pill__art" style="background-image:url(buttons/risingtide.webp)"></span><span class="sr-only">Rising Tide</span></button><button class="mode-pill mode-pill--art" data-game-mode="magnet" aria-label="Magnetic Storm"><span class="mode-pill__art" style="background-image:url(buttons/magneticstorm.webp)"></span><span class="sr-only">Magnetic Storm</span></button><button class="mode-pill mode-pill--art" data-game-mode="quake" aria-label="Earthquake"><span class="mode-pill__art" style="background-image:url(buttons/earthquake.webp)"></span><span class="sr-only">Earthquake</span></button><button class="mode-pill mode-pill--art" data-game-mode="mirror" aria-label="Mirror World"><span class="mode-pill__art" style="background-image:url(buttons/mirrorworld.webp)"></span><span class="sr-only">Mirror World</span></button>
           </div>
           <div class="mode-description" id="mode-description">Classic endless BLØKS. Mind Bender mode adds flashing item blocks and ten chaotic effects.</div>
         </section>
@@ -5533,26 +5562,6 @@ const Audio_ = (() => {
       noiseBurst({ duration: 0.08, gain: 0.18 });
     },
     lock: () => tone({ freq: 90, duration: 0.06, type: 'square', gain: 0.15 }),
-    stackRise: () => { tone({ freq: 70, duration: 0.4, type: 'sawtooth', gain: 0.22, slideTo: 150 }); tone({ freq: 55, duration: 0.35, type: 'sine', gain: 0.3, slideTo: 35 }); noiseBurst({ duration: 0.3, gain: 0.16 }); },
-    warnTick: (sec = 3) => tone({ freq: 520 + (3 - Math.min(3, sec)) * 190, duration: 0.07, type: 'square', gain: 0.09 }),
-    magnetPull: () => { tone({ freq: 180, duration: 0.35, type: 'sawtooth', gain: 0.16, slideTo: 900 }); noiseBurst({ duration: 0.18, gain: 0.14, delay: 0.28 }); tone({ freq: 1200, duration: 0.1, type: 'square', gain: 0.08, delay: 0.3, slideTo: 300 }); },
-    mirrorFlip: () => { [1046, 1318, 1568, 2093].forEach((f, i) => tone({ freq: f, duration: 0.35, type: 'sine', gain: 0.1, delay: i * 0.05 })); tone({ freq: 220, duration: 0.4, type: 'triangle', gain: 0.16, slideTo: 110 }); noiseBurst({ duration: 0.25, gain: 0.1, delay: 0.28 }); },
-    cascadeThud: () => { tone({ freq: 70, duration: 0.1, type: 'sine', gain: 0.16, slideTo: 40 }); noiseBurst({ duration: 0.05, gain: 0.05 }); },
-    mbFx: (id) => {
-      switch (id) {
-        case 'fission': tone({ freq: 900, duration: 0.3, type: 'sawtooth', gain: 0.14, slideTo: 120 }); noiseBurst({ duration: 0.2, gain: 0.12 }); break;
-        case 'fusion': tone({ freq: 120, duration: 0.25, type: 'sine', gain: 0.3, slideTo: 400 }); tone({ freq: 70, duration: 0.3, type: 'sine', gain: 0.35, delay: 0.32, slideTo: 30 }); noiseBurst({ duration: 0.25, gain: 0.2, delay: 0.32 }); break;
-        case 'shift': noiseBurst({ duration: 0.45, gain: 0.16 }); tone({ freq: 200, duration: 0.4, type: 'triangle', gain: 0.12, slideTo: 700 }); break;
-        case 'turn': tone({ freq: 300, duration: 0.5, type: 'square', gain: 0.1, slideTo: 900 }); tone({ freq: 900, duration: 0.4, type: 'square', gain: 0.08, slideTo: 200, delay: 0.25 }); break;
-        case 'twist': [400, 500, 640, 800, 1000].forEach((f, i) => tone({ freq: f, duration: 0.16, type: 'triangle', gain: 0.14, delay: i * 0.07 })); break;
-        case 'invasion': tone({ freq: 90, duration: 0.6, type: 'sawtooth', gain: 0.28, slideTo: 35 }); noiseBurst({ duration: 0.5, gain: 0.22 }); break;
-        case 'erosion': noiseBurst({ duration: 0.6, gain: 0.2 }); tone({ freq: 200, duration: 0.5, type: 'sawtooth', gain: 0.12, slideTo: 60 }); break;
-        case 'blur': tone({ freq: 520, duration: 0.6, type: 'sine', gain: 0.14, slideTo: 380 }); tone({ freq: 531, duration: 0.6, type: 'sine', gain: 0.14, slideTo: 395, delay: 0.02 }); break;
-        case 'slow': tone({ freq: 500, duration: 0.7, type: 'sine', gain: 0.16, slideTo: 80 }); break;
-        case 'speed': tone({ freq: 200, duration: 0.5, type: 'sawtooth', gain: 0.12, slideTo: 1400 }); break;
-        default: break;
-      }
-    },
     hold: () => tone({ freq: 500, duration: 0.05, type: 'triangle', gain: 0.1 }),
     lineClear: (lines) => {
       const notes = [440, 550, 660, 880];
@@ -5957,67 +5966,6 @@ const Particles = (() => {
     }
   }
 
-  function spawnLandingDust(x, y, cs, power = 1) {
-    for (let n = 0; n < 3; n++) {
-      pt({ x: x + rnd(-cs * 0.4, cs * 0.4), y: y - 2, vx: rnd(-0.9, 0.9) * power, vy: -rnd(0.2, 0.9), kind: 'puff',
-        color: '#b9c2d6', size: cs * rnd(0.16, 0.28), decay: 0.03, alpha: 0.28 });
-    }
-    for (let n = 0; n < 2; n++) {
-      pt({ x: x + rnd(-cs * 0.4, cs * 0.4), y: y - 1, vx: rnd(-2.2, 2.2) * power, vy: -rnd(0.6, 1.8), gy: 0.1, grav: true,
-        kind: 'spark', color: '#e6ecff', size: 1.6, decay: 0.05 });
-    }
-  }
-  function spawnStackRise(W, H, cs, cols) {
-    const colors = ['#ffb300', '#ff5a1f', '#ff3b30', '#ffe066'];
-    core(W / 2, H - cs * 0.3, cs * 4.6, '#ff5a1f', 0.95, 0.09);
-    sweeps.push({ y: H - cs * 0.3, h: cs * 0.7, x: -W * 0.3, w: W * 0.35, vx: W * 0.07, life: 1, color: '#ffb300' });
-    for (let c = 0; c < cols; c++) {
-      const x = (c + 0.5) * cs;
-      for (let n = 0; n < 3; n++) {
-        pt({ x: x + rnd(-cs / 3, cs / 3), y: H - 2, vx: rnd(-1.4, 1.4), vy: -rnd(3, 9), gy: 0.18, grav: true, kind: 'spark',
-          color: pick(colors), size: rnd(1.6, 3), decay: rnd(0.02, 0.035) });
-      }
-      pt({ x, y: H - 4, vx: rnd(-0.5, 0.5), vy: -rnd(0.8, 2), kind: 'puff', color: '#8a8580', size: cs * rnd(0.3, 0.5), decay: 0.02, alpha: 0.34 });
-    }
-  }
-  /** dir: -1 pulls left, +1 pulls right. */
-  function spawnMagnetPull(W, H, cs, dir) {
-    const wx = dir < 0 ? 0 : W;
-    for (let n = 0; n < 46; n++) {
-      const y0 = rnd(0, H);
-      pt({ x: rnd(0, W), y: y0, vx: 0, vy: 0, tx: wx, ty: y0, pull: 0.02, drag: 0.93, kind: 'spark', color: pick(PAL.magnet), size: rnd(1.6, 2.8), decay: 0.03 });
-    }
-    for (let n = 0; n < 32; n++) {
-      pt({ x: wx, y: rnd(0, H), vx: -dir * rnd(1, 6), vy: rnd(-1, 1), drag: 0.95, kind: 'spark', color: pick(['#ffffff', '#ff6bd6', '#4cf3ff']), size: rnd(1.6, 3), decay: rnd(0.03, 0.05) });
-    }
-    for (let n = 0; n < 6; n++) {
-      pt({ x: wx, y: rnd(0, H), vx: -dir * rnd(2, 4), vy: rnd(-1, 1), kind: 'electric', color: '#9bf3ff', size: rnd(3, 5), decay: 0.05 });
-    }
-  }
-  function spawnMirrorShatter(W, H, cs) {
-    const cx = W / 2;
-    core(cx, H / 2, cs * 5, '#dff0ff', 1, 0.08);
-    ring(cx, H / 2, cs, W * 0.9, '#b7c4ff', cs * 0.08, 1, 1);
-    for (let n = 0; n < 70; n++) {
-      const x = cx + rnd(-cs * 0.3, cs * 0.3);
-      pt({ x, y: rnd(0, H), vx: (x < cx ? -1 : 1) * rnd(1.5, 7), vy: rnd(-3, 2), gy: 0.14, grav: true, kind: 'shard', color: pick(PAL.mirror),
-        size: rnd(2.5, 6), rot: rnd(0, 6), vr: rnd(-0.3, 0.3), decay: rnd(0.016, 0.03) });
-    }
-    for (let n = 0; n < 24; n++) {
-      const o = rnd(cs, W / 2), y = rnd(0, H), vy = -rnd(0.3, 1), sz = rnd(1.4, 2.6);
-      pt({ x: cx - o, y, vx: 0, vy, kind: 'glow', color: '#ffffff', size: sz, decay: 0.02 });
-      pt({ x: cx + o, y, vx: 0, vy, kind: 'glow', color: '#ffffff', size: sz, decay: 0.02 });
-    }
-  }
-  /** A vertical line of sparks firing sideways (fission rift, fusion seam, wall hit). */
-  function spawnSeamBurst(x, y0, y1, cs, colors, n = 30) {
-    for (let i = 0; i < n; i++) {
-      const dir = Math.random() < 0.5 ? -1 : 1;
-      pt({ x, y: rnd(y0, y1), vx: dir * rnd(1.5, 7), vy: rnd(-1.2, 1.2), kind: 'spark', color: pick(colors),
-        size: rnd(1.6, 3), decay: rnd(0.03, 0.05), drag: 0.96 });
-    }
-    core(x, (y0 + y1) / 2, cs * 2.4, colors[0], 0.85, 0.12);
-  }
   function spawnBurstAt(x,y,color,count=8){
     count = Math.min(count, 10);
     for(let n=0;n<count;n++){
@@ -6309,7 +6257,7 @@ const Particles = (() => {
     ctx.globalAlpha=1;ctx.shadowBlur=0;
   }
   function clear(){particles=[];shocks=[];beams=[];bombRings=[];rays=[];cores=[];sweeps=[];cracks=[];queue=[];smolders=[];haze=[];} function count(){return particles.length;}
-  return {spawnLineClearBurst,spawnLineClearExplosion,spawnBurstAt,spawnDropBeam,spawnBombExplosion,spawnScorch,spawnQuakeDust,spawnGroundCrack,spawnLandingDust,spawnSeamBurst,spawnStackRise,spawnMagnetPull,spawnMirrorShatter,update,draw,clear,count};
+  return {spawnLineClearBurst,spawnLineClearExplosion,spawnBurstAt,spawnDropBeam,spawnBombExplosion,spawnScorch,spawnQuakeDust,spawnGroundCrack,update,draw,clear,count};
 })();
 
 </script>
@@ -6551,10 +6499,9 @@ const GemFx = (() => {
 
 const Effects = (() => {
   let shakeMagnitude = 0;
-  const SHAKE_DECAY = 0.72;            // per 16.7ms frame: a hit dies out in ~14 frames
-  let shakeSign = 1, lastShakeT = 0;
-  const shakeHist = [];               // recent offsets, newest first (drives the motion-blur echoes)
+  let shakeDecay = 0.82;
   let rumbleMag = 0, rumbleUntil = 0, rumbleSeed = Math.random() * 1000;
+  let punchAlpha = 0, punchAt = 0;
   let flashAlpha = 0;
   let flashColor = '255,255,255';
   let animationsEnabled = true;
@@ -6563,7 +6510,7 @@ const Effects = (() => {
 
   function shake(magnitude = 6) {
     if (!animationsEnabled) return;
-    shakeMagnitude = Math.max(shakeMagnitude, magnitude * 1.12);
+    shakeMagnitude = Math.max(shakeMagnitude, magnitude);
   }
 
   /** A sustained, rolling tremor instead of one quick jolt — layered
@@ -6576,6 +6523,16 @@ const Effects = (() => {
     rumbleMag = Math.max(rumbleMag, magnitude);
     rumbleUntil = Math.max(rumbleUntil, now + durationMs);
     rumbleSeed = Math.random() * 1000;
+  }
+
+  /** A single-frame "hit" — a brief brightness/contrast flash on whatever
+   *  reads getShakeOffset(), timed to the exact moment of impact rather
+   *  than a fixed-length CSS animation, so it can never fight with the
+   *  motion-blur filter that's also being written every frame. */
+  function punch(intensity = 1) {
+    if (!animationsEnabled) return;
+    punchAlpha = Math.max(punchAlpha, intensity);
+    punchAt = performance.now();
   }
 
   function flash(color = '255,255,255', alpha = 0.35) {
@@ -6614,40 +6571,22 @@ const Effects = (() => {
     } else {
       rumbleMag = 0;
     }
-    const dt = Math.max(4, Math.min(50, now - (lastShakeT || now - 16.7)));
-    lastShakeT = now;
-    if (shakeMagnitude >= 0.15) {
-      // Snap hard from side to side every frame (30Hz) instead of random
-      // jitter, and die out quickly: a sharp, punchy hit.
-      shakeSign = -shakeSign;
-      const a = (Math.random() - 0.5) * 1.2;
-      const m = shakeMagnitude * (0.65 + Math.random() * 0.35);
-      x += shakeSign * m * Math.cos(a);
-      y += shakeSign * m * Math.sin(a) * 0.9 + (Math.random() - 0.5) * m * 0.35;
-      rot += shakeSign * m * 0.012;
-      shakeMagnitude *= Math.pow(SHAKE_DECAY, dt / 16.67);
+    if (shakeMagnitude >= 0.1) {
+      x += (Math.random() - 0.5) * shakeMagnitude;
+      y += (Math.random() - 0.5) * shakeMagnitude;
+      shakeMagnitude *= shakeDecay;
     } else {
       shakeMagnitude = 0;
     }
-    shakeHist.unshift({ x, y });
-    if (shakeHist.length > 4) shakeHist.length = 4;
-    return { x, y, rot };
-  }
-
-  /** Motion blur for the shake: echoes of the last few frames' positions,
-   *  relative to where the board is drawn now. Null when it isn't moving. */
-  function getMotionTrail() {
-    if (shakeHist.length < 2) return null;
-    const c = shakeHist[0];
-    const sp = Math.hypot(shakeHist[1].x - c.x, shakeHist[1].y - c.y);
-    if (sp < 1.2) return null;
-    const k = Math.min(1, sp / 9);
-    const A = [0.42, 0.27, 0.15];
-    const out = [];
-    for (let i = 1; i < shakeHist.length && i <= 3; i++) {
-      out.push({ dx: shakeHist[i].x - c.x, dy: shakeHist[i].y - c.y, a: A[i - 1] * k });
+    // Punch decays fast (~130ms) purely by elapsed time, so it stays in
+    // lockstep with getShakeOffset() being polled every frame regardless
+    // of frame rate.
+    let punch = 0;
+    if (punchAlpha > 0.01) {
+      punch = punchAlpha * Math.max(0, 1 - (now - punchAt) / 130);
+      if (punch <= 0.01) punchAlpha = 0;
     }
-    return out;
+    return { x, y, rot, punch };
   }
 
   function getFlashOverlayStyle() {
@@ -6726,7 +6665,7 @@ const Effects = (() => {
   }
 
   return {
-    setAnimationsEnabled, shake, rumble, flash, getShakeOffset, getMotionTrail, getFlashOverlayStyle,
+    setAnimationsEnabled, shake, rumble, punch, flash, getShakeOffset, getFlashOverlayStyle,
     initToasts, toast, pulse, rippleFromEvent
   };
 })();
@@ -7245,35 +7184,6 @@ const MindBender = (() => {
     }
   }
 
-  /**
-   * Same result as applyInstant, but also reports where every block came
-   * from so the UI can animate it: each cell is tagged with its old
-   * position, the transform runs on the tagged grid, and the tags are read
-   * back. Returns { grid, moves, dead } - `dead` are blocks that vanished
-   * (Erosion), `born` moves are new Invasion garbage rising from below.
-   */
-  function applyInstantAnimated(id, grid) {
-    const tagged = grid.map((row, r) => row.map((cell, c) => (cell === null ? null : { cell, r, c })));
-    const all = [];
-    tagged.forEach((row) => row.forEach((v) => { if (v) all.push(v); }));   // transforms mutate `tagged` in place
-    const out = applyInstant(id, tagged);
-    const result = out.map((row) => row.map((v) => (v === null ? null : (typeof v === 'object' ? v.cell : v))));
-    const moves = [];
-    const seen = new Set();
-    out.forEach((row, r) => row.forEach((v, c) => {
-      if (v === null) return;
-      if (typeof v === 'object') {
-        seen.add(v.r * 64 + v.c);
-        moves.push({ cell: v.cell, fr: v.r, fc: v.c, r, c });
-      } else {
-        moves.push({ cell: v, fr: r + 4, fc: c, r, c, born: true });
-      }
-    }));
-    const dead = [];
-    all.forEach((v) => { if (!seen.has(v.r * 64 + v.c)) dead.push({ cell: v.cell, r: v.r, c: v.c }); });
-    return { grid: result, moves, dead };
-  }
-
   /** Gravity multiplier for timed speed effects (applied to ms-per-row). */
   function gravityFactor(st) {
     if (!st.effect) return 1;
@@ -7295,7 +7205,7 @@ const MindBender = (() => {
     ENABLED, setEnabled, isEnabled, MULT_MAX, EFFECTS,
     createState, isItem, baseColor, findItem, rowsHaveItem, stackHeight,
     trySpawn, tick, urgency, onItemCleared,
-    pickEffect, applyInstant, applyInstantAnimated, gravityFactor, blurAlpha,
+    pickEffect, applyInstant, gravityFactor, blurAlpha,
   };
 })();
 
@@ -8571,8 +8481,8 @@ const UI = (() => {
     let topMin = H;
     tops.forEach((v) => { if (v >= 0) topMin = Math.min(topMin, v * s); });
     const span = Math.max(s, H - topMin);
-    const set = new Set(cells.map(([r, c]) => Math.round(r) * 64 + Math.round(c)));
-    const has = (r, c) => set.has(Math.round(r) * 64 + Math.round(c));
+    const set = new Set(cells.map(([r, c]) => r * 64 + c));
+    const has = (r, c) => set.has(r * 64 + c);
 
     ctx.save();
     // One merged silhouette: adjacent rects in a single path leave no seams.
@@ -9192,872 +9102,15 @@ const UI = (() => {
     ctx.restore();
   }
 
-  // ======================================================================
-  // Cell motion (line-clear cascade + Mind Bender effects) and the Mind
-  // Bender atmosphere. All of it is visual: the grid is already in its
-  // final state, cells are just drawn on their way there.
-  // ======================================================================
-  const moClamp = (v) => Math.max(0, Math.min(1, v));
-  const moOut = (t) => 1 - Math.pow(1 - moClamp(t), 3);
-  const moIn = (t) => Math.pow(moClamp(t), 3);
-  const moInOut = (t) => { t = moClamp(t); return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
-  const moBack = (t, k = 1.1) => { t = moClamp(t); return 1 + (k + 1) * Math.pow(t - 1, 3) + k * Math.pow(t - 1, 2); };
-  const mHash = (n) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
-  const mbHsla = (h, sat, l, a) => `hsla(${Math.round(((h % 360) + 360) % 360)},${sat}%,${l}%,${Math.max(0, a).toFixed(3)})`;
-  function moRgba(color, a) {
-    let m = /^#([0-9a-f]{6})$/i.exec(color || '');
-    if (m) { const n = parseInt(m[1], 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
-    m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/.exec(color || '');
-    if (m) return `rgba(${m[1]},${m[2]},${m[3]},${a})`;
-    return `rgba(255,255,255,${a})`;
-  }
-
-  /** Line-clear cascade: the stack above a cleared line drops as a domino
-   *  ripple from the centre outward, overshoots, squashes on landing and
-   *  sways sideways before it settles. */
-  function cascadeState(e, elapsed, c) {
-    const raw = (elapsed - e.delay) / e.dur;
-    const t = moClamp(raw);
-    const f = moBack(t, 1.15);
-    const mid = (Board.COLS - 1) / 2;
-    const side = c < mid ? -1 : 1;
-    const damp = Math.pow(1 - t, 1.5);
-    const sway = Math.sin(t * Math.PI * 2.3 + c * 0.8) * damp * 0.085 * (1 + Math.min(1, e.d - 1) * 0.35);
-    const land = Math.exp(-Math.pow((t - 0.46) / 0.075, 2)) * 0.15;
-    const speed = t < 0.46 ? Math.min(1, e.d / 2) * (1 - t / 0.46) : 0;
-    return {
-      dx: sway * side, dy: -e.d * (1 - f), rot: sway * side * 0.7,
-      sx: 1 + land, sy: 1 - land, alpha: 1, shade: 0, pivot: 1,
-      trail: raw > 0 && speed > 0.05 ? { ux: 0, uy: -1, len: 0.35 + e.d * 0.45 * speed, a: 0.5 * speed } : null,
-    };
-  }
-
-  /** Per-effect motion for Mind Bender's instant effects. */
-  function mbMotionState(mm, e) {
-    const raw = (mm.elapsed - e.delay) / e.dur;
-    const t = moClamp(raw);
-    const mid = (Board.COLS - 1) / 2;
-    const dxT = e.c - e.fc, dyT = e.r - e.fr;
-    const o = { dx: 0, dy: 0, rot: 0, sx: 1, sy: 1, alpha: 1, shade: 0, pivot: 0, trail: null };
-    let px = e.c, py = e.r;
-    const hTrail = (p, k) => {
-      if (!dxT || p < 0.03 || p > 0.97) return null;
-      return { ux: -Math.sign(dxT), uy: 0, len: (0.4 + Math.abs(dxT) * 0.35) * (1 - p) * k, a: 0.5 * Math.sin(Math.PI * p) };
-    };
-    switch (mm.id) {
-      case 'fission': {
-        const side = e.fc < mid ? -1 : 1;
-        const ant = t < 0.24 ? Math.sin(t / 0.24 * Math.PI) * 0.16 : 0;
-        const p = moOut(moClamp((t - 0.16) / 0.84));
-        px = e.fc + dxT * p - side * ant;
-        o.sx = 1 + (dxT ? 0.22 * Math.sin(Math.PI * p) : 0);
-        o.trail = hTrail(p, 1);
-        break;
-      }
-      case 'fusion': {
-        const p = moIn(t);
-        px = e.fc + dxT * p;
-        const sq = t > 0.78 ? Math.exp(-Math.pow((t - 1) / 0.1, 2)) * 0.2 : 0;
-        o.sx = 1 - sq; o.sy = 1 + sq * 0.7;
-        o.trail = hTrail(p, 1.2);
-        break;
-      }
-      case 'shift': {
-        const p = moBack(t, 1.25);
-        px = e.fc + dxT * p;
-        py = e.r - Math.sin(Math.PI * t) * 0.07;
-        o.trail = hTrail(moClamp(t), 1.1);
-        break;
-      }
-      case 'turn': {
-        const q = moInOut(t);
-        py = e.fr + dyT * q;
-        px = e.c + Math.sin(Math.PI * t) * (e.c - mid) * 0.14;
-        o.rot = Math.PI * q;
-        o.sx = o.sy = 1 + 0.3 * Math.sin(Math.PI * t);
-        if (dyT && t > 0.03 && t < 0.97) {
-          o.trail = { ux: 0, uy: -Math.sign(dyT), len: Math.min(3, Math.abs(dyT) * (1 - q) * 0.25), a: 0.35 };
-        }
-        break;
-      }
-      case 'twist': {
-        const th = Math.PI * moInOut(t);
-        const cs = Math.cos(th);
-        px = mid + (e.fc - mid) * cs;
-        py = e.r + Math.sin(th) * Math.sin(e.r * 0.85 + t * 4) * 0.1;
-        o.sx = Math.max(0.12, Math.abs(cs));
-        o.sy = 1 + 0.1 * Math.sin(th);
-        o.shade = 1 - Math.abs(cs);
-        break;
-      }
-      case 'invasion': {
-        const q = moBack(t, 1.05);
-        py = e.fr + dyT * q;
-        px = e.c + Math.sin(mm.elapsed * 0.05 + e.c * 2) * 0.03 * (1 - t);
-        o.trail = t > 0.02 && t < 0.9 ? { ux: 0, uy: 1, len: 1.2 * (1 - q), a: 0.4 * (1 - t) } : null;
-        break;
-      }
-      case 'erosion': {
-        const q = moBack(t, 1.1);
-        py = e.fr + dyT * q;
-        const land = Math.exp(-Math.pow((t - 0.5) / 0.08, 2)) * 0.13;
-        o.sx = 1 + land; o.sy = 1 - land; o.pivot = 1;
-        o.trail = raw > 0 && t < 0.45 ? { ux: 0, uy: -1, len: 0.5 * Math.abs(dyT) * (1 - t / 0.45), a: 0.4 } : null;
-        break;
-      }
-      case 'stack': {
-        const q = moBack(t, 1.7);
-        py = e.fr + dyT * q;
-        const land = Math.exp(-Math.pow((t - 0.55) / 0.09, 2)) * 0.1;
-        o.sx = 1 + land; o.sy = 1 - land;
-        o.trail = raw > 0 && t < 0.5 ? { ux: 0, uy: 1, len: 0.7 * (1 - t / 0.5), a: 0.45 } : null;
-        break;
-      }
-      case 'magnet': {
-        const p = moIn(t);
-        px = e.fc + dxT * p;
-        const sq = t > 0.72 ? Math.exp(-Math.pow((t - 1) / 0.12, 2)) * 0.24 : 0;
-        o.sx = 1 - sq; o.sy = 1 + sq * 0.6;
-        o.trail = hTrail(p, 1.5);
-        break;
-      }
-      case 'mirror': {
-        const th = Math.PI * moInOut(t);
-        const cs_ = Math.cos(th), off = e.fc - mid;
-        px = mid + off * cs_;
-        o.sx = Math.max(0.1, Math.abs(cs_));
-        o.sy = 1 + off * Math.sin(th) * 0.035;
-        o.shade = 1 - Math.abs(cs_);
-        py = e.r - Math.sin(Math.PI * t) * 0.04;
-        break;
-      }
-      default: {
-        const p = moOut(t);
-        px = e.fc + dxT * p; py = e.fr + dyT * p;
-      }
-    }
-    o.dx = px - e.c;
-    o.dy = py - e.r;
-    return o;
-  }
-
-  function applyMotionTransform(ctx, visRow, col, m) {
-    const s = cellSize;
-    const cx = (col + 0.5) * s, cy = (visRow + 0.5) * s;
-    const pv = (m.pivot || 0) * 0.5 * s;
-    ctx.translate(cx + m.dx * s, cy + m.dy * s + pv);
-    if (m.rot) ctx.rotate(m.rot);
-    ctx.scale(m.sx, m.sy);
-    ctx.translate(-cx, -cy - pv);
-  }
-
-  function drawMotionTrail(ctx, row, col, tr, color) {
-    const s = cellSize, cx = (col + 0.5) * s, cy = (row + 0.5) * s, len = tr.len * s;
-    if (len < 2) return;
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(Math.atan2(tr.uy, tr.ux));
-    const g = ctx.createLinearGradient(0, 0, len, 0);
-    g.addColorStop(0, moRgba(color, tr.a));
-    g.addColorStop(1, moRgba(color, 0));
-    ctx.fillStyle = g;
-    ctx.fillRect(0, -s * 0.4, len, s * 0.8);
-    ctx.restore();
-  }
-
-  /** Effect overlays drawn on top of the moving cells. */
-  function drawMbMotionOverlay(ctx, mm, hidden) {
-    const s = cellSize, W = Board.COLS * s;
-    const el_ = mm.elapsed, dur = mm.duration, p = moClamp(el_ / dur);
-    const topY = Math.max(0, (mm.top - hidden) * s), botY = (Board.TOTAL_ROWS - hidden) * s;
-    ctx.save();
-    if (mm.id === 'fission') {
-      const x = W / 2, k = Math.sin(Math.PI * moClamp(el_ / (dur * 0.95)));
-      const wd = s * (0.2 + 1.5 * moOut(p * 1.3));
-      ctx.globalCompositeOperation = 'lighter';
-      const g = ctx.createLinearGradient(x - wd, 0, x + wd, 0);
-      g.addColorStop(0, 'rgba(90,200,255,0)');
-      g.addColorStop(0.5, `rgba(150,235,255,${0.6 * k})`);
-      g.addColorStop(1, 'rgba(90,200,255,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(x - wd, topY, wd * 2, botY - topY);
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.strokeStyle = `rgba(255,255,255,${0.9 * k})`;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      const fr = Math.floor(el_ / 40);
-      for (let y = topY, i = 0; y <= botY; y += s * 0.5, i++) {
-        const jx = x + (mHash(i + fr * 7) - 0.5) * s * 0.34 * (0.3 + k);
-        i ? ctx.lineTo(jx, y) : ctx.moveTo(jx, y);
-      }
-      ctx.stroke();
-    } else if (mm.id === 'fusion') {
-      const k = (el_ - mm.impactT) / 300;
-      if (k > 0 && k < 1) {
-        const cx = W / 2, cy = (topY + botY) / 2;
-        ctx.globalCompositeOperation = 'lighter';
-        const bw = s * 0.9 * (1 - k);
-        const g = ctx.createLinearGradient(cx - bw, 0, cx + bw, 0);
-        g.addColorStop(0, 'rgba(255,90,220,0)');
-        g.addColorStop(0.5, `rgba(255,220,255,${0.85 * (1 - k)})`);
-        g.addColorStop(1, 'rgba(255,90,220,0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(cx - bw, topY, bw * 2, botY - topY);
-        ctx.strokeStyle = `rgba(255,120,230,${0.9 * (1 - k)})`;
-        ctx.lineWidth = s * 0.14 * (1 - k);
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, k * s * 5.5, k * s * 7.5, 0, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-    } else if (mm.id === 'shift') {
-      const dir = mm.dir || 1;
-      ctx.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < 16; i++) {
-        const y = topY + mHash(i * 3.1 + 1) * (botY - topY);
-        const ph = moClamp(el_ / dur * 1.3 - mHash(i) * 0.3);
-        if (ph <= 0 || ph >= 1) continue;
-        const len = W * (0.25 + 0.3 * mHash(i + 7));
-        const head = dir > 0 ? -0.2 * W + ph * 1.4 * W : 1.2 * W - ph * 1.4 * W;
-        const x0 = dir > 0 ? head - len : head, x1 = dir > 0 ? head : head + len;
-        const g = ctx.createLinearGradient(x0, 0, x1, 0);
-        const a = Math.sin(Math.PI * ph) * 0.55;
-        g.addColorStop(dir > 0 ? 0 : 1, 'rgba(120,255,190,0)');
-        g.addColorStop(dir > 0 ? 1 : 0, `rgba(190,255,225,${a})`);
-        ctx.fillStyle = g;
-        ctx.fillRect(x0, y, len, 2);
-      }
-    } else if (mm.id === 'turn') {
-      const ps = moClamp(el_ / Math.max(1, mm.flipSpan));
-      if (ps < 1) {
-        const y = topY + ps * (botY - topY);
-        ctx.globalCompositeOperation = 'lighter';
-        const g = ctx.createLinearGradient(0, y - s * 0.8, 0, y + s * 0.8);
-        g.addColorStop(0, 'rgba(180,120,255,0)');
-        g.addColorStop(0.5, 'rgba(235,215,255,0.85)');
-        g.addColorStop(1, 'rgba(180,120,255,0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, y - s * 0.8, W, s * 1.6);
-      }
-    } else if (mm.id === 'twist') {
-      const env = Math.sin(Math.PI * p);
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.lineWidth = s * 0.08;
-      for (let k2 = 0; k2 < 2; k2++) {
-        ctx.strokeStyle = k2 ? `rgba(255,90,200,${0.55 * env})` : `rgba(90,220,255,${0.55 * env})`;
-        ctx.beginPath();
-        for (let y = topY, i = 0; y <= botY; y += 6, i++) {
-          const x = W / 2 + Math.sin(y * 0.05 + el_ * 0.012 + k2 * Math.PI) * W * 0.34 * env;
-          i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-        }
-        ctx.stroke();
-      }
-    } else if (mm.id === 'invasion') {
-      const k = 1 - p;
-      ctx.globalCompositeOperation = 'lighter';
-      const h = s * 5 * (0.5 + p);
-      const g = ctx.createLinearGradient(0, botY - h, 0, botY);
-      g.addColorStop(0, 'rgba(255,50,40,0)');
-      g.addColorStop(1, `rgba(255,60,45,${0.55 * k})`);
-      ctx.fillStyle = g;
-      ctx.fillRect(0, botY - h, W, h);
-    } else if (mm.id === 'stack') {
-      const u = moClamp(el_ / 360);
-      if (u < 1) {
-        const y = botY - u * s * 5;
-        ctx.globalCompositeOperation = 'lighter';
-        const g = ctx.createLinearGradient(0, y - s * 0.6, 0, y + s * 0.6);
-        g.addColorStop(0, 'rgba(255,90,30,0)');
-        g.addColorStop(0.5, `rgba(255,190,60,${0.8 * (1 - u)})`);
-        g.addColorStop(1, 'rgba(255,90,30,0)');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, y - s * 0.6, W, s * 1.2);
-        const f = ctx.createLinearGradient(0, botY - s * 3, 0, botY);
-        f.addColorStop(0, 'rgba(255,60,20,0)');
-        f.addColorStop(1, `rgba(255,90,30,${0.6 * (1 - u)})`);
-        ctx.fillStyle = f;
-        ctx.fillRect(0, botY - s * 3, W, s * 3);
-      }
-    } else if (mm.id === 'magnet') {
-      const dir = mm.dir || 1, u = moClamp(el_ / dur);
-      const wx = dir > 0 ? W : 0;
-      ctx.globalCompositeOperation = 'lighter';
-      const head = dir > 0 ? W - u * W * 1.15 : u * W * 1.15;
-      const bw = s * 2.4;
-      const g = ctx.createLinearGradient(head - bw, 0, head + bw, 0);
-      g.addColorStop(0, 'rgba(255,90,220,0)');
-      g.addColorStop(0.5, `rgba(255,170,240,${0.42 * (1 - u)})`);
-      g.addColorStop(1, 'rgba(76,243,255,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(head - bw, topY, bw * 2, botY - topY);
-      const pg = ctx.createLinearGradient(wx, 0, wx - dir * s * 2.2, 0);
-      pg.addColorStop(0, `rgba(255,140,240,${0.9 * (1 - u) * (1 - u)})`);
-      pg.addColorStop(1, 'rgba(255,90,220,0)');
-      ctx.fillStyle = pg;
-      ctx.fillRect(dir > 0 ? W - s * 2.2 : 0, 0, s * 2.2, botY);
-      const fr = Math.floor(el_ / 45);
-      for (let b = 0; b < 6; b++) {
-        const y0 = topY + mHash(b * 3.7 + fr) * (botY - topY);
-        ctx.strokeStyle = `rgba(210,250,255,${0.9 * (1 - u)})`;
-        ctx.lineWidth = 1.6;
-        ctx.beginPath(); ctx.moveTo(wx, y0);
-        for (let i = 1; i <= 6; i++) {
-          ctx.lineTo(wx - dir * (i / 6) * W * (0.25 + 0.3 * mHash(b + fr)), y0 + (mHash(i * 5 + b * 11 + fr) - 0.5) * s * 0.9);
-        }
-        ctx.stroke();
-      }
-    } else if (mm.id === 'mirror') {
-      const tt = moClamp(el_ / 640), u = moClamp(el_ / dur);
-      const fk = Math.exp(-Math.pow((tt - 0.5) / 0.1, 2));
-      const cx = W / 2, cy = (topY + botY) / 2;
-      ctx.globalCompositeOperation = 'lighter';
-      const bw = s * (0.25 + 1.8 * fk);
-      const g = ctx.createLinearGradient(cx - bw, 0, cx + bw, 0);
-      g.addColorStop(0, 'rgba(180,210,255,0)');
-      g.addColorStop(0.5, `rgba(255,255,255,${0.95 * fk})`);
-      g.addColorStop(1, 'rgba(180,210,255,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(cx - bw, 0, bw * 2, botY);
-      if (tt > 0.4) {
-        const k = moClamp((tt - 0.4) / 0.6);
-        ctx.strokeStyle = `rgba(200,225,255,${0.7 * (1 - k)})`;
-        ctx.lineWidth = s * 0.1 * (1 - k) + 1;
-        ctx.beginPath(); ctx.ellipse(cx, cy, k * W * 0.9, k * (botY - topY) * 0.7 + 4, 0, 0, Math.PI * 2); ctx.stroke();
-        ctx.strokeStyle = `rgba(235,245,255,${0.85 * (1 - k)})`;
-        ctx.lineWidth = 1.3;
-        for (let i = 0; i < 10; i++) {
-          const a = i * Math.PI / 5 + mHash(i) * 0.4, len = W * (0.25 + 0.45 * mHash(i * 2 + 1)) * (0.4 + k);
-          ctx.beginPath(); ctx.moveTo(cx, cy);
-          for (let j = 1; j <= 5; j++) {
-            const rr = len * j / 5, jit = (mHash(i * 9 + j) - 0.5) * s * 0.5;
-            ctx.lineTo(cx + Math.cos(a) * rr - Math.sin(a) * jit, cy + Math.sin(a) * rr + Math.cos(a) * jit);
-          }
-          ctx.stroke();
-        }
-      }
-      const sx = (u * 1.6 - 0.3) * (W + botY);
-      const sg = ctx.createLinearGradient(sx - W * 0.3, 0, sx + W * 0.3, botY * 0.7);
-      sg.addColorStop(0, 'rgba(255,255,255,0)');
-      sg.addColorStop(0.5, `rgba(255,255,255,${0.22 * Math.sin(Math.PI * u)})`);
-      sg.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = sg;
-      ctx.fillRect(0, 0, W, botY);
-    } else if (mm.id === 'erosion') {
-      (mm.dead || []).forEach((d) => {
-        if (el_ > 580) return;
-        const row = d.r - hidden;
-        if (row < 0) return;
-        const cx = (d.c + 0.5) * s, cy = (row + 0.5) * s;
-        const color = MindBender.baseColor(d.cell);
-        ctx.save();
-        ctx.globalCompositeOperation = 'source-over';
-        if (el_ < 300) {
-          const jx = (mHash(Math.floor(el_ / 30) + d.c * 3.3 + d.r) - 0.5) * s * 0.08;
-          ctx.translate(jx, 0);
-          drawCell(ctx, row, d.c, color, 1, false, true);
-          ctx.strokeStyle = `rgba(255,255,255,${0.9 * (el_ / 300)})`;
-          ctx.lineWidth = 1.3;
-          ctx.beginPath();
-          ctx.moveTo(cx - s * 0.3, cy - s * 0.35); ctx.lineTo(cx, cy); ctx.lineTo(cx + s * 0.32, cy - s * 0.2);
-          ctx.moveTo(cx, cy); ctx.lineTo(cx - s * 0.1, cy + s * 0.38);
-          ctx.stroke();
-        } else {
-          const u = (el_ - 300) / 280;
-          ctx.globalAlpha = 1 - u;
-          ctx.translate(cx, cy + u * s * 0.3);
-          ctx.rotate(u * 0.9 * (mHash(d.c + d.r) > 0.5 ? 1 : -1));
-          ctx.scale(1 - u * 0.85, 1 - u * 0.85);
-          ctx.translate(-cx, -cy);
-          drawCell(ctx, row, d.c, color, 1, false, true);
-        }
-        ctx.restore();
-      });
-    }
-    ctx.restore();
-  }
-
-  /** Persistent Mind Bender atmosphere: a slowly morphing psychedelic field
-   *  behind the stack (plasma, kaleidoscope wedges, hypnotic spirals, pulse
-   *  rings, drifting iridescent bubbles). It speeds up with the multiplier. */
-  function drawMindBenderAtmosphere(ctx, t, level, W, H) {
-    const lv = Math.max(1, Math.min(10, level || 1));
-    const sp = 1 + (lv - 1) * 0.1;
-    const inten = 0.75 + (lv - 1) * 0.045;
-    const cx = W / 2, cy = H / 2, R = Math.hypot(W, H) / 2;
-    ctx.save();
-    ctx.fillStyle = 'rgba(10,4,28,0.5)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 7; i++) {
-      const bx = W * (0.5 + 0.46 * Math.sin(t * 0.23 * sp + i * 1.9));
-      const by = H * (0.5 + 0.46 * Math.cos(t * 0.19 * sp + i * 2.3));
-      const r = W * (0.62 + 0.18 * Math.sin(t * 0.5 + i));
-      const hue = t * 24 * sp + i * 53;
-      const g = ctx.createRadialGradient(bx, by, 0, bx, by, r);
-      g.addColorStop(0, mbHsla(hue, 95, 55, 0.2 * inten));
-      g.addColorStop(1, mbHsla(hue + 40, 95, 50, 0));
-      ctx.fillStyle = g;
-      ctx.fillRect(bx - r, by - r, r * 2, r * 2);
-    }
-    const N = 14, rot = t * 0.09 * sp;
-    for (let i = 0; i < N; i += 2) {
-      ctx.fillStyle = mbHsla(t * 30 * sp + i * 26, 100, 60, 0.05 * inten);
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, R * 1.05, rot + (i / N) * Math.PI * 2, rot + ((i + 1) / N) * Math.PI * 2);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.lineWidth = 2.2;
-    ctx.lineCap = 'round';
-    for (let k = 0; k < 3; k++) {
-      ctx.beginPath();
-      for (let i = 0; i <= 64; i++) {
-        const th = i * 0.24 + t * 0.55 * sp + k * (Math.PI * 2 / 3);
-        const rr = (i / 64) * R * 1.02 * (1 + 0.035 * Math.sin(t * 2.4 + i * 0.35));
-        const x = cx + Math.cos(th) * rr, y = cy + Math.sin(th) * rr;
-        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-      }
-      ctx.strokeStyle = mbHsla(t * 40 * sp + k * 120, 100, 65, 0.14 * inten);
-      ctx.stroke();
-    }
-    for (let i = 0; i < 3; i++) {
-      const u = (t * 0.32 * sp + i / 3) % 1;
-      ctx.strokeStyle = mbHsla(t * 50 + i * 100, 100, 70, (1 - u) * 0.16 * inten);
-      ctx.lineWidth = 1 + (1 - u) * 5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, u * R, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    for (let i = 0; i < 18; i++) {
-      const hs = mHash(i * 2.7 + 1), hh = mHash(i * 5.1 + 3), hz = mHash(i * 7.3 + 5);
-      const u = (t * (0.035 + hh * 0.05) * sp + hs) % 1;
-      const x = W * mHash(i * 1.3 + 9) + Math.sin(t * (0.6 + hz) + i) * cellSize * 0.5;
-      const y = H * (1.08 - u * 1.16);
-      const r = cellSize * (0.1 + hz * 0.22);
-      const a = 0.5 * Math.sin(Math.PI * u);
-      ctx.strokeStyle = mbHsla(t * 60 + i * 37, 100, 75, a);
-      ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = mbHsla(t * 60 + i * 37 + 60, 100, 80, a * 0.6);
-      ctx.beginPath(); ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.28, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  /** A slow iridescent band that sweeps across the stack so the blocks shimmer. */
-  function drawMindBenderShimmer(ctx, t, W, H) {
-    const cyc = (t * 0.22) % 1;
-    const bx = (cyc * 1.8 - 0.4) * (W + H) * 0.6;
-    const g = ctx.createLinearGradient(bx - W * 0.5, 0, bx + W * 0.5, H * 0.6);
-    g.addColorStop(0, mbHsla(t * 90, 100, 60, 0));
-    g.addColorStop(0.3, mbHsla(t * 90, 100, 60, 0.13));
-    g.addColorStop(0.5, mbHsla(t * 90 + 60, 100, 65, 0.2));
-    g.addColorStop(0.7, mbHsla(t * 90 + 120, 100, 60, 0.13));
-    g.addColorStop(1, mbHsla(t * 90 + 120, 100, 60, 0));
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-  }
-
-  /** Backdrop for the timed effects (Blur onset, Slow Down, Speed Up). */
-  function drawMbTimedBackdrop(ctx, mbi, t, W, H) {
-    const id = mbi.effectId;
-    if (!id) return;
-    const e = mbi.effectMs, total = mbi.effectTotal;
-    const env = Math.min(1, e / 500) * Math.min(1, Math.max(0, (total - e)) / 700);
-    const cx = W / 2, cy = H / 2, R = Math.hypot(W, H) / 2;
-    ctx.save();
-    if (id === 'slow') {
-      ctx.fillStyle = `rgba(30,50,140,${0.16 * env})`;
-      ctx.fillRect(0, 0, W, H);
-      ctx.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < 4; i++) {
-        const u = (t * 0.16 + i / 4) % 1;
-        ctx.strokeStyle = `rgba(120,170,255,${(1 - u) * 0.32 * env})`;
-        ctx.lineWidth = 2 + (1 - u) * 4;
-        ctx.beginPath(); ctx.arc(cx, cy, u * R * 1.2, 0, Math.PI * 2); ctx.stroke();
-      }
-      const CR = W * 0.46;
-      ctx.strokeStyle = `rgba(150,190,255,${0.22 * env})`;
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(cx, cy, CR, 0, Math.PI * 2); ctx.stroke();
-      for (let i = 0; i < 12; i++) {
-        const a = i * Math.PI / 6 - Math.PI / 2;
-        ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(a) * CR * 0.9, cy + Math.sin(a) * CR * 0.9);
-        ctx.lineTo(cx + Math.cos(a) * CR, cy + Math.sin(a) * CR);
-        ctx.stroke();
-      }
-      const ha = -Math.PI / 2 + (e / total) * Math.PI * 2;
-      ctx.fillStyle = `rgba(120,170,255,${0.12 * env})`;
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, CR * 0.95, ha - 0.9, ha); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = `rgba(200,225,255,${0.6 * env})`;
-      ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ha) * CR * 0.9, cy + Math.sin(ha) * CR * 0.9); ctx.stroke();
-      for (let i = 0; i < 20; i++) {
-        const u = (t * 0.03 * (0.5 + mHash(i)) + mHash(i * 3.3)) % 1;
-        const x = W * mHash(i * 1.7 + 4) + Math.sin(t * 0.4 + i) * cellSize * 0.4;
-        const y = H * (1 - u);
-        ctx.fillStyle = `rgba(160,200,255,${0.5 * Math.sin(Math.PI * u) * env})`;
-        ctx.beginPath(); ctx.arc(x, y, 1.4 + mHash(i * 9) * 2, 0, Math.PI * 2); ctx.fill();
-      }
-      if (e < 700) {
-        const u = e / 700;
-        ctx.strokeStyle = `rgba(255,255,255,${(1 - u) * 0.8})`;
-        ctx.lineWidth = 5 * (1 - u) + 1;
-        ctx.beginPath(); ctx.arc(cx, cy, u * R * 1.3, 0, Math.PI * 2); ctx.stroke();
-      }
-    } else if (id === 'speed') {
-      ctx.fillStyle = `rgba(255,180,40,${0.05 * env})`;
-      ctx.fillRect(0, 0, W, H);
-      ctx.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < 34; i++) {
-        const spd = 1.4 + mHash(i * 7.7) * 2.2;
-        const u = (t * spd + mHash(i * 5.5)) % 1;
-        const y = u * (H + cellSize * 6) - cellSize * 3;
-        const len = cellSize * (1.2 + 2.6 * mHash(i * 9.1));
-        const x = mHash(i * 3.3 + 1) * W;
-        const g = ctx.createLinearGradient(0, y - len, 0, y);
-        g.addColorStop(0, 'rgba(255,225,120,0)');
-        g.addColorStop(1, `rgba(255,235,150,${0.55 * env})`);
-        ctx.fillStyle = g;
-        ctx.fillRect(x, y - len, 1.6 + mHash(i) * 1.4, len);
-      }
-      const strobe = 0.5 + 0.5 * Math.sin(t * 25);
-      ctx.fillStyle = `rgba(255,200,60,${0.03 * strobe * env})`;
-      ctx.fillRect(0, 0, W, H);
-      if (e < 600) {
-        const u = e / 600;
-        ctx.strokeStyle = `rgba(255,245,200,${(1 - u) * 0.6})`;
-        ctx.lineWidth = 1.5;
-        for (let i = 0; i < 28; i++) {
-          const a = i * Math.PI * 2 / 28 + mHash(i) * 0.2;
-          const r0 = u * R * 0.2, r1 = r0 + R * (0.5 * (1 - u) + 0.1);
-          ctx.beginPath();
-          ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
-          ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
-          ctx.stroke();
-        }
-      }
-    } else if (id === 'blur') {
-      if (e < 800) {
-        const u = e / 800;
-        ctx.globalCompositeOperation = 'lighter';
-        for (let k = 0; k < 3; k++) {
-          ctx.strokeStyle = mbHsla(k * 120 + t * 80, 100, 65, (1 - u) * 0.5);
-          ctx.lineWidth = 6 * (1 - u) + 1;
-          ctx.beginPath(); ctx.arc(cx, cy, u * R * (1 + k * 0.12), 0, Math.PI * 2); ctx.stroke();
-        }
-      }
-    }
-    ctx.restore();
-  }
-
-  /** Blur effect: the whole board wobbles like heat haze with double vision. */
-  let mbTmpCanvas = null;
-  function mbBlurPost(ctx, mbi, t) {
-    const canvas = el['board-canvas'];
-    const pw = canvas.width, ph = canvas.height;
-    const e = mbi.effectMs, tot = mbi.effectTotal;
-    const env = Math.min(1, e / 450) * Math.min(1, Math.max(0, tot - e) / 600);
-    if (env < 0.02) return;
-    if (!mbTmpCanvas) mbTmpCanvas = document.createElement('canvas');
-    if (mbTmpCanvas.width !== pw || mbTmpCanvas.height !== ph) { mbTmpCanvas.width = pw; mbTmpCanvas.height = ph; }
-    const tc = mbTmpCanvas.getContext('2d');
-    tc.setTransform(1, 0, 0, 1, 0, 0);
-    tc.clearRect(0, 0, pw, ph);
-    tc.drawImage(canvas, 0, 0);
-    const amp = cellSize * dpr * 0.2 * env;
-    const strip = Math.max(2, Math.round(5 * dpr));
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, pw, ph);
-    for (let y = 0; y < ph; y += strip) {
-      const yy = y / dpr;
-      const dx = Math.sin(yy * 0.05 + t * 5.2) * amp * (0.65 + 0.35 * Math.sin(t * 1.3)) + Math.sin(yy * 0.17 - t * 3.1) * amp * 0.3;
-      ctx.drawImage(mbTmpCanvas, 0, y, pw, strip, dx, y, pw, strip);
-    }
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 0.22 * env;
-    const gx = Math.sin(t * 2.1) * amp * 1.4;
-    ctx.drawImage(mbTmpCanvas, gx, 0);
-    ctx.drawImage(mbTmpCanvas, -gx, 0);
-    ctx.restore();
-  }
-
-  // ======================================================================
-  // Stack Attack / Magnetic Storm / Mirror World: persistent atmosphere,
-  // charge-up telegraphs and foreground drama. `fx.charge` is 0..1 progress
-  // to the mode's next event; `fx.dir` (-1/+1) is the pending magnet pull.
-  // ======================================================================
-  function drawStackBackdrop(ctx, fx, t, W, H) {
-    const cs = cellSize, ch = fx.charge, hot = ch * ch;
-    ctx.save();
-    ctx.fillStyle = 'rgba(34,6,4,0.38)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'lighter';
-    const hh = H * (0.16 + 0.3 * hot);
-    const g = ctx.createLinearGradient(0, H, 0, H - hh);
-    g.addColorStop(0, `rgba(255,70,20,${0.16 + 0.4 * hot})`);
-    g.addColorStop(1, 'rgba(255,40,10,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, H - hh, W, hh);
-    const period = cs * 1.7, spd = 0.5 + 1.8 * ch, off = (t * spd * cs) % period;
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = `rgba(255,150,40,${0.1 + 0.28 * ch})`;
-    [cs * 0.3, W - cs * 0.3].forEach((x) => {
-      for (let y = H + period - off; y > -period; y -= period) {
-        ctx.beginPath();
-        ctx.moveTo(x - cs * 0.16, y + cs * 0.16); ctx.lineTo(x, y); ctx.lineTo(x + cs * 0.16, y + cs * 0.16);
-        ctx.stroke();
-      }
-    });
-    for (let c = 0; c < Board.COLS; c++) {
-      for (let k = 0; k < 2; k++) {
-        const h = mHash(c * 7 + k * 3 + 1);
-        const cyc = (t * (0.5 + h * 0.8) * (0.6 + 1.4 * ch) + h * 5) % 1;
-        const x = c * cs + cs * (0.2 + 0.6 * h) + Math.sin(t * 3 + h * 30) * cs * 0.1 * cyc;
-        const y = H - cyc * cs * (1.5 + 3 * ch);
-        ctx.fillStyle = `rgba(255,${Math.round(150 + 90 * h)},60,${(1 - cyc) * (0.3 + 0.7 * ch)})`;
-        ctx.beginPath(); ctx.arc(x, y, Math.max(0.8, cs * 0.03 * (1 - cyc * 0.5)), 0, Math.PI * 2); ctx.fill();
-      }
-    }
-    ctx.restore();
-  }
-
-  function drawStackForeground(ctx, fx, t, W, H) {
-    const cs = cellSize, ch = fx.charge, n = Board.COLS;
-    const warn = ch > 0.72;
-    const strobe = warn ? 0.5 + 0.5 * Math.sin(t * (10 + 14 * (ch - 0.72) / 0.28)) : 0;
-    ctx.save();
-    const gh = cs * 0.2, gy = H - gh;
-    ctx.fillStyle = 'rgba(12,8,6,0.85)';
-    ctx.fillRect(0, gy, W, gh);
-    for (let i = 0; i < n; i++) {
-      const fill = Math.max(0, Math.min(1, ch * n - i));
-      if (fill <= 0) continue;
-      const hue = 46 - 46 * ch;
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = `hsl(${hue},100%,${52 + 12 * strobe}%)`;
-      ctx.fillRect(i * cs + 1.5, gy + 1.5, (cs - 3) * fill, gh - 3);
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.fillStyle = `hsla(${hue},100%,60%,${0.35 + 0.35 * strobe})`;
-      ctx.fillRect(i * cs + 1.5, gy - cs * 0.15, (cs - 3) * fill, cs * 0.15 + gh);
-    }
-    if (warn) {
-      ctx.globalCompositeOperation = 'lighter';
-      const g = ctx.createLinearGradient(0, H - cs * 2, 0, H);
-      g.addColorStop(0, 'rgba(255,30,20,0)');
-      g.addColorStop(1, `rgba(255,40,25,${0.28 * strobe})`);
-      ctx.fillStyle = g;
-      ctx.fillRect(0, H - cs * 2, W, cs * 2);
-    }
-    if (fx.danger > 0.02) {
-      const d = fx.danger, pulse = 0.55 + 0.45 * Math.sin(t * (6 + 8 * d));
-      ctx.globalCompositeOperation = 'lighter';
-      const g = ctx.createLinearGradient(0, 0, 0, cs * 4.5);
-      g.addColorStop(0, `rgba(255,25,25,${0.45 * d * pulse})`);
-      g.addColorStop(1, 'rgba(255,25,25,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, cs * 4.5);
-      const sgr = ctx.createLinearGradient(0, 0, cs * 1.6, 0);
-      sgr.addColorStop(0, `rgba(255,25,25,${0.3 * d * pulse})`);
-      sgr.addColorStop(1, 'rgba(255,25,25,0)');
-      ctx.fillStyle = sgr; ctx.fillRect(0, 0, cs * 1.6, H);
-      const sgl = ctx.createLinearGradient(W, 0, W - cs * 1.6, 0);
-      sgl.addColorStop(0, `rgba(255,25,25,${0.3 * d * pulse})`);
-      sgl.addColorStop(1, 'rgba(255,25,25,0)');
-      ctx.fillStyle = sgl; ctx.fillRect(W - cs * 1.6, 0, cs * 1.6, H);
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.setLineDash([cs * 0.35, cs * 0.25]);
-      ctx.lineDashOffset = -t * cs * 2;
-      ctx.strokeStyle = `rgba(255,70,60,${0.35 + 0.5 * d * pulse})`;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(0, cs * 2); ctx.lineTo(W, cs * 2); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    ctx.restore();
-  }
-
-  function drawMagnetBackdrop(ctx, fx, t, W, H) {
-    const cs = cellSize, ch = fx.charge, dir = fx.dir || 1;
-    ctx.save();
-    ctx.fillStyle = 'rgba(6,10,36,0.42)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'lighter';
-    [-1, 1].forEach((side) => {
-      const pull = side === dir;
-      const a = pull ? 0.16 + 0.5 * ch * ch * (0.7 + 0.3 * Math.sin(t * (6 + 14 * ch))) : 0.08 + 0.05 * ch;
-      const x = side < 0 ? 0 : W, wdt = cs * (1 + (pull ? 2.2 * ch : 0.4));
-      const g = ctx.createLinearGradient(x, 0, x - side * wdt, 0);
-      g.addColorStop(0, pull ? `rgba(255,80,220,${a})` : `rgba(70,150,255,${a})`);
-      g.addColorStop(1, 'rgba(60,100,255,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(side < 0 ? 0 : W - wdt, 0, wdt, H);
-    });
-    const N = 11, gx = ctx.createLinearGradient(0, 0, W, 0);
-    gx.addColorStop(dir > 0 ? 0 : 1, 'rgba(70,150,255,1)');
-    gx.addColorStop(dir > 0 ? 1 : 0, 'rgba(255,110,230,1)');
-    ctx.strokeStyle = gx;
-    ctx.lineWidth = 1.6;
-    ctx.globalAlpha = 0.09 + 0.3 * ch;
-    ctx.setLineDash([cs * 0.35, cs * 0.5]);
-    ctx.lineDashOffset = -dir * t * cs * (1 + 5 * ch);
-    for (let i = 0; i < N; i++) {
-      const y0 = H * (i + 0.5) / N, bulge = (y0 - H / 2) * (0.35 + 0.08 * Math.sin(t * 0.8 + i));
-      const bend = dir * ch * W * 0.12;
-      ctx.beginPath();
-      ctx.moveTo(0, y0);
-      ctx.bezierCurveTo(W * 0.3 + bend, y0 + bulge, W * 0.7 + bend, y0 + bulge, W, y0);
-      ctx.stroke();
-    }
-    ctx.setLineDash([]);
-    ctx.globalAlpha = 1;
-    for (let i = 0; i < 26; i++) {
-      const h = mHash(i * 2.9 + 1);
-      const u = (((h + t * (0.05 + 0.3 * ch) * dir) % 1) + 1) % 1;
-      const x = u * W, y0 = H * mHash(i * 3.1 + 5);
-      const y = y0 + Math.sin(u * Math.PI) * (y0 - H / 2) * 0.32;
-      ctx.fillStyle = `rgba(${dir > 0 ? '190,170,255' : '150,220,255'},${0.22 + 0.4 * ch})`;
-      ctx.fillRect(x - 0.8, y - 0.8, 1.8 + 1.4 * ch, 1.6);
-    }
-    ctx.restore();
-  }
-
-  function drawMagnetBolts(ctx, grid, hidden, fx, t) {
-    if (fx.charge < 0.75) return;
-    const cs = cellSize, dir = fx.dir || 1, W = Board.COLS * cs;
-    const k = (fx.charge - 0.75) / 0.25, fr = Math.floor(t * 22);
-    const wx = dir > 0 ? W : 0;
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    for (let r = hidden; r < Board.TOTAL_ROWS; r++) {
-      let cc = -1;
-      for (let c = dir > 0 ? Board.COLS - 1 : 0; c >= 0 && c < Board.COLS; c -= dir) {
-        const n = c + dir;
-        if (grid[r][c] != null && n >= 0 && n < Board.COLS && grid[r][n] == null) { cc = c; break; }
-      }
-      if (cc < 0 || mHash(r * 3.1 + fr * 0.7) > 0.5 + 0.4 * k) continue;
-      const y = (r - hidden + 0.5) * cs, x1 = (cc + 0.5 + dir * 0.4) * cs;
-      const segs = 7, pts = [[wx, y]];
-      for (let i = 1; i < segs; i++) pts.push([wx + (x1 - wx) * i / segs, y + (mHash(i * 5 + r * 3 + fr) - 0.5) * cs * 0.8]);
-      pts.push([x1, y]);
-      ctx.beginPath(); pts.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])));
-      ctx.strokeStyle = `rgba(255,110,235,${0.35 * k})`; ctx.lineWidth = 4; ctx.stroke();
-      ctx.strokeStyle = `rgba(215,250,255,${0.9 * k})`; ctx.lineWidth = 1.3; ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  function drawMirrorBackdrop(ctx, fx, t, W, H) {
-    const cs = cellSize, ch = fx.charge, cx = W / 2;
-    ctx.save();
-    ctx.fillStyle = 'rgba(10,14,36,0.4)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'lighter';
-    [[0.12, 0.32, 0.09], [0.07, 0.15, 0.06]].forEach(([spd, wd, a], i) => {
-      const cyc = (t * spd + i * 0.5) % 1, bx = (cyc * 1.8 - 0.4) * (W + H) * 0.6;
-      const g = ctx.createLinearGradient(bx - W * wd, 0, bx + W * wd, H * 0.7);
-      g.addColorStop(0, 'rgba(210,230,255,0)');
-      g.addColorStop(0.5, `rgba(220,235,255,${a})`);
-      g.addColorStop(1, 'rgba(210,230,255,0)');
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
-    });
-    const gw = cs * (0.4 + 1.6 * ch * ch);
-    const ag = ctx.createLinearGradient(cx - gw, 0, cx + gw, 0);
-    ag.addColorStop(0, 'rgba(150,190,255,0)');
-    ag.addColorStop(0.5, `rgba(200,225,255,${0.05 + 0.25 * ch * ch})`);
-    ag.addColorStop(1, 'rgba(150,190,255,0)');
-    ctx.fillStyle = ag;
-    ctx.fillRect(cx - gw, 0, gw * 2, H);
-    ctx.strokeStyle = `rgba(225,240,255,${0.16 + 0.5 * ch * ch})`;
-    ctx.lineWidth = 1 + 2.5 * ch;
-    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
-    for (let i = 0; i < 14; i++) {
-      const off = cs + mHash(i * 3.7) * (W / 2 - cs), y = H * mHash(i * 2.1 + 3);
-      const tw = Math.pow(Math.max(0, Math.sin(t * (1 + mHash(i) * 2) + i * 2)), 6);
-      if (tw < 0.05) continue;
-      const z = cs * 0.28 * tw;
-      ctx.strokeStyle = `rgba(235,245,255,${0.85 * tw})`;
-      ctx.lineWidth = 1.2;
-      [cx - off, cx + off].forEach((x) => {
-        ctx.beginPath(); ctx.moveTo(x - z, y); ctx.lineTo(x + z, y); ctx.moveTo(x, y - z); ctx.lineTo(x, y + z); ctx.stroke();
-      });
-    }
-    ctx.restore();
-  }
-
-  function drawMirrorForeground(ctx, grid, hidden, fx, t, W, H) {
-    const cs = cellSize, ch = fx.charge;
-    if (ch < 0.55) return;
-    const k = Math.pow((ch - 0.55) / 0.45, 1.4), a = 0.42 * k, pulse = 0.75 + 0.25 * Math.sin(t * (5 + 12 * k));
-    ctx.save();
-    for (let r = hidden; r < Board.TOTAL_ROWS; r++) {
-      for (let c = 0; c < Board.COLS; c++) {
-        const cell = grid[r][c], mc = Board.COLS - 1 - c;
-        if (cell == null || grid[r][mc] != null) continue;
-        const col = colorFor(MindBender.baseColor((typeof cell === 'string' && cell.endsWith('!')) ? cell.slice(0, -1) : cell));
-        ctx.fillStyle = moRgba(col, a * 0.32 * pulse);
-        roundRect(ctx, mc * cs + 2, (r - hidden) * cs + 2, cs - 4, cs - 4, cs * 0.16); ctx.fill();
-        ctx.strokeStyle = `rgba(215,235,255,${a * pulse})`;
-        ctx.lineWidth = 1.4; ctx.stroke();
-      }
-    }
-    if (ch > 0.8) {
-      const kk = (ch - 0.8) / 0.2, cx = W / 2;
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.strokeStyle = `rgba(235,245,255,${0.6 * kk})`;
-      ctx.lineWidth = 1.2;
-      for (let i = 0; i < 6; i++) {
-        const y0 = H * mHash(i * 4.3 + 1), dir = i % 2 ? 1 : -1;
-        ctx.beginPath(); ctx.moveTo(cx, y0);
-        for (let j = 1; j <= 4; j++) ctx.lineTo(cx + dir * j * cs * 0.55 * kk, y0 + (mHash(i * 9 + j) - 0.5) * cs * 0.8);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
-
-  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null, jewelClear = null, tideRows = 0, tideSplash = 0, cascade = null, mbMotion = null, modeFx = null }) {
+  function renderBoard({ grid, activeCells, activeColor, activeBombIndex = null, ghostCells, ghostOn, lockFlashRows, mb, jewelCollapse = null, jewelClear = null, tideRows = 0, tideSplash = 0 }) {
     visualTime = performance.now() * 0.001;
     const phase = visualTime;
     const infernoActive = document.body.classList.contains('mode-inferno');
     const stackActive = document.body.classList.contains('mode-stackattack');
     const tideActive = document.body.classList.contains('mode-tide');
-    const blitzActive = document.body.classList.contains('mode-blitz');
     const w = el['board-canvas'].width / dpr;
     const h = el['board-canvas'].height / dpr;
     boardCtx.clearRect(0, 0, w, h);
-    const boardW = Board.COLS * cellSize, boardH = Board.ROWS * cellSize;
-    if (blitzActive) {
-      drawMindBenderAtmosphere(boardCtx, visualTime, mb ? mb.mult : 1, boardW, boardH);
-      if (mb && mb.effectId) drawMbTimedBackdrop(boardCtx, mb, visualTime, boardW, boardH);
-    }
-    if (modeFx) {
-      if (modeFx.id === 'stackattack') drawStackBackdrop(boardCtx, modeFx, visualTime, boardW, boardH);
-      else if (modeFx.id === 'magnet') drawMagnetBackdrop(boardCtx, modeFx, visualTime, boardW, boardH);
-      else if (modeFx.id === 'mirror') drawMirrorBackdrop(boardCtx, modeFx, visualTime, boardW, boardH);
-    }
-    const tremorOn = !!(modeFx && modeFx.id === 'magnet' && modeFx.charge > 0.6);
-    // Where is each settled block right now? (line-clear cascade / effects / magnet tremor)
-    const motionFor = (r, c) => {
-      if (mbMotion) { const e = mbMotion.map.get(r * 32 + c); if (e) return mbMotionState(mbMotion, e); }
-      if (cascade) { const e = cascade.map.get(r * 32 + c); if (e) return cascadeState(e, cascade.elapsed, c); }
-      if (tremorOn && grid[r][c] != null) {
-        const d = modeFx.dir || 1, n = c + d;
-        if (n >= 0 && n < Board.COLS && grid[r][n] == null) {
-          const k = Math.pow((modeFx.charge - 0.6) / 0.4, 2);
-          return { dx: d * 0.05 * k + (mHash(r * 13 + c + Math.floor(visualTime * 30)) - 0.5) * 0.06 * k, dy: 0, rot: 0, sx: 1, sy: 1, alpha: 1, shade: 0, pivot: 0, trail: null };
-        }
-      }
-      return null;
-    };
 
     // subtle grid lines
     boardCtx.save();
@@ -10092,11 +9145,8 @@ const UI = (() => {
             const localT = (jewelClear.elapsed - (c * jewelClear.staggerMs + rowIdx * jewelClear.rowStagger)) / jewelClear.cellMs;
             if (localT > 0) continue;
           }
-          let ivr = r - hiddenOffset, ivc = c;
-          if (cascade || mbMotion || tremorOn) { const im = motionFor(r, c); if (im) { ivr += im.dy; ivc += im.dx; } }
-          infernoCells.push([ivr, ivc]);
-          const ic = Math.max(0, Math.min(Board.COLS - 1, Math.round(ivc)));
-          if (infernoTops[ic] < 0 || ivr < infernoTops[ic]) infernoTops[ic] = ivr;
+          infernoCells.push([r - hiddenOffset, c]);
+          if (infernoTops[c] < 0) infernoTops[c] = r - hiddenOffset;
         }
       }
       drawInfernoBody(boardCtx, infernoCells, infernoTops, visualTime);
@@ -10109,35 +9159,36 @@ const UI = (() => {
           // disappear animation, each cell pops in left-to-right order
           // instead of the whole row vanishing at once. Work out whether
           // this cell is untouched, mid-pop, or already gone.
-          let wipeSkip = false, wipeScale = 1, wipeAlpha = 1, wipeFlash = 0;
+          let wipeSkip = false, wipeScale = 1, wipeAlpha = 1, wipeFlash = 0, wipeRot = 0;
           if (jewelClear && jewelClear.rows.includes(r)) {
             const rowIdx = jewelClear.rows.indexOf(r);
-            const cellStart = c * jewelClear.staggerMs + rowIdx * jewelClear.rowStagger;
+            const jitter = jewelClear.jitter ? jewelClear.jitter[c] : 0;
+            const cellStart = c * jewelClear.staggerMs + rowIdx * jewelClear.rowStagger + jitter;
             const localT = (jewelClear.elapsed - cellStart) / jewelClear.cellMs;
             if (localT >= 1) wipeSkip = true;
             else if (localT > 0) {
               wipeScale = 1 - localT;
               wipeAlpha = 1 - localT * 0.85;
               wipeFlash = localT < 0.35 ? (0.35 - localT) / 0.35 : 0;
+              if (jewelClear.dust) {
+                // Rubble tumbles as it crumbles, rather than shrinking in place.
+                wipeRot = (jewelClear.spin ? jewelClear.spin[c] : 1) * localT * 0.9;
+                if (!jewelClear.popped.has(r + ':' + c)) {
+                  jewelClear.popped.add(r + ':' + c);
+                  Particles.spawnBurstAt(c * cellSize + cellSize / 2, (r - hiddenOffset) * cellSize + cellSize / 2, '#8a7458', 5);
+                }
+              }
             }
           }
           if (wipeSkip) continue;
 
-          const mot = (cascade || mbMotion || tremorOn) ? motionFor(r, c) : null;
-          if (mot && mot.trail) {
-            const tc0 = MindBender.baseColor((typeof rawCell === 'string' && rawCell.endsWith('!')) ? rawCell.slice(0, -1) : rawCell);
-            drawMotionTrail(boardCtx, r - hiddenOffset + mot.dy, c + mot.dx, mot.trail, colorFor(tc0));
-          }
           boardCtx.save();
-          if (mot) {
-            applyMotionTransform(boardCtx, r - hiddenOffset, c, mot);
-            if (mot.alpha !== 1) boardCtx.globalAlpha *= mot.alpha;
-          }
           if (wipeScale !== 1) {
             const wcx = c * cellSize + cellSize / 2;
             const wcy = (r - hiddenOffset) * cellSize + cellSize / 2;
             boardCtx.globalAlpha *= wipeAlpha;
             boardCtx.translate(wcx, wcy);
+            if (wipeRot) boardCtx.rotate(wipeRot);
             boardCtx.scale(wipeScale, wipeScale);
             boardCtx.translate(-wcx, -wcy);
           }
@@ -10167,14 +9218,6 @@ const UI = (() => {
           if (isJewel) drawGemMark(boardCtx, visRow, c, Jewels.gemType(rawCell), cellAlpha);
           if (isBomb) drawBombMark(boardCtx, visRow, c, cellAlpha);
           if (stackActive && rawCell === 'danger') drawStackDanger(boardCtx, visRow, c, phase);
-          if (mot && mot.shade > 0.02) {
-            boardCtx.save();
-            boardCtx.globalAlpha = Math.min(0.6, mot.shade * 0.6);
-            boardCtx.fillStyle = '#000';
-            roundRect(boardCtx, c * cellSize + 1, visRow * cellSize + 1, cellSize - 2, cellSize - 2, cellSize * 0.18);
-            boardCtx.fill();
-            boardCtx.restore();
-          }
           if (flashing) {
             boardCtx.save();
             boardCtx.globalAlpha = 0.7;
@@ -10186,7 +9229,7 @@ const UI = (() => {
           if (wipeFlash > 0) {
             boardCtx.save();
             boardCtx.globalAlpha = wipeFlash * 0.9;
-            boardCtx.fillStyle = '#ffffff';
+            boardCtx.fillStyle = jewelClear && jewelClear.dust ? '#c9a876' : '#ffffff';
             roundRect(boardCtx, c * cellSize + 2, (r - hiddenOffset) * cellSize + 2, cellSize - 4, cellSize - 4, cellSize * 0.18);
             boardCtx.fill();
             boardCtx.restore();
@@ -10228,14 +9271,6 @@ const UI = (() => {
       });
     }
 
-    if (mbMotion) drawMbMotionOverlay(boardCtx, mbMotion, hiddenOffset);
-    if (modeFx) {
-      if (modeFx.id === 'stackattack') drawStackForeground(boardCtx, modeFx, visualTime, boardW, boardH);
-      else if (modeFx.id === 'magnet') drawMagnetBolts(boardCtx, grid, hiddenOffset, modeFx, visualTime);
-      else if (modeFx.id === 'mirror') drawMirrorForeground(boardCtx, grid, hiddenOffset, modeFx, visualTime, boardW, boardH);
-    }
-    if (blitzActive) drawMindBenderShimmer(boardCtx, phase, boardW, boardH);
-
     // Inferno: flames, embers and smoke rise from the top of the stack only.
     if (infernoActive && infernoCells.length) drawInfernoFlames(boardCtx, infernoTops, visualTime);
 
@@ -10250,11 +9285,6 @@ const UI = (() => {
       });
     }
 
-    if (activeCells && mb && mb.effectId === 'speed') {
-      activeCells.forEach(([r, c]) => {
-        if (r - hiddenOffset >= 0) drawMotionTrail(boardCtx, r - hiddenOffset, c, { ux: 0, uy: -1, len: 2.6, a: 0.42 }, '#ffd15a');
-      });
-    }
     if (activeCells) {
       activeCells.forEach(([r, c], idx) => {
         if (r - hiddenOffset >= 0) {
@@ -10268,42 +9298,37 @@ const UI = (() => {
     // Rising Tide: the water sits in front of everything, so submerged
     // blocks and the falling piece are tinted by it rather than hidden.
     if (tideActive && tideRows > 0) drawTideBody(boardCtx, tideRows, tideSplash, phase);
-
-    // Mind Bender Blur: the whole board wobbles like heat haze.
-    if (blitzActive && mb && mb.effectId === 'blur') mbBlurPost(boardCtx, mb, phase);
   }
 
+  let lastShakeX = 0, lastShakeY = 0;
   function applyShake() {
-    const { x, y, rot } = Effects.getShakeOffset();
-    el['board-frame'].style.transform = (x || y || rot) ? `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${rot.toFixed(2)}deg)` : '';
+    const { x, y, rot, punch } = Effects.getShakeOffset();
+    const frame = el['board-frame'];
+    frame.style.transform = (x || y || rot) ? `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${rot.toFixed(2)}deg)` : '';
+    // Real motion blur, not a flat one — driven by how fast the frame is
+    // actually moving frame-to-frame, so it's sharp when still and blurs
+    // right when a jolt is at its fastest, then clears again as it settles.
+    const speed = Math.hypot(x - lastShakeX, y - lastShakeY);
+    lastShakeX = x; lastShakeY = y;
+    const blurPx = Math.min(4, speed * 0.38);
+    const brightness = 1 + punch * 0.6;
+    const contrast = 1 + punch * 0.22;
+    frame.style.filter = (blurPx > 0.12 || punch > 0.01)
+      ? `blur(${blurPx.toFixed(2)}px) brightness(${brightness.toFixed(2)}) contrast(${contrast.toFixed(2)})`
+      : '';
   }
 
-  /** A quick brightness/contrast punch on the board frame — used for a big
-   *  hit (Earthquake's main tremor) to sell the impact of the first jolt,
-   *  separate from the ongoing rumble offset. Restarts cleanly even if
-   *  called again before the previous punch finished. */
-  function impactPunch() {
-    const frame = el['board-frame'];
-    if (!frame) return;
-    frame.classList.remove('quake-impact');
-    void frame.offsetWidth; // force reflow so the animation restarts
-    frame.classList.add('quake-impact');
+  /** A quick single-frame "hit" flash timed to a big impact (Earthquake's
+   *  main tremor) — see Effects.punch(), combined every frame with the
+   *  motion-blur filter above so the two never fight over `filter`. */
+  function impactPunch(intensity = 1) {
+    Effects.punch(intensity);
   }
 
   function renderFx() {
     const w = el['fx-canvas'].width / dpr;
     const h = el['fx-canvas'].height / dpr;
     fxCtx.clearRect(0, 0, w, h);
-    // Shake motion blur: faded echoes of the board at its last few positions.
-    const shakeTrail = Effects.getMotionTrail();
-    if (shakeTrail) {
-      fxCtx.save();
-      shakeTrail.forEach((e) => {
-        fxCtx.globalAlpha = e.a;
-        fxCtx.drawImage(el['board-canvas'], e.dx, e.dy, w, h);
-      });
-      fxCtx.restore();
-    }
     drawTrail(fxCtx);
     Particles.draw(fxCtx);
     GemFx.draw(fxCtx);
@@ -10844,8 +9869,6 @@ const Game = (() => {
   let pendingClearRows = null;
   let clearTimer = 0;
   let jewelCollapseAnim = null;
-  let lineCascade = null;            // ripple cascade after a cleared line (visual only)
-  let mbMotion = null;               // animated Mind Bender effect (visual only)
   let jewelPhase = 0, jewelGlintAt = 0;
   const TIDE_TIERS = [
     { min: 0.7,  msg: null },
@@ -10868,7 +9891,6 @@ const Game = (() => {
   let jewels = null;                 // Jewels.createState()
   let tide = null;                   // Rising Tide: { level, shown, splash } — water depth in rows (float); water is an overlay, never grid cells
   let magnetDir = null;              // Magnetic Storm: current pull direction ('left' | 'right')
-  let magnetNext = 'left', warnSec = -1;   // upcoming pull direction; last countdown second ticked
   let lastMoveWasRotation = false;   // T-spin rule: last successful action must be a rotation
   let pendingEffect = null;          // effect id waiting for the line-clear animation to end
   let itemHintShown = false;
@@ -10993,7 +10015,7 @@ const Game = (() => {
     mb = MindBender.createState();
     jewels = (mode.jewels && typeof Jewels !== 'undefined') ? Jewels.createState() : null;
     tide = (mode.id === 'tide') ? { level: 0, shown: 0, splash: 0, lastT: performance.now(), warned: false, tier: -1 } : null;
-    magnetDir = null; magnetNext = Math.random() < 0.5 ? 'left' : 'right'; warnSec = -1;
+    magnetDir = null;
     lastMoveWasRotation = false; pendingEffect = null;
     MindBender.setEnabled(!!mode.mindBender);
     if (jewels) {
@@ -11012,7 +10034,6 @@ const Game = (() => {
     pendingClearRows = null;
     jewelCollapseAnim = null;
     jewelClearAnim = null;
-    lineCascade = null; mbMotion = null;
     jewelPhase = 0; jewelGlintAt = 0;
     GemFx.reset(); GemFx.setAmbient(!!(jewels && mode.jewels));
     if (jewels && mode.jewels) document.body.dataset.jewelPhase = '0'; else delete document.body.dataset.jewelPhase;
@@ -11323,154 +10344,30 @@ const Game = (() => {
     }
   }
 
-  /** Ripple cascade after a cleared line: blocks above drop as a domino wave
-   *  from the centre outward, overshoot, squash and sway before settling.
-   *  Purely visual: the grid is already in its final state. */
-  function startLineCascade(preGrid, rows) {
-    lineCascade = null;
-    if (!saveData.settings.animations || !rows || !rows.length) return;
-    const cleared = new Set(rows);
-    const map = new Map();
-    const mid = (Board.COLS - 1) / 2;
-    let bottom = 0;
-    for (let r = 0; r < preGrid.length; r++) {
-      if (cleared.has(r)) continue;
-      let d = 0;
-      rows.forEach((x) => { if (x > r) d++; });
-      if (!d) continue;
-      for (let c = 0; c < Board.COLS; c++) {
-        if (preGrid[r][c] == null) continue;
-        map.set((r + d) * 32 + c, { d, c, row: r + d });
-        bottom = Math.max(bottom, r + d);
-      }
-    }
-    if (!map.size) return;
-    let end = 0;
-    const lowest = new Array(Board.COLS).fill(null);
-    map.forEach((e) => {
-      e.delay = Math.min(320, Math.abs(e.c - mid) * 20 + (bottom - e.row) * 9);
-      e.dur = 280 + e.d * 90;
-      end = Math.max(end, e.delay + e.dur);
-      if (!lowest[e.c] || e.row > lowest[e.c].row) lowest[e.c] = e;
-    });
-    lineCascade = { map, elapsed: 0, duration: end + 100 };
-    const cs = UI.cellSize;
-    let first = Infinity;
-    lowest.forEach((e) => {
-      if (!e) return;
-      const t = e.delay + e.dur * 0.48;
-      first = Math.min(first, t);
-      setTimeout(() => {
-        try { Particles.spawnLandingDust((e.c + 0.5) * cs, (e.row - Board.HIDDEN_ROWS + 1) * cs, cs, 0.8 + e.d * 0.3); } catch (_) {}
-      }, t);
-    });
-    if (first < Infinity) setTimeout(() => { try { Audio_.sfx.cascadeThud(); } catch (_) {} }, first);
-  }
-
-  /** Builds the per-block animation for one of Mind Bender's instant effects. */
-  function makeMbMotion(id, res, oldGrid) {
-    const mid = (Board.COLS - 1) / 2;
-    let top = Board.TOTAL_ROWS;
-    [oldGrid, res.grid].forEach((g) => g.forEach((row, r) => { if (r < top && row.some((v) => v !== null)) top = r; }));
-    const changedOnly = id === 'shift' || id === 'invasion' || id === 'erosion';
-    const map = new Map();
-    let end = 0;
-    res.moves.forEach((m) => {
-      if (changedOnly && m.fr === m.r && m.fc === m.c) return;
-      const e = { fr: m.fr, fc: m.fc, r: m.r, c: m.c };
-      switch (id) {
-        case 'fission': e.dur = 440; e.delay = Math.max(0, Math.abs(m.fc - mid) - 0.5) * 20; break;
-        case 'fusion': e.dur = 420; e.delay = 0; break;
-        case 'shift': e.dur = 440; e.delay = Math.max(0, m.r - top) * 11; break;
-        case 'turn': e.dur = 520; e.delay = Math.max(0, m.fr - top) * 22; break;
-        case 'twist': e.dur = 620; e.delay = Math.max(0, m.r - top) * 26; break;
-        case 'invasion': e.dur = 520; e.delay = m.c * 14; break;
-        default: e.dur = 260 + Math.abs(m.r - m.fr) * 70; e.delay = 300 + Math.abs(m.c - mid) * 10;   // erosion
-      }
-      end = Math.max(end, e.delay + e.dur);
-      map.set(m.r * 32 + m.c, e);
-    });
-    if (!map.size && !(res.dead && res.dead.length)) return null;
-    let dir = 1;
-    if (id === 'shift') dir = res.moves.reduce((a, m) => a + (m.c - m.fc), 0) >= 0 ? 1 : -1;
-    return {
-      id, map, dead: res.dead || [], elapsed: 0, top, dir,
-      duration: Math.max(end + 140, id === 'erosion' ? 640 : 0),
-      impactT: id === 'fusion' ? 420 * 0.98 : 0,
-      flipSpan: id === 'turn' ? (Board.TOTAL_ROWS - top) * 22 : 1,
-    };
-  }
-
-  /** Particles, shakes and flashes timed to the moment each effect hits. */
-  function scheduleMbMotionFx(mm, res) {
-    const cs = UI.cellSize, hid = Board.HIDDEN_ROWS, W = Board.COLS * cs;
-    const topY = Math.max(0, (mm.top - hid) * cs), botY = (Board.TOTAL_ROWS - hid) * cs;
-    const at = (ms, fn) => setTimeout(() => { try { fn(); } catch (_) {} }, ms);
-    switch (mm.id) {
-      case 'fission':
-        Effects.rumble(8, 420);
-        Particles.spawnSeamBurst(W / 2, topY, botY, cs, ['#7fe8ff', '#ffffff', '#4aa8ff'], 34);
-        at(260, () => Effects.shake(6));
-        break;
-      case 'fusion':
-        at(mm.impactT, () => {
-          Effects.shake(15);
-          Effects.flash('255,220,255', 0.28);
-          Particles.spawnSeamBurst(W / 2, topY, botY, cs, ['#ff6bd6', '#ffffff', '#b56bff'], 46);
-        });
-        break;
-      case 'shift':
-        at(mm.duration * 0.55, () => {
-          Effects.shake(9);
-          Particles.spawnSeamBurst(mm.dir > 0 ? W : 0, topY, botY, cs, ['#7fffc4', '#ffffff', '#3cffb0'], 26);
-        });
-        break;
-      case 'turn':
-        at(Math.max(0, mm.duration - 140), () => { Effects.shake(8); Effects.flash('200,160,255', 0.2); });
-        break;
-      case 'twist':
-        Effects.rumble(6, 620);
-        break;
-      case 'invasion':
-        Effects.rumble(13, 640);
-        Effects.flash('255,60,50', 0.26);
-        at(260, () => Effects.shake(14));
-        at(220, () => { for (let c = 0; c < Board.COLS; c++) Particles.spawnLandingDust((c + 0.5) * cs, botY, cs, 1.5); });
-        break;
-      case 'erosion': {
-        at(300, () => {
-          Effects.shake(5);
-          (res.dead || []).forEach((d) => {
-            const row = d.r - hid;
-            if (row < 0) return;
-            Particles.spawnBurstAt((d.c + 0.5) * cs, (row + 0.5) * cs, getColorHex(MindBender.baseColor(d.cell)) || '#ff8a3c', 9);
-          });
-        });
-        const low = new Array(Board.COLS).fill(null);
-        mm.map.forEach((e) => { if (!low[e.c] || e.r > low[e.c].r) low[e.c] = e; });
-        low.forEach((e) => {
-          if (e) at(e.delay + e.dur * 0.5, () => Particles.spawnLandingDust((e.c + 0.5) * cs, (e.r - hid + 1) * cs, cs, 1));
-        });
-        break;
-      }
-      default: break;
-    }
-  }
-
   function applyMindBenderEffect(id) {
     const info = MindBender.EFFECTS[id];
     if (!info) return;
     if (info.timed) {
       mb.effect = { id, remainingMs: info.ms, totalMs: info.ms };
-      Effects.shake(5);
     } else {
-      const before = grid;
-      const res = MindBender.applyInstantAnimated(id, grid);
-      grid = res.grid;
-      mbMotion = saveData.settings.animations ? makeMbMotion(id, res, before) : null;
-      if (mbMotion) scheduleMbMotionFx(mbMotion, res); else Effects.shake(10);
+      grid = MindBender.applyInstant(id, grid);
+      Effects.shake(10);
     }
-    try { Audio_.sfx.mbFx(id); } catch (_) {}
+    // Visual flash on the board frame
+    try {
+      const frame = document.getElementById('board-frame') || document.querySelector('.board-frame');
+      if (frame) {
+        const flash = document.createElement('div');
+        flash.className = 'mb-fx-flash';
+        flash.dataset.fx = id;
+        frame.appendChild(flash);
+        setTimeout(() => flash.remove(), 600);
+      }
+    } catch (_) {}
+    try {
+      if (window.Audio_?.sfx?.clear) Audio_.sfx.clear();
+      else if (window.Audio_?.sfx?.uiTap) Audio_.sfx.uiTap();
+    } catch (_) {}
     refreshMbHud();
   }
 
@@ -11554,16 +10451,24 @@ const Game = (() => {
     }
   }
 
-  function beginJewelsRowClear(rows, onDone) {
+  function beginJewelsRowClear(rows, onDone, opts = {}) {
     const cols = Board.COLS;
-    const staggerMs = 28;   // delay between adjacent columns (left -> right)
-    const cellMs = 140;     // how long one cell takes to flash + shrink away
-    const rowStagger = 80;  // offset between rows when several clear at once
+    const staggerMs = opts.staggerMs || 28;   // delay between adjacent columns (left -> right)
+    const cellMs = opts.cellMs || 140;        // how long one cell takes to flash + shrink away
+    const rowStagger = opts.rowStagger || 80; // offset between rows when several clear at once
+    // Earthquake's "rubble" clear reuses this same wipe but breaks the
+    // clean left-to-right domino order with per-column jitter (and a
+    // per-column spin direction), so the row visibly crumbles apart
+    // instead of ticking off in sequence.
+    const jitter = opts.chaotic ? Array.from({ length: cols }, () => Math.random() * 110) : null;
+    const spin = opts.chaotic ? Array.from({ length: cols }, () => (Math.random() < 0.5 ? -1 : 1)) : null;
     jewelClearAnim = {
       rows: rows.slice(),
       elapsed: 0,
-      duration: (cols - 1) * staggerMs + cellMs + Math.max(0, rows.length - 1) * rowStagger + 40,
-      staggerMs, cellMs, rowStagger,
+      duration: (cols - 1) * staggerMs + cellMs + Math.max(0, rows.length - 1) * rowStagger + (jitter ? 130 : 40),
+      staggerMs, cellMs, rowStagger, jitter, spin,
+      dust: !!opts.dust,
+      popped: new Set(),
       onDone,
     };
     state = 'jewel-rowclear';
@@ -11712,16 +10617,9 @@ const Game = (() => {
       return;
     }
 
-    const preClearGrid = grid;
-    const clearedRows = pendingClearRows;
     grid = Board.clearRows(grid, pendingClearRows);
     pendingClearRows = null;
-    if (pendingEffect) {
-      lineCascade = null;
-      applyMindBenderEffect(pendingEffect);
-    } else {
-      startLineCascade(preClearGrid, clearedRows);
-    }
+    if (pendingEffect) applyMindBenderEffect(pendingEffect);
     pendingEffect = null;
     state = 'playing';
     maybeSpawnItem();
@@ -11861,20 +10759,6 @@ const Game = (() => {
     modeElapsed += dt;
     modeEventTimer += dt;
 
-    // Countdown ticks for the three telegraphed modes (last 3 seconds).
-    const evMs = mode.id === 'stackattack' ? mode.garbageEvery : mode.id === 'magnet' ? mode.magnetEvery : mode.id === 'mirror' ? mode.mirrorEvery : 0;
-    if (evMs) {
-      const left = evMs - modeEventTimer;
-      if (left <= 3000 && left > 0) {
-        const sec = Math.ceil(left / 1000);
-        if (sec !== warnSec) { warnSec = sec; try { Audio_.sfx.warnTick(sec); } catch (_) {} }
-      } else if (left > 3000) warnSec = -1;
-      if (mode.id === 'magnet' && left <= 5000 && magnetDir !== magnetNext) {
-        magnetDir = magnetNext;
-        Effects.toast(magnetDir === 'left' ? '🧲 CHARGING ←' : '🧲 CHARGING →', 'tetris', 900);
-      }
-    }
-
     if (jewels && mode.jewels && mode.timeLimit) {
       jewels.timeLeftMs -= dt;
       if (jewels.timeLeftMs <= 0) {
@@ -11899,10 +10783,8 @@ const Game = (() => {
       modeEventTimer = 0;
       addGarbageRows(1);
       Effects.toast('⚠ STACK RISING', 'tetris', 900);
-      Effects.shake(10);
-      Effects.rumble(10, 520);
-      if (typeof Effects.flash === 'function') Effects.flash('255,55,25', 0.22);
-      startStackRiseFx();
+      Effects.shake(6);
+      if (typeof Effects.flash === 'function') Effects.flash('255,55,25', 0.14);
     }
 
     if (mode.id === 'tide' && tide) {
@@ -11972,8 +10854,7 @@ const Game = (() => {
    *  board, so it's a single uniform nudge, not a cascade all the way to
    *  the wall). Repeated pulses gradually drag the whole stack over. */
   function applyMagneticPulse() {
-    magnetDir = magnetNext;
-    magnetNext = Math.random() < 0.5 ? 'left' : 'right';
+    magnetDir = Math.random() < 0.5 ? 'left' : 'right';
     const before = grid.map((row) => row.slice());
     const cols = Board.COLS;
     for (let r = 0; r < Board.TOTAL_ROWS; r++) {
@@ -11996,79 +10877,9 @@ const Game = (() => {
       }
     }
     Effects.toast(magnetDir === 'left' ? '🧲 PULL ←' : '🧲 PULL →', 'tetris', 800);
-    Effects.shake(9);
-    Effects.rumble(7, 480);
-    if (typeof Effects.flash === 'function') Effects.flash('180,90,255', 0.2);
-    startMagnetFx(before, magnetDir);
+    Effects.shake(5);
+    if (typeof Effects.flash === 'function') Effects.flash('180,90,255', 0.12);
     settleEnvironmentalShift();
-  }
-
-  // --- Stack Attack / Magnetic Storm / Mirror World: animated events ---
-  function at_(ms, fn) { setTimeout(() => { try { fn(); } catch (_) {} }, ms); }
-  function fxTopRow() {
-    for (let r = 0; r < Board.TOTAL_ROWS; r++) if (grid[r].some((v) => v != null)) return r;
-    return Board.TOTAL_ROWS;
-  }
-  function beginModeMotion(id, map, extra) {
-    if (!saveData.settings.animations || !map.size) return;
-    let end = 0;
-    map.forEach((e) => { end = Math.max(end, e.delay + e.dur); });
-    lineCascade = null;
-    mbMotion = Object.assign({ id, map, dead: [], elapsed: 0, top: fxTopRow(), dir: 1, duration: end + 120, impactT: 0, flipSpan: 1 }, extra || {});
-  }
-  function startStackRiseFx() {
-    const map = new Map(), mid = (Board.COLS - 1) / 2;
-    for (let r = 0; r < Board.TOTAL_ROWS; r++) {
-      for (let c = 0; c < Board.COLS; c++) {
-        if (grid[r][c] == null) continue;
-        map.set(r * 32 + c, { fr: r + 1, fc: c, r, c, dur: 440, delay: Math.abs(c - mid) * 14 });
-      }
-    }
-    beginModeMotion('stack', map);
-    const cs = UI.cellSize;
-    Particles.spawnStackRise(Board.COLS * cs, Board.ROWS * cs, cs, Board.COLS);
-    try { Audio_.sfx.stackRise(); vibrate([30, 20, 60]); } catch (_) {}
-  }
-  function startMagnetFx(before, dirStr) {
-    const step = dirStr === 'left' ? -1 : 1, map = new Map();
-    for (let r = 0; r < Board.TOTAL_ROWS; r++) {
-      for (let c = 0; c < Board.COLS; c++) {
-        if (grid[r][c] != null && before[r][c] == null) {
-          const dist = step > 0 ? Board.COLS - 1 - c : c;
-          map.set(r * 32 + c, { fr: r, fc: c - step, r, c, dur: 300, delay: dist * 13 });
-        }
-      }
-    }
-    beginModeMotion('magnet', map, { dir: step });
-    const cs = UI.cellSize;
-    Particles.spawnMagnetPull(Board.COLS * cs, Board.ROWS * cs, cs, step);
-    try { Audio_.sfx.magnetPull(); } catch (_) {}
-  }
-  function startMirrorFx(before) {
-    const map = new Map();
-    for (let r = 0; r < Board.TOTAL_ROWS; r++) {
-      for (let c = 0; c < Board.COLS; c++) {
-        if (before[r][c] == null) continue;
-        map.set(r * 32 + (Board.COLS - 1 - c), { fr: r, fc: c, r, c: Board.COLS - 1 - c, dur: 640, delay: 0 });
-      }
-    }
-    beginModeMotion('mirror', map);
-    const cs = UI.cellSize;
-    at_(320, () => Particles.spawnMirrorShatter(Board.COLS * cs, Board.ROWS * cs, cs));
-    try { Audio_.sfx.mirrorFlip(); vibrate([20, 20, 40]); } catch (_) {}
-  }
-  /** Progress to the mode's next event + stack danger, for the UI atmosphere. */
-  function modeFxState() {
-    if (!mode || (state !== 'playing' && state !== 'clearing')) return null;
-    const id = mode.id;
-    if (id !== 'stackattack' && id !== 'magnet' && id !== 'mirror') return null;
-    const ms = id === 'stackattack' ? mode.garbageEvery : id === 'magnet' ? mode.magnetEvery : mode.mirrorEvery;
-    const out = { id, charge: Math.max(0, Math.min(1, modeEventTimer / ms)), dir: magnetNext === 'left' ? -1 : 1, danger: 0 };
-    if (id === 'stackattack') {
-      const topVis = fxTopRow() - Board.HIDDEN_ROWS;
-      out.danger = Math.max(0, Math.min(1, (7 - topVis) / 7));
-    }
-    return out;
   }
 
   // --- Earthquake ---
@@ -12087,22 +10898,51 @@ const Game = (() => {
     // When there was nothing to settle, knock a block loose ourselves so the
     // mode always visibly does something once there's a stack to shake.
     if (!moved) moved = toppleRandomColumn();
+    // A quake doesn't just drop things straight down — the ground lurches
+    // sideways too. Nudge a couple of rows left/right independently so the
+    // stack visibly shears, not just settles.
+    if (shiftQuakeRows(1 + (Math.random() < 0.5 ? 1 : 0))) moved = true;
 
     const boardW = UI.cellSize * Board.COLS, boardH = UI.cellSize * Board.ROWS;
-    Effects.toast(moved ? '⛰️ EARTHQUAKE!' : '⛰️ TREMOR', 'tetris', moved ? 1100 : 800);
-    // A sharp initial jolt (quick decaying jitter + a brightness punch),
-    // then a longer rolling tremor on top of it — a real quake isn't one
-    // clean shake, it's a hit followed by the ground still moving after.
-    Effects.shake(moved ? 16 : 7);
-    Effects.rumble(moved ? 13 : 5, moved ? 1100 : 500);
-    if (typeof UI.impactPunch === 'function') UI.impactPunch();
+    Effects.toast(moved ? '⛰️ EARTHQUAKE!' : '⛰️ TREMOR', 'tetris', moved ? 900 : 700);
+    // A sharp initial jolt with real motion blur, then a short rolling
+    // tremor on top of it — snappier than before so the hit reads
+    // immediately instead of the screen wobbling for over a second.
+    Effects.shake(moved ? 18 : 7);
+    Effects.rumble(moved ? 14 : 5, moved ? 620 : 320);
+    if (typeof UI.impactPunch === 'function') UI.impactPunch(moved ? 1 : 0.4);
     if (typeof Effects.flash === 'function') Effects.flash('200,150,60', moved ? 0.2 : 0.1);
     if (typeof Particles !== 'undefined') {
       Particles.spawnQuakeDust(boardW, moved ? 34 : 14);
       if (moved) Particles.spawnGroundCrack(boardW, boardH);
     }
     try { vibrate(moved ? [40, 25, 20, 20, 60, 30, 80] : [25, 15, 25]); } catch (_) {}
-    settleEnvironmentalShift();
+    settleEnvironmentalShift('quake');
+  }
+
+  /** Nudges a handful of random rows one column left or right (each row
+   *  picking its own direction independently), based on a snapshot so it's
+   *  a single clean step rather than cascading all the way to a wall.
+   *  Blocks slide only into a gap that's already there, so nothing ever
+   *  overwrites another block. Returns true if anything actually moved. */
+  function shiftQuakeRows(count = 1) {
+    const total = Board.TOTAL_ROWS, cols = Board.COLS;
+    const candidates = [];
+    for (let r = 0; r < total; r++) if (grid[r].some((c) => c != null)) candidates.push(r);
+    if (!candidates.length) return false;
+    let shifted = false;
+    for (let n = 0; n < count; n++) {
+      const r = candidates[Math.floor(Math.random() * candidates.length)];
+      const dir = Math.random() < 0.5 ? -1 : 1;
+      const src = grid[r].slice();
+      const dst = grid[r];
+      if (dir < 0) {
+        for (let c = 1; c < cols; c++) if (src[c] != null && src[c - 1] == null) { dst[c - 1] = src[c]; dst[c] = null; shifted = true; }
+      } else {
+        for (let c = cols - 2; c >= 0; c--) if (src[c] != null && src[c + 1] == null) { dst[c + 1] = src[c]; dst[c] = null; shifted = true; }
+      }
+    }
+    return shifted;
   }
 
   /** Picks a random column with a block near its top and knocks that block
@@ -12147,7 +10987,6 @@ const Game = (() => {
    *  line can complete from this alone, but the falling piece may now overlap
    *  the mirrored stack — if so, lift it until it fits. */
   function applyMirrorFlip() {
-    const beforeFlip = grid;
     grid = grid.map((row) => row.slice().reverse());
     if (active) {
       let guard = 0;
@@ -12156,24 +10995,83 @@ const Game = (() => {
       }
     }
     Effects.toast('🪞 MIRRORED!', 'tetris', 900);
-    startMirrorFx(beforeFlip);
-    at_(340, () => { Effects.shake(12); if (typeof Effects.flash === 'function') Effects.flash('200,225,255', 0.3); });
+    Effects.shake(8);
+    if (typeof Effects.flash === 'function') Effects.flash('160,200,255', 0.18);
     try { vibrate([20, 20, 40]); } catch (_) {}
     settleEnvironmentalShift();
+  }
+
+  /**
+   * Earthquake's own version of announceCascadeLineClear — full scoring,
+   * combo/back-to-back, sound and toasts for a line an environmental event
+   * (not the player's own placement) just completed, without touching
+   * jewels.multiplier (Earthquake isn't a jewels-mode run, so that field
+   * doesn't exist here).
+   */
+  function announceEnvironmentalLineClear(rows) {
+    const rowSet = new Set(rows);
+    const allClear = grid.every((row, r) => rowSet.has(r) || row.every((cell) => cell === null));
+    const result = Scoring.scoreLineClear({
+      linesCleared: rows.length, level, multiplier: mb.multiplier, combo, backToBack,
+      tspin: 'none', allClear,
+    });
+    score += Math.round(result.points * mode.score);
+    combo = result.combo;
+    backToBack = result.backToBack;
+    bestComboThisGame = Math.max(bestComboThisGame, combo);
+    lines += rows.length;
+    const newLevel = Scoring.levelForLines(lines);
+    const leveledUp = newLevel > level;
+    level = newLevel;
+    saveData.stats.totalLines += rows.length;
+    if (result.isTetris) saveData.stats.totalTetrises += 1;
+    UI.updateHud(score, level);
+
+    if (result.allClear) {
+      Effects.toast('ALL CLEAR!', 'highscore', 1400);
+      Audio_.sfx.highScore();
+    } else if (result.isTetris) {
+      Audio_.sfx.tetris();
+      Effects.toast('TETRIS!', 'tetris', 1100);
+    } else {
+      Audio_.sfx.lineClear(rows.length);
+      if (rows.length === 3) Effects.toast('TRIPLE!', 'triple', 950);
+      else if (rows.length === 2) Effects.toast('DOUBLE!', 'double', 900);
+    }
+    if (combo >= 2) { Audio_.sfx.combo(combo); Effects.toast(`${combo}x COMBO`, 'combo', 800); }
+    if (leveledUp) { Audio_.sfx.levelUp(); Effects.toast(`LEVEL ${level}`, 'levelup'); }
+  }
+
+  /** Earthquake's signature line clear: instead of the standard clean
+   *  flash, the row crumbles apart like rubble — cells pop in scattered
+   *  order (not left-to-right), tumbling with a spin and kicking up dust,
+   *  and once the last chunk is gone the exposed stack gets one more
+   *  gravity settle, since a real collapse doesn't leave neat gaps behind. */
+  function beginQuakeRowClear(rows) {
+    announceEnvironmentalLineClear(rows);
+    Effects.rumble(9, 260);
+    beginJewelsRowClear(rows, () => {
+      const cleared = Board.clearRows(grid, rows);
+      grid = Board.compactColumns(cleared);
+      state = 'playing';
+      spawnNext();
+    }, { chaotic: true, dust: true, cellMs: 170, staggerMs: 20, rowStagger: 55 });
   }
 
   /** Magnetic pulls and earthquake shifts can accidentally close a gap and
    *  complete a row on their own, with no piece being placed. Give that the
    *  same clear treatment a normal line clear gets instead of leaving a
-   *  completed row sitting on the board unrewarded. */
-  function settleEnvironmentalShift() {
+   *  completed row sitting on the board unrewarded. `flavor` picks which
+   *  presentation: Earthquake gets its own rubble-crumble cascade instead
+   *  of the standard flash. */
+  function settleEnvironmentalShift(flavor) {
     const full = Board.findFullRows(grid);
-    if (full.length && state === 'playing') beginLineClear(full);
+    if (!full.length || state !== 'playing') return;
+    if (flavor === 'quake') beginQuakeRowClear(full);
+    else beginLineClear(full);
   }
 
   function update(dt) {
-    if (lineCascade) { lineCascade.elapsed += dt; if (lineCascade.elapsed >= lineCascade.duration) lineCascade = null; }
-    if (mbMotion) { mbMotion.elapsed += dt; if (mbMotion.elapsed >= mbMotion.duration) mbMotion = null; }
     if (state === 'playing') {
       updateModeTimers(dt);
       if (state === 'gameover') return;
@@ -12268,23 +11166,16 @@ const Game = (() => {
       lockFlashRows: state === 'clearing' ? pendingClearRows : null,
       jewelCollapse: jewelCollapseAnim,
       jewelClear: jewelClearAnim,
-      cascade: lineCascade,
-      mbMotion,
-      modeFx: modeFxState(),
       mb: mb ? {
         urgency: MindBender.urgency(mb),
         blurMs: mb.effect && mb.effect.id === 'blur' ? mb.effect.totalMs - mb.effect.remainingMs : null,
-        effectId: mb.effect ? mb.effect.id : null,
-        effectMs: mb.effect ? mb.effect.totalMs - mb.effect.remainingMs : 0,
-        effectTotal: mb.effect ? mb.effect.totalMs : 0,
-        mult: mb.multiplier,
       } : null,
     });
     if (jewels && mode.jewels) updateJewelAmbience();
     GemFx.update();
     Particles.update();
-    UI.applyShake();      // before renderFx so the motion-blur echoes match this frame
     UI.renderFx();
+    UI.applyShake();
   }
 
   function loop(ts) {
@@ -16397,4 +15288,68 @@ html[data-theme="matrix"] .ambient-canvas { opacity: 0.25 !important; }
 #screen-game { isolation: isolate; }
 #game-bg-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 body.game-bg-live #theme-fx-canvas { display: none !important; }
+
+/* ===== Screen-reader-only text: kept in the accessibility tree, never
+   shown on screen — used where an image now carries a button's label. ===== */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* =========================================================================
+   Mode-select artwork — the "CHOOSE GAME MODE" popup now uses the game's
+   own key-art: the full illustration as the popup's backdrop, and each
+   mode's own cropped button image in place of the plain emoji + text pill.
+   Paths are relative to index.html: buttons/<mode>.webp,
+   choose-game-mode-full.webp (see icons/ for the icon-only crops, unused
+   here but handy elsewhere).
+   ========================================================================= */
+.selector-popup--mode {
+  background-image:
+    radial-gradient(ellipse at 50% -5%, rgba(70,174,255,.30), transparent 55%),
+    linear-gradient(155deg, rgba(8,14,38,.90), rgba(7,6,28,.93) 55%, rgba(30,8,48,.93)),
+    url('choose-game-mode-full.webp');
+  background-size: auto, auto, cover;
+  background-position: center top, center top, center 18%;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+}
+.selector-popup--mode .popup-kicker,
+.selector-popup--mode h2,
+.selector-popup--mode > p {
+  /* The key-art already has its own giant title baked in above the
+     buttons; keep the real (accessible, always-correct) heading readable
+     but let the art show through as atmosphere behind it. */
+  text-shadow: 0 2px 10px rgba(0,0,0,.9), 0 0 18px rgba(0,0,0,.7);
+}
+
+.mode-pills--art { gap: 12px !important; }
+.mode-pill--art {
+  min-height: 0 !important;
+  aspect-ratio: 397 / 150;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 13px !important;
+  background: #0a0f22 !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,.45) !important;
+  overflow: hidden;
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.mode-pill--art::after { content: none !important; } /* drop the old underline-glow indicator */
+.mode-pill--art .mode-pill__art {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.mode-pill--art:active { transform: scale(.96) !important; }
+.mode-pill--art:not(.is-selected) { filter: brightness(.72) saturate(.85); }
+.mode-pill--art.is-selected {
+  filter: brightness(1) saturate(1.05);
+  box-shadow: 0 0 0 2px #fff, 0 0 22px color-mix(in srgb, var(--accent) 70%, #fff), 0 6px 16px rgba(0,0,0,.5) !important;
+  transform: translateY(-2px) !important;
+}
+@media (hover: hover) {
+  .mode-pill--art:hover { filter: brightness(.92) saturate(1); }
+  .mode-pill--art.is-selected:hover { filter: brightness(1.05) saturate(1.1); }
+}
 </style>
