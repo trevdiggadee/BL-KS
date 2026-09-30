@@ -225,6 +225,122 @@ button { font-family: inherit; color: inherit; }
   flex: 1;
 }
 
+/* ===== Stats screen: the uploaded frame art as a full-bleed background,
+   with everything below tightened up to fit one screen — no scrolling. ===== */
+#screen-stats {
+  background-image:
+    linear-gradient(180deg, rgba(4,6,14,.35) 0%, rgba(4,6,14,.55) 60%, rgba(4,6,14,.7) 100%),
+    url('stats-bg.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+#screen-stats .screen-scroll {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#screen-stats.subpage {
+  padding-top: calc(var(--safe-top) + 34px);
+  padding-bottom: calc(var(--safe-bottom) + 18px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+#screen-stats .subpage-title { text-shadow: 0 2px 8px rgba(0,0,0,.9); }
+#screen-stats .subpage-header { margin-bottom: clamp(8px, 2.2vh, 16px); flex: 0 0 auto; }
+#screen-stats .stats-grid { gap: clamp(6px, 1.4vh, 10px); flex: 0 0 auto; }
+#screen-stats .stat-card { padding: clamp(8px, 1.6vh, 14px); backdrop-filter: blur(6px); }
+#screen-stats .stat-card__value { font-size: clamp(1.05rem, 4vw, 1.5rem); }
+#screen-stats .stat-card__label { font-size: 0.62rem; margin-top: 1px; }
+#screen-stats .section-heading { margin: clamp(10px, 2.4vh, 22px) 0 clamp(6px, 1.2vh, 10px); flex: 0 0 auto; }
+#screen-stats .recent-list {
+  gap: clamp(5px, 1vh, 8px);
+  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+#screen-stats .recent-row { padding: clamp(6px, 1.2vh, 10px) 12px; font-size: 0.8rem; flex: 0 0 auto; }
+
+/* ===== Achievements screen: same treatment — the uploaded frame art as a
+   full-bleed background, everything tightened to fit one screen, no
+   scrolling. 12 achievements in a 3-column grid = 4 rows, sized to fit. ===== */
+#screen-achievements {
+  background-image:
+    linear-gradient(180deg, rgba(4,6,14,.35) 0%, rgba(4,6,14,.55) 60%, rgba(4,6,14,.7) 100%),
+    url('achievements-bg.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+#screen-achievements .screen-scroll {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#screen-achievements.subpage {
+  padding-top: calc(var(--safe-top) + 34px);
+  padding-bottom: calc(var(--safe-bottom) + 18px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+#screen-achievements .subpage-header { margin-bottom: clamp(8px, 2.2vh, 16px); flex: 0 0 auto; text-shadow: 0 2px 8px rgba(0,0,0,.9); }
+#screen-achievements .achv-icon-grid {
+  gap: clamp(6px, 1.2vh, 12px) !important;
+  padding: clamp(2px, .6vh, 4px) 2px clamp(6px, 1.5vh, 12px) !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  align-content: start;
+}
+#screen-achievements .achv-tile {
+  min-height: clamp(78px, 13vh, 118px);
+  padding: clamp(8px, 1.6vh, 14px) 6px clamp(6px, 1vh, 10px);
+  gap: 4px;
+}
+#screen-achievements .achv-tile__icon {
+  width: clamp(32px, 6.5vh, 44px);
+  height: clamp(32px, 6.5vh, 44px);
+  font-size: clamp(0.95rem, 3vw, 1.3rem);
+  margin-bottom: 0;
+}
+#screen-achievements .achv-tile__name { font-size: 0.58rem; }
+#screen-achievements .achv-tile__desc { font-size: 0.48rem; line-height: 1.2; }
+
+/* ===== Settings screen: same background-art treatment, compacted hard to
+   get as close to "fits without scrolling" as possible. Unlike Stats and
+   Achievements, this screen has meaningfully more content (audio +
+   gameplay toggles, a 12-swatch theme picker, 3 data actions) and every
+   bit of it is a real control — so overflow stays scrollable here as a
+   safety net instead of clipping, rather than risk hiding a toggle or the
+   Clear Data button on a shorter device. On anything roughly phone-sized
+   or larger this should already fit in full with no scroll needed. */
+#screen-settings {
+  background-image:
+    linear-gradient(180deg, rgba(4,6,14,.35) 0%, rgba(4,6,14,.55) 60%, rgba(4,6,14,.7) 100%),
+    url('settings-bg.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+#screen-settings.subpage {
+  padding-top: calc(var(--safe-top) + 34px);
+  padding-bottom: calc(var(--safe-bottom) + 14px);
+}
+#screen-settings .subpage-header { margin-bottom: clamp(8px, 2vh, 14px); text-shadow: 0 2px 8px rgba(0,0,0,.9); }
+#screen-settings .section-heading { margin: clamp(10px, 2vh, 18px) 0 clamp(5px, 1vh, 8px); }
+#screen-settings .settings-list { gap: clamp(6px, 1.2vh, 9px); }
+#screen-settings .settings-row { padding: clamp(8px, 1.4vh, 11px) 12px; gap: 10px; }
+#screen-settings .settings-row__label { font-size: 0.82rem; }
+#screen-settings .settings-row__hint { font-size: 0.62rem; margin-top: 1px; line-height: 1.25; }
+#screen-settings .theme-swatches { grid-template-columns: repeat(6, 1fr) !important; gap: 6px !important; }
+#screen-settings .theme-swatch { font-size: 0.5rem; }
+#screen-settings .settings-list .btn { padding-top: clamp(9px, 1.4vh, 13px); padding-bottom: clamp(9px, 1.4vh, 13px); }
+
+
 /* ==========================================================================
    Wordmark / logo treatment — distinctive without external fonts:
    layered glow + slight skew on a bold system stack.
@@ -10646,7 +10762,7 @@ const StatsScreen = (() => {
     if (!data.recentGames || data.recentGames.length === 0) {
       recentList.innerHTML = `<div class="howto-text">No games played yet — go set a record.</div>`;
     } else {
-      recentList.innerHTML = data.recentGames.slice(0, 10).map((g) => `
+      recentList.innerHTML = data.recentGames.slice(0, 5).map((g) => `
         <div class="recent-row">
           <div class="recent-row__score">${g.score}</div>
           <div class="recent-row__meta">Lvl ${g.level} · ${g.lines} lines · ${new Date(g.date).toLocaleDateString()}</div>
