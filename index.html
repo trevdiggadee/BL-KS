@@ -4636,7 +4636,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
             </div>
           </div>
         </section>
-        <section class="selector-popup selector-popup--blocks selector-popup--frame" id="popup-blocks" role="dialog" aria-modal="true" aria-labelledby="popup-blocks-title" hidden>
+        <section class="selector-popup selector-popup--blocks" id="popup-blocks" role="dialog" aria-modal="true" aria-labelledby="popup-blocks-title" hidden>
           <button class="popup-close" data-popup-close="all" aria-label="Close block style selector">×</button>
           <h2 id="popup-blocks-title" class="block-studio-title wordmark wordmark--studio">BLØKS STUDIO</h2>
 
@@ -4654,7 +4654,6 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           <div class="block-fx-grid block-fx-grid--texture" id="block-fx-grid"><button class="block-fx-card is-active" data-preview-fx="glow" title="glow" aria-label="glow"><span class="block-fx-card__swatch fx-swatch--glow"></span></button><button class="block-fx-card is-active" data-preview-fx="shadow" title="shadow" aria-label="shadow"><span class="block-fx-card__swatch fx-swatch--shadow"></span></button><button class="block-fx-card is-active" data-preview-fx="sparkle" title="sparkle" aria-label="sparkle"><span class="block-fx-card__swatch fx-swatch--sparkle"></span></button><button class="block-fx-card" data-preview-fx="pulse" title="pulse" aria-label="pulse"><span class="block-fx-card__swatch fx-swatch--pulse"></span></button><button class="block-fx-card" data-preview-fx="fire" title="fire" aria-label="fire"><span class="block-fx-card__swatch fx-swatch--fire"></span></button><button class="block-fx-card" data-preview-fx="smoke" title="smoke" aria-label="smoke"><span class="block-fx-card__swatch fx-swatch--smoke"></span></button><button class="block-fx-card" data-preview-fx="lightning" title="lightning" aria-label="lightning"><span class="block-fx-card__swatch fx-swatch--lightning"></span></button><button class="block-fx-card" data-preview-fx="chromatic" title="chromatic" aria-label="chromatic"><span class="block-fx-card__swatch fx-swatch--chromatic"></span></button><button class="block-fx-card" data-preview-fx="shimmer" title="shimmer" aria-label="shimmer"><span class="block-fx-card__swatch fx-swatch--shimmer"></span></button><button class="block-fx-card" data-preview-fx="ripple" title="ripple" aria-label="ripple"><span class="block-fx-card__swatch fx-swatch--ripple"></span></button><button class="block-fx-card" data-preview-fx="plasma" title="plasma" aria-label="plasma"><span class="block-fx-card__swatch fx-swatch--plasma"></span></button><button class="block-fx-card" data-preview-fx="stars" title="stars" aria-label="stars"><span class="block-fx-card__swatch fx-swatch--stars"></span></button><button class="block-fx-card" data-preview-fx="aura" title="aura" aria-label="aura"><span class="block-fx-card__swatch fx-swatch--aura"></span></button><button class="block-fx-card" data-preview-fx="glitch" title="glitch" aria-label="glitch"><span class="block-fx-card__swatch fx-swatch--glitch"></span></button><button class="block-fx-card" data-preview-fx="comet" title="comet" aria-label="comet"><span class="block-fx-card__swatch fx-swatch--comet"></span></button><button class="block-fx-card" data-preview-fx="dust" title="dust" aria-label="dust"><span class="block-fx-card__swatch fx-swatch--dust"></span></button><button class="block-fx-card" data-preview-fx="wave" title="wave" aria-label="wave"><span class="block-fx-card__swatch fx-swatch--wave"></span></button><button class="block-fx-card" data-preview-fx="scan" title="scan" aria-label="scan"><span class="block-fx-card__swatch fx-swatch--scan"></span></button><button class="block-fx-card" data-preview-fx="flicker" title="flicker" aria-label="flicker"><span class="block-fx-card__swatch fx-swatch--flicker"></span></button><button class="block-fx-card" data-preview-fx="orbit" title="orbit" aria-label="orbit"><span class="block-fx-card__swatch fx-swatch--orbit"></span></button><button class="block-fx-card" data-preview-fx="mist" title="mist" aria-label="mist"><span class="block-fx-card__swatch fx-swatch--mist"></span></button><button class="block-fx-card" data-preview-fx="ring" title="ring" aria-label="ring"><span class="block-fx-card__swatch fx-swatch--ring"></span></button><button class="block-fx-card" data-preview-fx="edge" title="edge" aria-label="edge"><span class="block-fx-card__swatch fx-swatch--edge"></span></button><button class="block-fx-card" data-preview-fx="spark" title="spark" aria-label="spark"><span class="block-fx-card__swatch fx-swatch--spark"></span></button></div>
           </div>
         </section>
-        <script>(function(){var i=new Image();i.onerror=function(){var p=document.getElementById('popup-blocks');if(p)p.classList.remove('selector-popup--frame');};i.src='studio-frame.webp';})();</script>
         <section class="selector-popup selector-popup--mode selector-popup--art" id="popup-mode" role="dialog" aria-modal="true" aria-labelledby="popup-mode-title" hidden>
           <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
           <h2 id="popup-mode-title" class="sr-only-title">CHOOSE GAME MODE</h2>
@@ -16452,32 +16451,4 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 .mode-art.is-fallback .mode-art__img, .mode-art.is-fallback .mode-hot { display:none; }
 .mode-art.is-fallback .mode-art__fallback { display:block; }
 @media (prefers-reduced-motion: reduce) { .mode-art .mode-hot.is-selected { animation:none; } }
-
-/* ---- Bloks Studio: framed artwork (9-slice so it fits any height) ---- */
-#popup-blocks.selector-popup--frame:not([hidden]) {
-  --k: calc(min(100vw - 16px, 500px) / 800);
-  width: min(100vw - 16px, 500px) !important;
-  max-width: none !important;
-  height: min(90dvh, calc(min(100vw - 16px, 500px) * 2.05)) !important;
-  max-height: none !important; min-height: 0 !important; margin: 0 !important;
-  padding: 6px 10px 8px !important;
-  border-style: solid !important; border-color: transparent !important;
-  border-width: calc(196 * var(--k)) calc(88 * var(--k)) calc(88 * var(--k)) calc(90 * var(--k)) !important;
-  border-image: url("studio-frame.webp") 196 88 88 90 fill / calc(196 * var(--k)) calc(88 * var(--k)) calc(88 * var(--k)) calc(90 * var(--k)) stretch !important;
-  border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
-  overflow: visible !important; box-sizing: border-box !important; animation: none !important;
-}
-#popup-blocks.selector-popup--frame .block-studio-title { position:absolute !important; width:1px !important; height:1px !important; overflow:hidden !important; clip:rect(0 0 0 0) !important; margin:0 !important; padding:0 !important; }
-#popup-blocks.selector-popup--frame .popup-close {
-  position:absolute !important; right:auto !important; bottom:auto !important;
-  left: calc(589 * var(--k)) !important; top: calc(-134 * var(--k)) !important;
-  width: calc(76 * var(--k)) !important; height: calc(76 * var(--k)) !important; min-width:0 !important;
-  border:0 !important; border-radius:50% !important; background:transparent !important; box-shadow:none !important;
-  display:flex !important; align-items:center; justify-content:center; padding:0 !important;
-  font-size: max(15px, calc(48 * var(--k))) !important; color:#fff !important; text-shadow:0 0 8px rgba(120,220,255,.9);
-}
-#popup-blocks.selector-popup--frame { justify-content: space-evenly !important; }
-#popup-blocks.selector-popup--frame .studio-display { flex: 0 0 auto !important; height: clamp(130px, 19dvh, 175px) !important; margin: 0 !important; }
-#popup-blocks.selector-popup--frame .studio-display__canvas-wrap { top: 0 !important; }
-#popup-blocks.selector-popup--frame .studio-controls { flex: 0 0 auto !important; justify-content: flex-start !important; }
 </style>
