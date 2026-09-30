@@ -4511,6 +4511,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 }
 
 </style>
+<link rel="preload" as="image" href="game-mode-popup.webp" fetchpriority="high">
 </head>
 <body>
 <canvas id="theme-fx-canvas" aria-hidden="true"></canvas>
@@ -4636,7 +4637,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           <div class="block-fx-grid block-fx-grid--texture" id="block-fx-grid"><button class="block-fx-card is-active" data-preview-fx="glow" title="glow" aria-label="glow"><span class="block-fx-card__swatch fx-swatch--glow"></span></button><button class="block-fx-card is-active" data-preview-fx="shadow" title="shadow" aria-label="shadow"><span class="block-fx-card__swatch fx-swatch--shadow"></span></button><button class="block-fx-card is-active" data-preview-fx="sparkle" title="sparkle" aria-label="sparkle"><span class="block-fx-card__swatch fx-swatch--sparkle"></span></button><button class="block-fx-card" data-preview-fx="pulse" title="pulse" aria-label="pulse"><span class="block-fx-card__swatch fx-swatch--pulse"></span></button><button class="block-fx-card" data-preview-fx="fire" title="fire" aria-label="fire"><span class="block-fx-card__swatch fx-swatch--fire"></span></button><button class="block-fx-card" data-preview-fx="smoke" title="smoke" aria-label="smoke"><span class="block-fx-card__swatch fx-swatch--smoke"></span></button><button class="block-fx-card" data-preview-fx="lightning" title="lightning" aria-label="lightning"><span class="block-fx-card__swatch fx-swatch--lightning"></span></button><button class="block-fx-card" data-preview-fx="chromatic" title="chromatic" aria-label="chromatic"><span class="block-fx-card__swatch fx-swatch--chromatic"></span></button><button class="block-fx-card" data-preview-fx="shimmer" title="shimmer" aria-label="shimmer"><span class="block-fx-card__swatch fx-swatch--shimmer"></span></button><button class="block-fx-card" data-preview-fx="ripple" title="ripple" aria-label="ripple"><span class="block-fx-card__swatch fx-swatch--ripple"></span></button><button class="block-fx-card" data-preview-fx="plasma" title="plasma" aria-label="plasma"><span class="block-fx-card__swatch fx-swatch--plasma"></span></button><button class="block-fx-card" data-preview-fx="stars" title="stars" aria-label="stars"><span class="block-fx-card__swatch fx-swatch--stars"></span></button><button class="block-fx-card" data-preview-fx="aura" title="aura" aria-label="aura"><span class="block-fx-card__swatch fx-swatch--aura"></span></button><button class="block-fx-card" data-preview-fx="glitch" title="glitch" aria-label="glitch"><span class="block-fx-card__swatch fx-swatch--glitch"></span></button><button class="block-fx-card" data-preview-fx="comet" title="comet" aria-label="comet"><span class="block-fx-card__swatch fx-swatch--comet"></span></button><button class="block-fx-card" data-preview-fx="dust" title="dust" aria-label="dust"><span class="block-fx-card__swatch fx-swatch--dust"></span></button><button class="block-fx-card" data-preview-fx="wave" title="wave" aria-label="wave"><span class="block-fx-card__swatch fx-swatch--wave"></span></button><button class="block-fx-card" data-preview-fx="scan" title="scan" aria-label="scan"><span class="block-fx-card__swatch fx-swatch--scan"></span></button><button class="block-fx-card" data-preview-fx="flicker" title="flicker" aria-label="flicker"><span class="block-fx-card__swatch fx-swatch--flicker"></span></button><button class="block-fx-card" data-preview-fx="orbit" title="orbit" aria-label="orbit"><span class="block-fx-card__swatch fx-swatch--orbit"></span></button><button class="block-fx-card" data-preview-fx="mist" title="mist" aria-label="mist"><span class="block-fx-card__swatch fx-swatch--mist"></span></button><button class="block-fx-card" data-preview-fx="ring" title="ring" aria-label="ring"><span class="block-fx-card__swatch fx-swatch--ring"></span></button><button class="block-fx-card" data-preview-fx="edge" title="edge" aria-label="edge"><span class="block-fx-card__swatch fx-swatch--edge"></span></button><button class="block-fx-card" data-preview-fx="spark" title="spark" aria-label="spark"><span class="block-fx-card__swatch fx-swatch--spark"></span></button></div>
           </div>
         </section>
-        <section class="selector-popup selector-popup--mode" id="popup-mode" role="dialog" aria-modal="true" aria-labelledby="popup-mode-title" hidden>
+        <section class="selector-popup selector-popup--mode" id="popup-mode" role="dialog" aria-modal="true" aria-labelledby="popup-mode-title" aria-label="Choose game mode" hidden>
           <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
           <div class="popup-kicker">ARENA PROTOCOL / 03</div><h2 id="popup-mode-title">CHOOSE GAME MODE</h2><p>Pick the challenge you want to take on.</p>
           <div class="mode-pills" id="special-mode-choices" aria-label="Special game modes">
@@ -16397,4 +16398,122 @@ html[data-theme="matrix"] .ambient-canvas { opacity: 0.25 !important; }
 #screen-game { isolation: isolate; }
 #game-bg-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 body.game-bg-live #theme-fx-canvas { display: none !important; }
+
+/* ============================================================
+   GAME MODE POPUP — supplied reference artwork
+   The artwork is the visual shell; transparent HTML buttons remain
+   over the ten panels so the modes stay fully interactive.
+   ============================================================ */
+.selector-popup--mode{
+  width:min(92vw, 560px);
+  max-width:560px;
+  height:auto;
+  aspect-ratio:928 / 1147;
+  max-height:calc(100dvh - 24px);
+  padding:0 !important;
+  overflow:hidden !important;
+  border:0 !important;
+  border-radius:18px !important;
+  background:
+    url("game-mode-popup.webp") center center / 100% 100% no-repeat !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.22),
+    0 0 38px rgba(255,157,60,.34),
+    0 28px 90px rgba(0,0,0,.75) !important;
+}
+.selector-popup--mode .popup-kicker,
+.selector-popup--mode h2,
+.selector-popup--mode > p{
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  padding:0 !important;
+  margin:-1px !important;
+  overflow:hidden !important;
+  clip:rect(0 0 0 0) !important;
+  white-space:nowrap !important;
+  border:0 !important;
+}
+.selector-popup--mode .mode-pills{
+  position:absolute;
+  inset:0;
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  grid-template-rows:repeat(5,minmax(0,1fr));
+  column-gap:2.1%;
+  row-gap:1.35%;
+  padding:23.25% 6.25% 7.4% !important;
+  margin:0 !important;
+}
+.selector-popup--mode .mode-pill{
+  min-height:0 !important;
+  width:100%;
+  height:100%;
+  padding:0 !important;
+  margin:0 !important;
+  border:2px solid transparent !important;
+  border-radius:14px !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  color:transparent !important;
+  font-size:0 !important;
+  text-indent:-9999px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease, background .12s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.selector-popup--mode .mode-pill span{
+  display:none !important;
+}
+.selector-popup--mode .mode-pill:active{
+  transform:scale(.985);
+}
+.selector-popup--mode .mode-pill:hover,
+.selector-popup--mode .mode-pill:focus-visible{
+  border-color:rgba(255,255,255,.65) !important;
+  box-shadow:inset 0 0 22px rgba(255,255,255,.10),0 0 18px rgba(76,243,255,.22) !important;
+  outline:none;
+}
+.selector-popup--mode .mode-pill.is-selected{
+  border-color:rgba(255,255,255,.88) !important;
+  background:rgba(255,255,255,.045) !important;
+  box-shadow:
+    inset 0 0 25px rgba(255,255,255,.10),
+    0 0 20px rgba(255,196,90,.28) !important;
+}
+.selector-popup--mode .mode-description{
+  display:none !important;
+}
+.selector-popup--mode .popup-close{
+  z-index:10;
+  top:10px;
+  right:10px;
+  width:34px;
+  height:34px;
+  border-radius:11px;
+  border-color:rgba(255,255,255,.55);
+  background:rgba(5,8,18,.62);
+  box-shadow:0 4px 16px rgba(0,0,0,.35), inset 0 1px rgba(255,255,255,.2);
+}
+@media (max-width:390px){
+  .selector-popup--mode{
+    width:min(94vw,560px);
+    border-radius:15px !important;
+  }
+  .selector-popup--mode .mode-pills{
+    padding-left:6.2% !important;
+    padding-right:6.2% !important;
+    padding-top:23.25% !important;
+    padding-bottom:7.4% !important;
+  }
+}
+@media (max-height:700px) and (orientation:landscape){
+  .selector-popup--mode{
+    max-height:calc(100dvh - 12px);
+    width:auto;
+    height:calc(100dvh - 12px);
+  }
+}
+
 </style>
