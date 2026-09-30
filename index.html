@@ -4786,20 +4786,18 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 
   <!-- ============ STATS SCREEN ============ -->
   <section class="screen subpage" id="screen-stats">
-    <div class="screen-scroll">
-      <div class="subpage-header">
-        <button class="back-btn" data-back aria-label="Back">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-        <div class="subpage-title">STATISTICS</div>
+    <div class="stats-frame stats-frame--art" id="stats-frame">
+      <button class="stats-frame__close" data-back aria-label="Back">&#10005;</button>
+      <h1 class="sr-only-title">STATISTICS</h1>
+      <div class="stats-frame__scroll">
+        <div class="stats-grid" id="stats-grid"></div>
+
+        <div class="section-heading">RECENT GAMES</div>
+        <div class="recent-list" id="recent-list"></div>
       </div>
-
-      <div class="stats-grid" id="stats-grid"></div>
-
-      <div class="section-heading">RECENT GAMES</div>
-      <div class="recent-list" id="recent-list"></div>
     </div>
   </section>
+  <script>(function(){var i=new Image();i.onerror=function(){var f=document.getElementById('stats-frame');if(f)f.classList.remove('stats-frame--art');};i.src='stats-frame.webp';var sc=document.querySelector('.stats-frame__scroll');if(sc&&window.ResizeObserver){var f=function(){var st=document.getElementById('stats-frame');if(!st)return;st.style.setProperty('--u',(sc.clientHeight/100)+'px');st.style.setProperty('--w',(sc.clientWidth/100)+'px');};new ResizeObserver(f).observe(sc);f();}})();</script>
 
   <!-- ============ ACHIEVEMENTS SCREEN ============ -->
   <section class="screen subpage" id="screen-achievements">
@@ -16480,4 +16478,53 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 #popup-blocks.selector-popup--frame .studio-display { flex: 0 0 auto !important; height: clamp(130px, 19dvh, 175px) !important; margin: 0 !important; }
 #popup-blocks.selector-popup--frame .studio-display__canvas-wrap { top: 0 !important; }
 #popup-blocks.selector-popup--frame .studio-controls { flex: 0 0 auto !important; justify-content: flex-start !important; }
+
+/* ---- Stats: everything inside the framed artwork ---- */
+#screen-stats.subpage { padding: 8px !important; max-width: none !important; border: 0 !important; margin: 0 !important; }
+#screen-stats.screen--active { align-items: center; justify-content: center; }
+.stats-frame { position: relative; display: flex; flex-direction: column; box-sizing: border-box; width: min(100%, 500px); max-height: 100%; padding: 8px; overflow: visible; }
+.stats-frame__close { position:absolute; top:6px; right:6px; width:38px; height:38px; border-radius:50%; border:1px solid var(--border-strong); background:var(--panel); color:#fff; font-size:1.1rem; cursor:pointer; z-index:3; }
+.stats-frame__scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.stats-frame__scroll::-webkit-scrollbar { display: none; }
+.stats-frame .stats-grid { gap: 6px; }
+.stats-frame .stat-card { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.045); border: 1px solid rgba(130,205,255,.24); backdrop-filter: none; }
+.stats-frame .stat-card__value { font-size: clamp(1.02rem, 4.6vw, 1.35rem); line-height: 1.15; }
+.stats-frame .stat-card__label { font-size: .6rem; margin-top: 1px; }
+.stats-frame .section-heading { margin: 10px 0 6px; font-size: .68rem; letter-spacing: .16em; text-align: center; color: var(--accent); }
+.stats-frame .recent-list { gap: 3px; }
+.stats-frame .recent-row { padding: 5px 9px; border-radius: 8px; min-height: 0; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); }
+.stats-frame .recent-row__score { font-size: .82rem; }
+.stats-frame .recent-row__meta { font-size: .62rem; }
+
+.stats-frame.stats-frame--art {
+  --k: calc(min(100vw - 16px, 500px) / 800);
+  width: min(100vw - 16px, 500px);
+  height: min(calc(100dvh - 16px), calc(min(100vw - 16px, 500px) * 2.05));
+  padding: 6px 10px 8px;
+  border-style: solid; border-color: transparent;
+  border-width: calc(196 * var(--k)) calc(88 * var(--k)) calc(88 * var(--k)) calc(90 * var(--k));
+  border-image: url("stats-frame.webp") 196 88 88 90 fill / calc(196 * var(--k)) calc(88 * var(--k)) calc(88 * var(--k)) calc(90 * var(--k)) stretch;
+}
+.stats-frame--art .stats-frame__close {
+  left: calc(589 * var(--k)); top: calc(-134 * var(--k)); right: auto;
+  width: calc(76 * var(--k)); height: calc(76 * var(--k)); min-width: 0; padding: 0;
+  border: 0; background: transparent; box-shadow: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: max(15px, calc(48 * var(--k))); text-shadow: 0 0 8px rgba(120,220,255,.9);
+}
+
+/* ---- Studio + Stats windows: 15% smaller; Stats fits everything with no scrolling ---- */
+#popup-blocks.selector-popup--frame:not([hidden]) { scale: 0.85; }
+.stats-frame.stats-frame--art { scale: 0.85; --u: 6px; --w: 2.9px; }
+.stats-frame--art .stats-frame__scroll { overflow: hidden; padding: 0; display: flex; flex-direction: column; }
+.stats-frame--art .stats-grid { flex: 0 0 auto; gap: calc(var(--u) * 1.3) calc(var(--w) * 1.8); grid-auto-rows: calc(var(--u) * 8.4); }
+.stats-frame--art .stat-card { height: 100%; min-height: 0; padding: 0 calc(var(--w) * 3.2); display: flex; flex-direction: column; justify-content: center; }
+.stats-frame--art .stat-card__value { font-size: min(calc(var(--u) * 3.5), calc(var(--w) * 8)); line-height: 1.1; }
+.stats-frame--art .stat-card__label { font-size: min(calc(var(--u) * 1.7), calc(var(--w) * 3.6)); margin-top: calc(var(--u) * .25); }
+.stats-frame--art .section-heading { flex: 0 0 auto; margin: calc(var(--u) * 2.2) 0 calc(var(--u) * 1.4); font-size: min(calc(var(--u) * 1.9), calc(var(--w) * 3.8)); line-height: 1; }
+.stats-frame--art .recent-list { flex: 1 1 auto; min-height: 0; gap: calc(var(--u) * .55); }
+.stats-frame--art .recent-row { flex: 0 0 calc(var(--u) * 4.7); height: calc(var(--u) * 4.7); padding: 0 calc(var(--w) * 2.6); align-items: center; }
+.stats-frame--art .recent-row__score { font-size: min(calc(var(--u) * 2.35), calc(var(--w) * 5)); }
+.stats-frame--art .recent-row__meta { font-size: min(calc(var(--u) * 1.75), calc(var(--w) * 3.3)); white-space: nowrap; }
+.stats-frame--art .howto-text { font-size: min(calc(var(--u) * 2), calc(var(--w) * 4)); text-align: center; }
 </style>
