@@ -4812,14 +4812,10 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 
   <!-- ============ SETTINGS SCREEN ============ -->
   <section class="screen subpage" id="screen-settings">
-    <div class="screen-scroll">
-      <div class="subpage-header">
-        <button class="back-btn" data-back aria-label="Back">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-        <div class="subpage-title">SETTINGS</div>
-      </div>
-
+    <div class="stats-frame stats-frame--art settings-frame" id="settings-frame">
+      <button class="sr-back" data-back aria-label="Back"></button>
+      <h1 class="sr-only-title">SETTINGS</h1>
+      <div class="stats-frame__scroll">
       <div class="section-heading">AUDIO</div>
       <div class="settings-list">
         <div class="settings-row">
@@ -4859,7 +4855,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           <label class="switch"><input type="checkbox" id="set-layout"><span class="switch-track"></span></label>
         </div>
         <div class="settings-row">
-          <div><div class="settings-row__label">On-screen controls</div><div class="settings-row__hint">Swipe, tap, and keyboard always work — turn this on for buttons too</div></div>
+          <div><div class="settings-row__label">On-screen controls</div><div class="settings-row__hint">Adds buttons; swipe and keyboard still work</div></div>
           <label class="switch"><input type="checkbox" id="set-controls"><span class="switch-track"></span></label>
         </div>
       </div>
@@ -4886,8 +4882,10 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
         <button class="btn danger-btn" id="btn-reset-stats">RESET STATISTICS</button>
         <button class="btn danger-btn" id="btn-clear-data">CLEAR ALL SAVED DATA</button>
       </div>
+      </div>
     </div>
   </section>
+  <script>(function(){var i=new Image();i.onerror=function(){var f=document.getElementById('settings-frame');if(f)f.classList.remove('stats-frame--art');};i.src='settings-frame.webp';var sc=document.querySelector('#settings-frame .stats-frame__scroll');if(sc&&window.ResizeObserver){var f=function(){var st=document.getElementById('settings-frame');if(!st)return;var u=sc.clientHeight/100;st.style.setProperty('--u',u+'px');st.style.setProperty('--w',(sc.clientWidth/100)+'px');st.style.setProperty('--s',Math.max(.62,Math.min(1.1,u/6.2)));};new ResizeObserver(f).observe(sc);f();}var scr=document.getElementById('screen-settings');if(scr)scr.addEventListener('click',function(e){if(e.target===scr){var b=scr.querySelector('[data-back]');if(b)b.click();}});})();</script>
 
   <!-- ============ HOW TO PLAY SCREEN ============ -->
   <section class="screen subpage" id="screen-howto">
@@ -16549,4 +16547,24 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 
 #screen-achievements.subpage { padding: 8px !important; max-width: none !important; border: 0 !important; margin: 0 !important; }
 #screen-achievements.screen--active { align-items: center; justify-content: center; }
+
+/* ---- Settings: framed artwork, everything visible, no scrolling ---- */
+#screen-settings.subpage { padding: 8px !important; max-width: none !important; border: 0 !important; margin: 0 !important; }
+#screen-settings.screen--active { align-items: center; justify-content: center; }
+.stats-frame.stats-frame--art.settings-frame { border-image-source: url("settings-frame.webp"); --s: 1; }
+.settings-frame .stats-frame__scroll { justify-content: space-between; }
+.settings-frame .section-heading { flex: 0 0 auto; margin: calc(var(--u) * 1.3) 0 calc(var(--u) * .8); font-size: min(calc(var(--u) * 1.7), calc(var(--w) * 3.6)); line-height: 1; text-align: center; letter-spacing: .16em; color: var(--accent); }
+.settings-frame .section-heading:first-child { margin-top: 0; }
+.settings-frame .settings-list { gap: calc(var(--u) * .45); flex: 0 0 auto; }
+.settings-frame .settings-row { height: calc(var(--u) * 4.5); min-height: 0 !important; padding: 0 calc(var(--w) * 3) !important; border-radius: 10px; align-items: center; gap: calc(var(--w) * 2); background: rgba(255,255,255,.045); border: 1px solid rgba(130,205,255,.2); box-sizing: border-box; }
+.settings-frame .settings-row__label { font-size: min(calc(var(--u) * 1.95), calc(var(--w) * 4.6)); line-height: 1.1; }
+.settings-frame .settings-row__hint { font-size: min(calc(var(--u) * 1.25), calc(var(--w) * 3)); line-height: 1.15; margin-top: 0; }
+.settings-frame .switch { transform: scale(var(--s)); transform-origin: right center; }
+.settings-frame input[type=range] { width: 42%; max-width: 42%; }
+.settings-frame .theme-swatches { grid-template-columns: repeat(4, 1fr) !important; grid-auto-rows: calc(var(--u) * 4.4); gap: calc(var(--u) * .6) calc(var(--w) * 1.6); flex: 0 0 auto; }
+.settings-frame .theme-swatch { height: 100%; padding: 0 !important; min-height: 0 !important; border-radius: 9px; font-size: min(calc(var(--u) * 1.6), calc(var(--w) * 3.4)); display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; }
+.settings-frame .settings-list > .btn { height: calc(var(--u) * 4.5); min-height: 0 !important; padding: 0 !important; font-size: min(calc(var(--u) * 1.8), calc(var(--w) * 4)); border-radius: 10px; }
+
+.settings-frame .theme-swatch { aspect-ratio: auto !important; width: 100%; justify-self: stretch; }
+.settings-frame .settings-row__hint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>
