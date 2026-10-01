@@ -4576,26 +4576,15 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 
       <!-- Unified bottom menu dock -->
       <div class="menu-dock" role="navigation" aria-label="Main menu">
-        <div class="menu-selector-row" aria-label="Game setup">
-          <button class="selector-card selector-card--theme" id="open-theme" aria-haspopup="dialog" aria-controls="popup-theme"><span class="selector-card__icon">✦</span><span class="selector-card__name">THEME</span><small id="theme-current">NEON</small><b>EDIT ↗</b></button>
-          <button class="selector-card selector-card--blocks" id="open-blocks" aria-haspopup="dialog" aria-controls="popup-blocks"><span class="selector-card__icon">▦</span><span class="selector-card__name">BLOCKS</span><small id="blocks-current">NEON</small><b>EDIT ↗</b></button>
-          <button class="selector-card selector-card--mode" id="open-mode" aria-haspopup="dialog" aria-controls="popup-mode"><span class="selector-card__icon">⚡</span><span class="selector-card__name">MODE</span><small id="mode-current">STANDARD</small><b>EDIT ↗</b></button>
-        </div>
         <div class="menu-selection-status"><span>LOADOUT</span><b id="menu-selection-readout">NEON · STANDARD</b></div>
-        <nav class="pill-nav">
-          <button class="pill-nav__item pn--stats" id="btn-stats">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>
-            <span>STATS</span>
-          </button>
-          <button class="pill-nav__item pn--achv" id="btn-achievements">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8v4a4 4 0 0 1-8 0V3Z"/><path d="M8 5H4v2a4 4 0 0 0 4 4M16 5h4v2a4 4 0 0 1-4 4M12 11v5m-4 5h8m-7-5h6l1 5H8l1-5Z"/></svg>
-            <span>ACHIEVEMENTS</span>
-          </button>
-          <button class="pill-nav__item pn--settings" id="btn-settings" aria-label="Settings">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.6v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.3v-2.6h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2H15v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg>
-            <span>SETTINGS</span>
-          </button>
-        </nav>
+        <div class="menu-art-grid" role="group" aria-label="Menu">
+          <button class="menu-art-btn" id="open-theme" style="--i:0;--fx:#4dff6a" data-fx="#4dff6a" aria-label="Theme" aria-haspopup="dialog" aria-controls="popup-theme"><img src="menu-theme.webp" alt="" draggable="false" decoding="async" onerror="this.parentNode.classList.add('no-art')"><span class="sr-only-title" id="theme-current">NEON</span></button>
+          <button class="menu-art-btn" id="open-blocks" style="--i:1;--fx:#3aa8ff" data-fx="#3aa8ff" aria-label="Blocks" aria-haspopup="dialog" aria-controls="popup-blocks"><img src="menu-blocks.webp" alt="" draggable="false" decoding="async" onerror="this.parentNode.classList.add('no-art')"><span class="sr-only-title" id="blocks-current">NEON</span></button>
+          <button class="menu-art-btn" id="open-mode" style="--i:2;--fx:#b45cff" data-fx="#b45cff" aria-label="Mode" aria-haspopup="dialog" aria-controls="popup-mode"><img src="menu-mode.webp" alt="" draggable="false" decoding="async" onerror="this.parentNode.classList.add('no-art')"><span class="sr-only-title" id="mode-current">STANDARD</span></button>
+          <button class="menu-art-btn" id="btn-stats" style="--i:3;--fx:#3ab4ff" data-fx="#3ab4ff" aria-label="Stats"><img src="menu-stats.webp" alt="" draggable="false" decoding="async" onerror="this.parentNode.classList.add('no-art')"></button>
+          <button class="menu-art-btn" id="btn-achievements" style="--i:4;--fx:#ffc83a" data-fx="#ffc83a" aria-label="Achievements"><img src="menu-achievements.webp" alt="" draggable="false" decoding="async" onerror="this.parentNode.classList.add('no-art')"></button>
+          <button class="menu-art-btn" id="btn-settings" style="--i:5;--fx:#3be8ff" data-fx="#3be8ff" aria-label="Settings"><img src="menu-settings.webp" alt="" draggable="false" decoding="async" onerror="this.parentNode.classList.add('no-art')"></button>
+        </div>
       </div>
 
       <div class="selector-popups" id="selector-popups">
@@ -14614,6 +14603,129 @@ body.is-playing #menu-float-canvas, #screen-game.screen--active ~ * #menu-float-
 #menu-float-blocks, .menu-float-blocks, #menu-float-blocks .float-piece { display:none !important; }
 </style>
 
+
+<script>
+/* menu-fx.js - button press burst + window open/close animations */
+(function MenuFx() {
+  var last = null, closing = false, pass = false;
+  function off() { return document.body.classList.contains('no-anim') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function layer() { var l = document.getElementById('menu-fx-layer'); if (!l) { l = document.createElement('div'); l.id = 'menu-fx-layer'; document.body.appendChild(l); } return l; }
+  function mk(cls, x, y, color) { var e = document.createElement('i'); e.className = cls; e.style.left = x + 'px'; e.style.top = y + 'px'; e.style.setProperty('--c', color); layer().appendChild(e); return e; }
+  function done(anim, el) { var f = function () { if (el.parentNode) el.parentNode.removeChild(el); }; anim.onfinish = f; anim.oncancel = f; }
+  function burst(x, y, color, big) {
+    if (off()) return;
+    var r = mk('fx-ring', x, y, color);
+    done(r.animate([{ transform: 'scale(.4)', opacity: .95 }, { transform: 'scale(' + (big ? 16 : 6) + ')', opacity: 0 }], { duration: big ? 760 : 520, easing: 'cubic-bezier(.1,.7,.3,1)' }), r);
+    var n = big ? 16 : 10;
+    for (var k = 0; k < n; k++) {
+      var star = k % 3 === 0, e = mk(star ? 'fx-star' : 'fx-spark', x, y, k % 2 ? color : '#ffffff');
+      var ang = (k / n) * Math.PI * 2 + Math.random() * .5, d = (big ? 90 : 55) + Math.random() * (big ? 110 : 55);
+      done(e.animate([{ transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1 },
+        { transform: 'translate(' + Math.cos(ang) * d + 'px,' + (Math.sin(ang) * d + 18) + 'px) scale(' + (star ? 0.2 : 0) + ') rotate(' + (star ? 220 : 0) + 'deg)', opacity: 0 }],
+        { duration: 520 + Math.random() * 260, easing: 'cubic-bezier(.15,.7,.3,1)' }), e);
+    }
+  }
+  function press(b) {
+    if (off()) return;
+    b.animate([{ transform: 'scale(1)', filter: 'brightness(1)' }, { transform: 'scale(.88)', filter: 'brightness(1.6)', offset: .22 },
+      { transform: 'scale(1.1) rotate(-1.5deg)', filter: 'brightness(1.25)', offset: .55 }, { transform: 'scale(1)', filter: 'brightness(1)' }], { duration: 420, easing: 'ease-out' });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.menu-art-btn');
+    if (!b || pass) return;
+    var r = b.getBoundingClientRect();
+    last = { el: b, color: b.getAttribute('data-fx') || '#4cf3ff', x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, t: Date.now() };
+    press(b); burst(last.x, last.y, last.color, false);
+  }, true);
+
+  function origin(r) {
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    if (last && last.el && last.el.isConnected && Date.now() - last.t < 60000) {
+      var q = last.el.getBoundingClientRect();
+      if (q.width > 0) { last.x = q.left + q.width / 2; last.y = q.top + q.height / 2; return { dx: last.x - cx, dy: last.y - cy, s: Math.max(.1, Math.min(.34, q.width / r.width)), has: true }; }
+    }
+    return { dx: 0, dy: r.height * .12, s: .6, has: false };
+  }
+  function animateIn(el, backdrop) {
+    if (off() || !el) return;
+    var r = el.getBoundingClientRect(); if (!r.width) return;
+    var o = origin(r), c = last ? last.color : '#4cf3ff';
+    el.animate([
+      { transform: 'translate(' + o.dx + 'px,' + o.dy + 'px) scale(' + o.s + ') rotate(-9deg)', opacity: 0, filter: 'brightness(2.2) blur(6px)', offset: 0 },
+      { transform: 'translate(' + o.dx * .06 + 'px,' + o.dy * .06 + 'px) scale(1.07) rotate(1.8deg)', opacity: 1, filter: 'brightness(1.25) blur(0px)', offset: .6 },
+      { transform: 'translate(0,0) scale(.985) rotate(-.6deg)', filter: 'brightness(1.05)', offset: .8 },
+      { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1, filter: 'brightness(1)', offset: 1 }
+    ], { duration: 580, easing: 'cubic-bezier(.22,.8,.3,1)' });
+    if (backdrop) backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 340, easing: 'ease-out' });
+    if (o.has) setTimeout(function () { burst(last.x, last.y, c, true); }, 40);
+  }
+  function animateOut(el, backdrop, cb) {
+    var r = el.getBoundingClientRect(), o = origin(r), c = last ? last.color : '#4cf3ff';
+    var a = el.animate([
+      { transform: 'translate(0,0) scale(1) rotate(0deg)', opacity: 1, filter: 'brightness(1)', offset: 0 },
+      { transform: 'translate(0,0) scale(1.05) rotate(-1deg)', opacity: 1, filter: 'brightness(1.2)', offset: .2 },
+      { transform: 'translate(' + o.dx + 'px,' + o.dy + 'px) scale(' + o.s + ') rotate(8deg)', opacity: 0, filter: 'brightness(1.8) blur(5px)', offset: 1 }
+    ], { duration: 360, easing: 'cubic-bezier(.5,0,.8,.45)', fill: 'forwards' });
+    var b = backdrop ? backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 360, fill: 'forwards' }) : null;
+    a.onfinish = function () {
+      cb();
+      if (o.has && last) { burst(last.x, last.y, c, false); press(last.el); }
+      requestAnimationFrame(function () { try { a.cancel(); if (b) b.cancel(); } catch (_) {} });
+    };
+  }
+  function activeWindow() {
+    var pops = document.getElementById('selector-popups');
+    if (pops && pops.classList.contains('is-open')) {
+      var p = pops.querySelector('.selector-popup:not([hidden])');
+      if (p) return { el: p, backdrop: pops.querySelector('.selector-backdrop'), kind: 'popup' };
+    }
+    var f = document.querySelector('.screen--active .stats-frame');
+    if (f) return { el: f, backdrop: null, kind: 'screen' };
+    return null;
+  }
+  document.addEventListener('click', function (e) {
+    if (pass) return;
+    if (closing) { if (e.target.closest && e.target.closest('[data-popup-close],[data-back]')) { e.stopImmediatePropagation(); e.preventDefault(); } return; }
+    var t = e.target.closest && e.target.closest('[data-popup-close],[data-back]'); if (!t || off()) return;
+    var w = activeWindow(); if (!w) return;
+    if (w.kind === 'popup' && !t.hasAttribute('data-popup-close')) return;
+    if (w.kind === 'screen' && !t.hasAttribute('data-back')) return;
+    e.stopImmediatePropagation(); e.preventDefault();
+    closing = true;
+    animateOut(w.el, w.backdrop, function () { pass = true; try { t.click(); } finally { pass = false; closing = false; } });
+  }, true);
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || pass || closing || off()) return;
+    var w = activeWindow(); if (!w) return;
+    e.stopImmediatePropagation(); e.preventDefault();
+    closing = true;
+    animateOut(w.el, w.backdrop, function () {
+      pass = true;
+      try { var t = w.kind === 'popup' ? document.querySelector('.selector-backdrop') : document.querySelector('.screen--active [data-back]'); if (t) t.click(); } finally { pass = false; closing = false; }
+    });
+  }, true);
+
+  /* open animations: watch popups being un-hidden and screens becoming active */
+  function start() {
+    var pops = document.getElementById('selector-popups');
+    if (pops) new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        var t = m.target;
+        if (m.attributeName === 'hidden' && t.classList && t.classList.contains('selector-popup') && !t.hidden && m.oldValue !== null) animateIn(t, pops.querySelector('.selector-backdrop'));
+      });
+    }).observe(pops, { subtree: true, attributes: true, attributeFilter: ['hidden'], attributeOldValue: true });
+    new MutationObserver(function (list) {
+      list.forEach(function (m) {
+        var t = m.target;
+        if (m.attributeName === 'class' && t.classList && t.classList.contains('screen') && t.classList.contains('screen--active') && (m.oldValue || '').indexOf('screen--active') < 0) {
+          var f = t.querySelector('.stats-frame'); if (f) animateIn(f, null);
+        }
+      });
+    }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+</script>
 </body>
 </html>
 
@@ -16567,4 +16679,28 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 
 .settings-frame .theme-swatch { aspect-ratio: auto !important; width: 100%; justify-self: stretch; }
 .settings-frame .settings-row__hint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Main menu: artwork buttons ---- */
+.menu-dock { background: none !important; border: 0 !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding: 0 6px 12px !important; }
+.menu-art-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+.menu-art-btn { position: relative; display: block; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.55)) drop-shadow(0 0 8px color-mix(in srgb, var(--fx) 40%, transparent));
+  animation: menu-art-idle 4.4s ease-in-out infinite; animation-delay: calc(var(--i) * -.7s); }
+.menu-art-btn img { display: block; width: 100%; height: auto; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.menu-art-btn:active { transform: scale(.95); }
+.menu-art-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 10px; }
+.menu-art-btn.no-art { min-height: 54px; color: #fff; font-weight: 800; border: 1px solid var(--fx); border-radius: 10px; background: rgba(0,0,0,.5); }
+.menu-art-btn.no-art::after { content: attr(aria-label); }
+.menu-art-btn.no-art img { display: none; }
+@keyframes menu-art-idle {
+  0%,100% { transform: translateY(0); filter: drop-shadow(0 6px 10px rgba(0,0,0,.55)) drop-shadow(0 0 6px color-mix(in srgb, var(--fx) 30%, transparent)); }
+  50% { transform: translateY(-2px); filter: drop-shadow(0 8px 12px rgba(0,0,0,.55)) drop-shadow(0 0 14px color-mix(in srgb, var(--fx) 65%, transparent)); }
+}
+@media (prefers-reduced-motion: reduce) { .menu-art-btn { animation: none; } }
+.no-anim .menu-art-btn { animation: none; }
+/* click / open / close effects layer */
+#menu-fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 99999; overflow: hidden; }
+.fx-ring { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 3px solid var(--c); box-shadow: 0 0 18px var(--c), inset 0 0 14px var(--c); }
+.fx-spark { position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: var(--c); box-shadow: 0 0 9px 2px var(--c); }
+.fx-star { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); filter: drop-shadow(0 0 5px var(--c)); }
 </style>
