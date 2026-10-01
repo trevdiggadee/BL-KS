@@ -4601,7 +4601,6 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
       <div class="selector-popups" id="selector-popups">
         <div class="selector-backdrop" data-popup-close="all"></div>
         <section class="selector-popup selector-popup--theme selector-popup--art" id="popup-theme" role="dialog" aria-modal="true" aria-labelledby="popup-theme-title" hidden>
-          <button class="popup-close" data-popup-close="all" aria-label="Close theme selector">×</button>
                     <h2 id="popup-theme-title" class="sr-only-title">CHOOSE YOUR THEME</h2>
           <div class="mode-art theme-art" id="quick-theme-choices" role="group" aria-label="Themes">
             <img class="mode-art__img" src="game-themes.webp" alt="Choose your theme: set the atmosphere of your arena." width="960" height="1106" decoding="async" draggable="false" onerror="this.closest('.mode-art').classList.add('is-fallback')">
@@ -4637,7 +4636,6 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
           </div>
         </section>
         <section class="selector-popup selector-popup--blocks selector-popup--frame" id="popup-blocks" role="dialog" aria-modal="true" aria-labelledby="popup-blocks-title" hidden>
-          <button class="popup-close" data-popup-close="all" aria-label="Close block style selector">×</button>
           <h2 id="popup-blocks-title" class="block-studio-title wordmark wordmark--studio">BLØKS STUDIO</h2>
 
           <div class="studio-texture-name" id="block-preview-style-badge">Neon</div>
@@ -4656,7 +4654,6 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
         </section>
         <script>(function(){var i=new Image();i.onerror=function(){var p=document.getElementById('popup-blocks');if(p)p.classList.remove('selector-popup--frame');};i.src='studio-frame.webp';})();</script>
         <section class="selector-popup selector-popup--mode selector-popup--art" id="popup-mode" role="dialog" aria-modal="true" aria-labelledby="popup-mode-title" hidden>
-          <button class="popup-close" data-popup-close="all" aria-label="Close mode selector">×</button>
           <h2 id="popup-mode-title" class="sr-only-title">CHOOSE GAME MODE</h2>
           <div class="mode-art" id="special-mode-choices" role="group" aria-label="Game modes">
             <img class="mode-art__img" src="game-modes.webp" alt="Choose game mode: pick the challenge you want to take on." width="928" height="1147" decoding="async" draggable="false" onerror="this.closest('.mode-art').classList.add('is-fallback')">
@@ -4787,7 +4784,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
   <!-- ============ STATS SCREEN ============ -->
   <section class="screen subpage" id="screen-stats">
     <div class="stats-frame stats-frame--art" id="stats-frame">
-      <button class="stats-frame__close" data-back aria-label="Back">&#10005;</button>
+      <button class="sr-back" data-back aria-label="Back"></button>
       <h1 class="sr-only-title">STATISTICS</h1>
       <div class="stats-frame__scroll">
         <div class="stats-grid" id="stats-grid"></div>
@@ -4797,20 +4794,21 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
       </div>
     </div>
   </section>
+  <script>['screen-stats','screen-achievements'].forEach(function(id){var sc=document.getElementById(id);if(sc)sc.addEventListener('click',function(e){if(e.target===sc){var b=sc.querySelector('[data-back]');if(b)b.click();else if(window.UI&&UI.showScreen)UI.showScreen('start');}});});</script>
   <script>(function(){var i=new Image();i.onerror=function(){var f=document.getElementById('stats-frame');if(f)f.classList.remove('stats-frame--art');};i.src='stats-frame.webp';var sc=document.querySelector('.stats-frame__scroll');if(sc&&window.ResizeObserver){var f=function(){var st=document.getElementById('stats-frame');if(!st)return;st.style.setProperty('--u',(sc.clientHeight/100)+'px');st.style.setProperty('--w',(sc.clientWidth/100)+'px');};new ResizeObserver(f).observe(sc);f();}})();</script>
 
   <!-- ============ ACHIEVEMENTS SCREEN ============ -->
   <section class="screen subpage" id="screen-achievements">
-    <div class="screen-scroll">
-      <div class="subpage-header">
-        <button class="back-btn" data-back aria-label="Back">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-        <div class="subpage-title">ACHIEVEMENTS</div>
+    <div class="stats-frame stats-frame--art ach-frame" id="ach-frame">
+      <button class="sr-back" data-back aria-label="Back"></button>
+      <h1 class="sr-only-title">ACHIEVEMENTS</h1>
+      <div class="stats-frame__scroll">
+        <div class="achv-icon-grid" id="achv-grid"></div>
       </div>
-      <div class="achv-icon-grid" id="achv-grid"></div>
     </div>
   </section>
+  <script>(function(){var i=new Image();i.onerror=function(){var f=document.getElementById('ach-frame');if(f)f.classList.remove('stats-frame--art');};i.src='achievements-frame.webp';var sc=document.querySelector('#ach-frame .stats-frame__scroll');if(sc&&window.ResizeObserver){var f=function(){var st=document.getElementById('ach-frame');if(!st)return;st.style.setProperty('--u',(sc.clientHeight/100)+'px');st.style.setProperty('--w',(sc.clientWidth/100)+'px');};new ResizeObserver(f).observe(sc);f();}})();</script>
+  <script>(function(){var sc=document.getElementById('screen-achievements');if(sc)sc.addEventListener('click',function(e){if(e.target===sc){var b=sc.querySelector('[data-back]');if(b)b.click();}});})();</script>
 
   <!-- ============ SETTINGS SCREEN ============ -->
   <section class="screen subpage" id="screen-settings">
@@ -16513,9 +16511,17 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
   font-size: max(15px, calc(48 * var(--k))); text-shadow: 0 0 8px rgba(120,220,255,.9);
 }
 
-/* ---- Studio + Stats windows: 15% smaller; Stats fits everything with no scrolling ---- */
-#popup-blocks.selector-popup--frame:not([hidden]) { scale: 0.85; }
-.stats-frame.stats-frame--art { scale: 0.85; --u: 6px; --w: 2.9px; }
+/* ---- Studio + Stats + Achievements: original size, lowered on screen ---- */
+#popup-blocks.selector-popup--frame:not([hidden]) {
+  scale: 1;
+  height: min(86dvh, calc(min(100vw - 16px, 500px) * 2.05)) !important;
+  translate: 0 min(calc(min(86dvh, calc(min(100vw - 16px, 500px) * 2.05)) * .15), calc((100dvh - min(86dvh, calc(min(100vw - 16px, 500px) * 2.05))) / 2 - 10px));
+}
+.stats-frame.stats-frame--art {
+  scale: 1; --u: 6px; --w: 2.9px;
+  height: min(86dvh, calc(min(100vw - 16px, 500px) * 2.05));
+  translate: 0 min(calc(min(86dvh, calc(min(100vw - 16px, 500px) * 2.05)) * .15), calc((100dvh - min(86dvh, calc(min(100vw - 16px, 500px) * 2.05))) / 2 - 10px));
+}
 .stats-frame--art .stats-frame__scroll { overflow: hidden; padding: 0; display: flex; flex-direction: column; }
 .stats-frame--art .stats-grid { flex: 0 0 auto; gap: calc(var(--u) * 1.3) calc(var(--w) * 1.8); grid-auto-rows: calc(var(--u) * 8.4); }
 .stats-frame--art .stat-card { height: 100%; min-height: 0; padding: 0 calc(var(--w) * 3.2); display: flex; flex-direction: column; justify-content: center; }
@@ -16527,4 +16533,20 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 .stats-frame--art .recent-row__score { font-size: min(calc(var(--u) * 2.35), calc(var(--w) * 5)); }
 .stats-frame--art .recent-row__meta { font-size: min(calc(var(--u) * 1.75), calc(var(--w) * 3.3)); white-space: nowrap; }
 .stats-frame--art .howto-text { font-size: min(calc(var(--u) * 2), calc(var(--w) * 4)); text-align: center; }
+
+.ach-frame .stats-frame__scroll { display: block; }
+.ach-frame .achv-icon-grid { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; grid-template-rows: repeat(4, 1fr); gap: calc(var(--u) * 1.4) calc(var(--w) * 2) !important; padding: 0 !important; height: 100%; }
+.ach-frame .achv-tile { min-height: 0; padding: calc(var(--u) * 1.2) calc(var(--w) * 1.6); gap: calc(var(--u) * .7); border-radius: 14px; justify-content: center; }
+.ach-frame .achv-tile__icon { width: min(calc(var(--u) * 7.2), calc(var(--w) * 15)); height: min(calc(var(--u) * 7.2), calc(var(--w) * 15)); font-size: min(calc(var(--u) * 3.6), calc(var(--w) * 8)); margin: 0; flex: 0 0 auto; }
+.ach-frame .achv-tile__name { font-size: min(calc(var(--u) * 1.75), calc(var(--w) * 3.9)); }
+.ach-frame .achv-tile__desc { font-size: min(calc(var(--u) * 1.45), calc(var(--w) * 3.3)); line-height: 1.25; }
+.ach-frame .achv-tile__status { font-size: min(calc(var(--u) * 1.2), calc(var(--w) * 2.7)); margin-top: 0; }
+
+/* ---- Achievements uses its own frame artwork ---- */
+.stats-frame.stats-frame--art.ach-frame { border-image-source: url("achievements-frame.webp"); }
+
+.sr-back { position:absolute !important; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); opacity:0; padding:0; border:0; pointer-events:none; }
+
+#screen-achievements.subpage { padding: 8px !important; max-width: none !important; border: 0 !important; margin: 0 !important; }
+#screen-achievements.screen--active { align-items: center; justify-content: center; }
 </style>
