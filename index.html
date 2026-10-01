@@ -4849,22 +4849,6 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
         </div>
       </div>
 
-      <div class="section-heading">THEME</div>
-      <div class="theme-swatches" id="theme-swatches">
-        <button class="theme-swatch" data-theme-choice="neon" style="background:#0d0f18;color:#4cf3ff;">⚡ NEON</button>
-        <button class="theme-swatch" data-theme-choice="matrix" style="background:#010805;color:#00ff88;">カタ MATRIX</button>
-        <button class="theme-swatch" data-theme-choice="minecraft" style="background:#1a1a1e;color:#7cba3d;">▣ CRAFT</button>
-        <button class="theme-swatch" data-theme-choice="lava" style="background:#120404;color:#ff6b1a;">♨ LAVA</button>
-        <button class="theme-swatch" data-theme-choice="plasma" style="background:#0a0614;color:#c080ff;">✧ PLASMA</button>
-        <button class="theme-swatch" data-theme-choice="candy" style="background:#1a0a14;color:#ff6bcb;">✿ CANDY</button>
-        <button class="theme-swatch" data-theme-choice="frost" style="background:#071018;color:#7ec8ff;">❄ FROST</button>
-        <button class="theme-swatch" data-theme-choice="cyber" style="background:#0d0828;color:#00f0ff;">◈ CYBER</button>
-        <button class="theme-swatch" data-theme-choice="arcade" style="background:#200a0f;color:#ffcf3f;">▶ ARCADE</button>
-        <button class="theme-swatch" data-theme-choice="midnight" style="background:#0b0f1f;color:#7ea6ff;">☾ NIGHT</button>
-        <button class="theme-swatch" data-theme-choice="ember" style="background:#220e14;color:#ff6b3d;">✦ EMBER</button>
-        <button class="theme-swatch" data-theme-choice="forest" style="background:#0a120c;color:#6bcf6b;">▤ FOREST</button>
-      </div>
-
       <div class="section-heading">DATA</div>
       <div class="settings-list">
         <button class="btn" id="btn-export">EXPORT SAVE DATA</button>
@@ -16703,4 +16687,13 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 .fx-ring { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 3px solid var(--c); box-shadow: 0 0 18px var(--c), inset 0 0 14px var(--c); }
 .fx-spark { position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: var(--c); box-shadow: 0 0 9px 2px var(--c); }
 .fx-star { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); filter: drop-shadow(0 0 5px var(--c)); }
+
+/* Settings without the theme picker: give the remaining rows more room */
+.settings-frame .stats-frame__scroll { justify-content: space-evenly; }
+.settings-frame .settings-row { height: calc(var(--u) * 5.4); }
+.settings-frame .settings-row__label { font-size: min(calc(var(--u) * 2.2), calc(var(--w) * 4.9)); }
+.settings-frame .settings-row__hint { font-size: min(calc(var(--u) * 1.4), calc(var(--w) * 3.2)); }
+.settings-frame .settings-list > .btn { height: calc(var(--u) * 5.4); font-size: min(calc(var(--u) * 2), calc(var(--w) * 4.3)); }
+.settings-frame .section-heading { font-size: min(calc(var(--u) * 1.9), calc(var(--w) * 3.9)); margin: 0 0 calc(var(--u) * .9); }
+.settings-frame .settings-list { gap: calc(var(--u) * .6); }
 </style>
