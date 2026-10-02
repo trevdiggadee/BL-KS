@@ -4900,7 +4900,7 @@ body:not(:has(#screen-start.screen--active)) #menu-float-blocks {
 
       <div class="howto-block">
         <div class="howto-title">Scoring</div>
-        <div class="howto-text">Clearing more lines at once scores far more: a single line is worth 100×level, a Tetris (4 lines) is worth 800×level. Chain clears back-to-back without a break for combo bonuses, and land consecutive Tetrises for a back-to-back multiplier.</div>
+        <div class="howto-text">Clearing more lines at once scores far more: a single line is worth 100×level, a Bløks (4 lines) is worth 800×level. Chain clears back-to-back without a break for combo bonuses, and land consecutive Tetrises for a back-to-back multiplier.</div>
       </div>
 
       <div class="howto-block">
@@ -6763,11 +6763,11 @@ const Effects = (() => {
 const Achievements = (() => {
   const LIST = [
     { id: 'first_line', name: 'First Line', desc: 'Clear your first line.', icon: '━', check: (s) => s.totalLines >= 1 },
-    { id: 'first_tetris', name: 'First Tetris', desc: 'Clear 4 lines at once.', icon: '▣', check: (s) => s.totalTetrises >= 1 },
+    { id: 'first_tetris', name: 'First Bl\u00F8ks', desc: 'Clear 4 lines at once.', icon: '▣', check: (s) => s.totalTetrises >= 1 },
     { id: 'lines_100', name: 'Centurion', desc: 'Clear 100 lines lifetime.', icon: '💯', check: (s) => s.totalLines >= 100 },
     { id: 'lines_500', name: 'Line Machine', desc: 'Clear 500 lines lifetime.', icon: '⚙️', check: (s) => s.totalLines >= 500 },
     { id: 'lines_1000', name: 'Millennium', desc: 'Clear 1,000 lines lifetime.', icon: '👑', check: (s) => s.totalLines >= 1000 },
-    { id: 'tetris_10', name: 'Tetris Master', desc: 'Clear 10 Tetrises lifetime.', icon: '◆', check: (s) => s.totalTetrises >= 10 },
+    { id: 'tetris_10', name: 'Bl\u00F8ks Master', desc: 'Clear 4 lines at once 10 times.', icon: '◆', check: (s) => s.totalTetrises >= 10 },
     { id: 'combo_10', name: 'Chain Reaction', desc: 'Reach a 10x combo in one game.', icon: '⚡', check: (s) => s.bestCombo >= 10 },
     { id: 'level_10', name: 'Level 10', desc: 'Reach level 10.', icon: '⑩', check: (s) => s.highestLevel >= 10 },
     { id: 'level_20', name: 'Level 20', desc: 'Reach level 20.', icon: '⑳', check: (s) => s.highestLevel >= 20 },
@@ -10683,7 +10683,7 @@ const StatsScreen = (() => {
       ['BEST LEVEL', s.highestLevel],
       ['TOTAL LINES', s.totalLines],
       ['TOTAL GAMES', s.totalGames],
-      ['TETRISES', s.totalTetrises],
+      ['BL\u00D8KS', s.totalTetrises],
       ['BEST COMBO', s.bestCombo],
       ['TOTAL PIECES', s.totalPieces],
       ['PLAY TIME', formatPlayTime(s.totalPlayTimeMs)],
@@ -11403,7 +11403,7 @@ const Game = (() => {
       Audio_.sfx.tetris();
       Effects.shake(9);
       Effects.flash(getColorRgb('cyan'), 0.3);
-      Effects.toast('TETRIS!', 'tetris', 1100);
+      Effects.toast('BL\u00D8KS!', 'tetris', 1100);
       vibrate([40, 30, 40, 30, 60]);
     } else {
       Audio_.sfx.lineClear(fullRows.length);
@@ -11746,7 +11746,7 @@ const Game = (() => {
       Audio_.sfx.tetris();
       Effects.shake(9);
       Effects.flash(getColorRgb('cyan'), 0.3);
-      Effects.toast('TETRIS!', 'tetris', 1100);
+      Effects.toast('BL\u00D8KS!', 'tetris', 1100);
       vibrate([40, 30, 40, 30, 60]);
     } else {
       Audio_.sfx.lineClear(rows.length);
@@ -14860,6 +14860,28 @@ body.is-playing #menu-float-canvas, #screen-game.screen--active ~ * #menu-float-
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
 </script>
+
+<script>
+/* menu-drop.js - lower the menu buttons by 25% of their height, as far as fits on screen */
+(function () {
+  function place() {
+    var g = document.querySelector('.menu-art-grid'); if (!g) return;
+    g.style.transition = 'none'; g.style.translate = '0 0px';
+    var r = g.getBoundingClientRect();
+    if (!r.height) { g.style.transition = ''; return; }
+    var room = document.documentElement.clientHeight - r.bottom - 2;
+    var shift = Math.max(0, Math.min(r.height * 0.25, room));
+    g.style.translate = '0 ' + shift.toFixed(1) + 'px';
+    void g.offsetHeight; g.style.transition = '';
+  }
+  window.addEventListener('load', function () { place(); setTimeout(place, 400); setTimeout(place, 1500); });
+  window.addEventListener('resize', place);
+  window.addEventListener('orientationchange', function () { setTimeout(place, 300); });
+  var st = document.getElementById('screen-start');
+  if (st && window.MutationObserver) new MutationObserver(function () { setTimeout(place, 60); }).observe(st, { attributes: true, attributeFilter: ['class'] });
+  place();
+})();
+</script>
 </body>
 </html>
 
@@ -16910,20 +16932,10 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 .award__bar { margin-top: calc(var(--u) * .5) !important; }
 .award__prog { margin-top: calc(var(--u) * .45); font: 700 min(calc(var(--u) * 1.4), calc(var(--w) * 3)) var(--font-mono); color: rgba(255,255,255,.62); white-space: nowrap; }
 
-/* ---- Home background follows the chosen theme ---- */
-.hero-stage { transition: filter .6s ease; }
-html[data-theme="matrix"] .hero-stage { filter: hue-rotate(-95deg) saturate(1.1) brightness(.78); }
-html[data-theme="minecraft"] .hero-stage { filter: hue-rotate(-60deg) saturate(.8) sepia(.35) brightness(.85); }
-html[data-theme="lava"] .hero-stage { filter: hue-rotate(125deg) saturate(1.5) brightness(.9); }
-html[data-theme="plasma"] .hero-stage { filter: hue-rotate(35deg) saturate(1.35) brightness(.95); }
-html[data-theme="candy"] .hero-stage { filter: hue-rotate(75deg) saturate(1.25) brightness(1.12); }
-html[data-theme="frost"] .hero-stage { filter: hue-rotate(-18deg) saturate(.65) brightness(1.1); }
-html[data-theme="cyber"] .hero-stage { filter: hue-rotate(-40deg) saturate(1.3) brightness(.9); }
-html[data-theme="arcade"] .hero-stage { filter: hue-rotate(160deg) saturate(1.5) brightness(1); }
-html[data-theme="midnight"] .hero-stage { filter: hue-rotate(-12deg) saturate(.75) brightness(.55); }
-html[data-theme="ember"] .hero-stage { filter: hue-rotate(150deg) saturate(1.45) brightness(.85); }
-html[data-theme="forest"] .hero-stage { filter: hue-rotate(-105deg) saturate(1.0) brightness(.82); }
+/* ---- Main menu buttons: lowered 25% of their height (clamped to the screen edge by menu-drop script) ---- */
+.menu-art-grid { translate: 0 0; transition: translate .3s ease; }
 
-/* ---- Main menu buttons lowered by 15% of their height ---- */
-.menu-art-grid { translate: 0 15%; }
+/* ---- Studio: texture & effects squares ~10% bigger ---- */
+#popup-blocks .studio-section { padding: 15px 3px 8px !important; }
+#popup-blocks .studio-section .block-materials-grid, #popup-blocks .studio-section .block-fx-grid { gap: 4px !important; }
 </style>
