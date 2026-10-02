@@ -2243,6 +2243,7 @@ html, body, #app { min-height:100%; background:#030611; }
 @keyframes mb-fx-blink { from { opacity: .7; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .mode-hud__fx { animation: none; } }
 
+:root { --dirt: #7a4a26; }
 </style>
 <style>
 /* BLØKS menu final visual layer. Loaded after style.css. */
@@ -6024,6 +6025,18 @@ const Particles = (() => {
     }
     core(x, (y0 + y1) / 2, cs * 2.4, colors[0], 0.85, 0.12);
   }
+  function spawnDirtBurst(x, y, cs, hasGem) {
+    const cols = ['#85552f', '#62391c', '#42250f', '#a06a3e'];
+    for (let n = 0; n < 6; n++) {
+      pt({ x: x + rnd(-cs * 0.3, cs * 0.3), y: y + rnd(-cs * 0.3, cs * 0.3), vx: rnd(-2.6, 2.6), vy: -rnd(1, 5), gy: 0.22, grav: true, kind: 'shard',
+        color: pick(cols), size: rnd(2.2, 4.6), rot: rnd(0, 6), vr: rnd(-0.3, 0.3), decay: rnd(0.02, 0.034) });
+    }
+    pt({ x, y, vx: rnd(-0.5, 0.5), vy: -rnd(0.4, 1.1), kind: 'puff', color: '#7a5a3a', size: cs * rnd(0.3, 0.45), decay: 0.03, alpha: 0.3 });
+    if (hasGem) {
+      core(x, y, cs * 1.6, '#ffffff', 0.9, 0.12);
+      for (let n = 0; n < 8; n++) pt({ x, y, vx: rnd(-3, 3), vy: rnd(-4, 0.5), gy: 0.12, grav: true, kind: 'spark', color: pick(['#ffffff', '#ffe27a', '#9bf3ff']), size: rnd(1.6, 3), decay: rnd(0.03, 0.05) });
+    }
+  }
   function spawnBurstAt(x,y,color,count=8){
     count = Math.min(count, 10);
     for(let n=0;n<count;n++){
@@ -6315,7 +6328,7 @@ const Particles = (() => {
     ctx.globalAlpha=1;ctx.shadowBlur=0;
   }
   function clear(){particles=[];shocks=[];beams=[];bombRings=[];rays=[];cores=[];sweeps=[];cracks=[];queue=[];smolders=[];haze=[];} function count(){return particles.length;}
-  return {spawnLineClearBurst,spawnLineClearExplosion,spawnBurstAt,spawnDropBeam,spawnBombExplosion,spawnScorch,spawnQuakeDust,spawnGroundCrack,spawnLandingDust,spawnSeamBurst,spawnStackRise,spawnMagnetPull,spawnMirrorShatter,update,draw,clear,count};
+  return {spawnLineClearBurst,spawnLineClearExplosion,spawnBurstAt,spawnDropBeam,spawnBombExplosion,spawnScorch,spawnQuakeDust,spawnGroundCrack,spawnLandingDust,spawnSeamBurst,spawnDirtBurst,spawnStackRise,spawnMagnetPull,spawnMirrorShatter,update,draw,clear,count};
 })();
 
 </script>
@@ -6849,19 +6862,17 @@ const Jewels = (() => {
     const C = Board.COLS;
     const T = grid.length;
     const rows = 5;
+    const seedGems = [GEM_RED, GEM_GREEN, GEM_ORANGE, GEM_GREEN, GEM_RED];
     for (let i = 0; i < rows; i++) {
       const r = T - 1 - i;
       const hole = (i * 3 + 2) % C;
-      for (let c = 0; c < C; c++) {
-        if (c === hole) grid[r][c] = null;
-        else grid[r][c] = COLORS[(i + c) % COLORS.length];
-      }
+      for (let c = 0; c < C; c++) grid[r][c] = c === hole ? null : 'dirt';
+      // one jewel buried in every dirt row
+      const filled = [];
+      for (let c = 0; c < C; c++) if (grid[r][c]) filled.push(c);
+      const gc = filled[(i * 4 + 1) % filled.length];
+      grid[r][gc] = withGem('dirt', seedGems[i]);
     }
-    // Red gem on bottom row, filled cell
-    const br = T - 1;
-    let gc = 0;
-    for (let c = 0; c < C; c++) if (grid[br][c]) { gc = c; break; }
-    grid[br][gc] = withGem(grid[br][gc], GEM_RED);
     return grid;
   }
 
@@ -6955,31 +6966,24 @@ const Jewels = (() => {
     }
   }
 
-  /** Add garbage rows with occasional orange gems every 10 rows. */
+  /** Garbage rows are solid dirt (one gap) with jewels buried in them: dig them out by clearing the row. */
   function pushGarbage(grid, st, count) {
     const C = Board.COLS;
-    const COLORS_G = COLORS;
     let g = grid;
+    const pickGem = () => { const x = Math.random(); return x < 0.5 ? GEM_GREEN : (x < 0.8 ? GEM_RED : GEM_ORANGE); };
     for (let n = 0; n < count; n++) {
       st.garbageRowsSpawned++;
       const hole = Math.floor(Math.random() * C);
-      const row = new Array(C).fill(null).map((_, c) => {
-        if (c === hole) return null;
-        return COLORS_G[(st.garbageRowsSpawned + c) % COLORS_G.length];
-      });
-      // orange every 10 garbage rows
-      if (st.garbageRowsSpawned % 10 === 0) {
-        const fc = row.findIndex((x) => x != null);
-        if (fc >= 0) row[fc] = withGem(row[fc], GEM_ORANGE);
-      }
-      // red occasionally
-      if (st.garbageRowsSpawned % 7 === 3) {
-        const filled = row.map((x, i) => (x != null ? i : -1)).filter((i) => i >= 0);
-        if (filled.length) {
-          const i = filled[Math.floor(Math.random() * filled.length)];
-          if (!isGem(row[i])) row[i] = withGem(row[i], GEM_RED);
-        }
-      }
+      const row = new Array(C).fill(null).map((_, c) => (c === hole ? null : 'dirt'));
+      const filled = row.map((x, i) => (x != null ? i : -1)).filter((i) => i >= 0);
+      const put = (type) => {
+        const free = filled.filter((i) => !isGem(row[i]));
+        if (free.length) row[free[Math.floor(Math.random() * free.length)]] = withGem('dirt', type);
+      };
+      if (st.garbageRowsSpawned % 10 === 0) put(GEM_ORANGE);
+      if (st.garbageRowsSpawned % 7 === 3) put(GEM_RED);
+      if (Math.random() < 0.7) put(pickGem());
+      if (Math.random() < 0.2) put(pickGem());
       g = g.slice(1).concat([row]);
     }
     return g;
@@ -8194,7 +8198,6 @@ const UI = (() => {
 
   /** applyFx only for active/falling piece — locked stack skips sparkle/pulse (main lag source). */
   function drawCell(ctx, row, col, color, alpha = 1, glow = true, applyFx = false) {
-    if (document.body && document.body.dataset && document.body.dataset.jewelPhase !== undefined) { drawJewelBlock(ctx, row, col, color, alpha); return; }
     const x = col * cellSize;
     const y = row * cellSize;
     const t = visualTime;
@@ -8393,7 +8396,9 @@ const UI = (() => {
     if (a >= 0) { r += (255 - r) * a; g += (255 - g) * a; b += (255 - b) * a; } else { r *= 1 + a; g *= 1 + a; b *= 1 + a; }
     return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
   }
+  const GEM_HEX = { red: '#ff3b4a', orange: '#ffab2e', green: '#2dff8f', blue: '#4aa8ff', violet: '#b56bff', white: '#e8f8ff', gold: '#ffd23f', pink: '#ff6bd6' };
   function jewelHex(color) {
+    if (GEM_HEX[color]) return GEM_HEX[color];
     if (typeof color === 'number') { const k = Object.keys(TYPE_INDEX).find((n) => TYPE_INDEX[n] === color); return colorFor(k || 'cyan'); }
     if (typeof color === 'string' && color.charCodeAt(0) === 35) return color;
     return colorFor(color);
@@ -8428,6 +8433,59 @@ const UI = (() => {
     c.fillStyle = 'rgba(255,255,255,0.85)'; c.beginPath(); c.ellipse(s * 0.34, s * 0.3, s * 0.1, s * 0.055, -0.6, 0, Math.PI * 2); c.fill();
     JEWEL_SPRITES[key] = cv; return cv;
   }
+  // ---- Dirt: solid soil blocks, optionally with a jewel buried in them ----
+  function drawDirtBlock(ctx, row, col, alpha = 1, gem = null) {
+    if (row < 0) return;
+    const s = cellSize, x0 = col * s, y0 = row * s, TAU = Math.PI * 2, t = visualTime;
+    const h = (n) => { const v = Math.sin(n * 127.1 + col * 31.7 + row * 17.3) * 43758.5453; return v - Math.floor(v); };
+    const pad = Math.max(0.6, s * 0.02);
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    const g = ctx.createLinearGradient(x0, y0, x0, y0 + s);
+    g.addColorStop(0, '#85552f'); g.addColorStop(0.55, '#62391c'); g.addColorStop(1, '#42250f');
+    ctx.fillStyle = g; roundRect(ctx, x0 + pad, y0 + pad, s - pad * 2, s - pad * 2, s * 0.1); ctx.fill();
+    ctx.save();
+    roundRect(ctx, x0 + pad, y0 + pad, s - pad * 2, s - pad * 2, s * 0.1); ctx.clip();
+    for (let i = 0; i < 11; i++) {
+      const px = x0 + h(i * 3.1) * s, py = y0 + h(i * 5.7 + 1) * s, r = s * (0.035 + h(i * 2.3) * 0.075);
+      ctx.fillStyle = h(i * 9.1) > 0.5 ? 'rgba(255,225,175,0.2)' : 'rgba(18,6,0,0.38)';
+      ctx.beginPath(); ctx.ellipse(px, py, r * 1.5, r, h(i) * 3, 0, TAU); ctx.fill();
+    }
+    for (let i = 0; i < 2; i++) {
+      const px = x0 + (0.18 + h(40 + i) * 0.64) * s, py = y0 + (0.2 + h(50 + i) * 0.6) * s, r = s * (0.07 + h(60 + i) * 0.05);
+      ctx.fillStyle = '#8f8a84'; ctx.beginPath(); ctx.ellipse(px, py, r * 1.3, r, h(70 + i), 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.ellipse(px - r * 0.3, py - r * 0.3, r * 0.5, r * 0.3, 0, 0, TAU); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,215,160,0.16)'; ctx.fillRect(x0, y0, s, s * 0.11);
+    ctx.fillStyle = 'rgba(0,0,0,0.26)'; ctx.fillRect(x0, y0 + s * 0.86, s, s * 0.14);
+    if (gem) {
+      const hex = jewelHex(gem), cx = x0 + s / 2, cy = y0 + s / 2, gs = s * 0.66;
+      ctx.globalCompositeOperation = 'lighter';
+      const pulse = 0.55 + 0.45 * Math.sin(t * 3 + col * 1.7 + row * 1.1);
+      const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.62);
+      halo.addColorStop(0, jTint(hex, 0.1).replace('rgb', 'rgba').replace(')', `,${0.45 * pulse})`)); halo.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = halo; ctx.fillRect(x0, y0, s, s);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(15,6,0,0.55)'; ctx.beginPath(); ctx.ellipse(cx, cy + s * 0.04, gs * 0.62, gs * 0.6, 0, 0, TAU); ctx.fill();
+      ctx.drawImage(jewelSprite(hex, gs), cx - gs / 2, cy - gs / 2, gs, gs);
+      for (let i = 0; i < 5; i++) {
+        const a = h(80 + i) * TAU, rr = gs * (0.42 + h(90 + i) * 0.12);
+        ctx.fillStyle = h(100 + i) > 0.5 ? '#6a3f20' : '#4a2a12';
+        ctx.beginPath(); ctx.ellipse(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, s * 0.06, s * 0.045, a, 0, TAU); ctx.fill();
+      }
+      const ph = (t * 0.7 + h(110) * 3) % 2.4;
+      if (ph < 0.5) {
+        const k = Math.sin(Math.PI * ph / 0.5), z = s * 0.2 * k;
+        ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(255,255,255,${0.9 * k})`; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.moveTo(cx - z, cy - gs * 0.2); ctx.lineTo(cx + z, cy - gs * 0.2); ctx.moveTo(cx, cy - gs * 0.2 - z); ctx.lineTo(cx, cy - gs * 0.2 + z); ctx.stroke();
+      }
+    }
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1;
+    roundRect(ctx, x0 + pad + 0.5, y0 + pad + 0.5, s - pad * 2 - 1, s - pad * 2 - 1, s * 0.1); ctx.stroke();
+    ctx.restore();
+  }
+
   function drawJewelBlock(ctx, row, col, color, alpha = 1) {
     if (row < 0) return;
     const s = cellSize, x0 = col * s, y0 = row * s, t = visualTime, hex = jewelHex(color);
@@ -10189,10 +10247,11 @@ const UI = (() => {
             // Locked stack: material + the studio's chosen FX layers too, so
             // a finished block keeps whatever look the player picked, not
             // just the piece while it's still falling.
-            drawCell(boardCtx, visRow, c, cell, cellAlpha, false, true);
+            if (cell === 'dirt') drawDirtBlock(boardCtx, visRow, c, cellAlpha, isJewel ? Jewels.gemType(rawCell) : null);
+            else if (isJewel) drawJewelBlock(boardCtx, visRow, c, Jewels.gemType(rawCell), cellAlpha);
+            else drawCell(boardCtx, visRow, c, cell, cellAlpha, false, true);
           }
           if (isItem) drawItemMark(boardCtx, visRow, c, mb ? mb.urgency : 0, cellAlpha);
-          if (isJewel) drawGemMark(boardCtx, visRow, c, Jewels.gemType(rawCell), cellAlpha);
           if (isBomb) drawBombMark(boardCtx, visRow, c, cellAlpha, blockColor);
           if (stackActive && rawCell === 'danger') drawStackDanger(boardCtx, visRow, c, phase);
           if (mot && mot.shade > 0.02) {
@@ -10249,9 +10308,10 @@ const UI = (() => {
         const isItem = MindBender.isItem(p.cell);
         const stripped = (typeof p.cell === 'string' && p.cell.endsWith('!')) ? p.cell.slice(0,-1) : p.cell;
         const cell = typeof Jewels !== 'undefined' ? Jewels.baseColor(stripped) : MindBender.baseColor(stripped);
-        drawCell(boardCtx, row - hiddenOffset, p.col, cell, 1, false, true);
+        if (cell === 'dirt') drawDirtBlock(boardCtx, row - hiddenOffset, p.col, 1, isJewel ? Jewels.gemType(p.cell) : null);
+        else if (isJewel) drawJewelBlock(boardCtx, row - hiddenOffset, p.col, Jewels.gemType(p.cell), 1);
+        else drawCell(boardCtx, row - hiddenOffset, p.col, cell, 1, false, true);
         if (isItem) drawItemMark(boardCtx, row - hiddenOffset, p.col, 0, 1);
-        if (isJewel) drawGemMark(boardCtx, row - hiddenOffset, p.col, Jewels.gemType(p.cell), 1);
         if (typeof p.cell === 'string' && p.cell.endsWith('!')) drawBombMark(boardCtx, row - hiddenOffset, p.col, 1, colorFor(cell));
       });
     }
@@ -10756,7 +10816,7 @@ const SettingsScreen = (() => {
   function init(initialData, changeCallback) {
     data = initialData;
     onChange = changeCallback || (() => {});
-    applyTheme(data.settings.theme);
+    // (the theme is applied from the visuals store in applyVisuals; the old settings value must not override it)
     applyAnimations(data.settings.animations);
     applyShowControls(data.settings.showControls);
     Audio_.setMusicOn(data.settings.musicOn);
@@ -11234,6 +11294,18 @@ const Game = (() => {
     state = 'clearing';
     pendingClearRows = fullRows;
     clearTimer = LINE_CLEAR_FLASH_MS;
+
+    // Dirt rows crumble when cleared (jewels sparkle out of them)
+    try {
+      fullRows.forEach((r) => {
+        for (let c = 0; c < Board.COLS; c++) {
+          const cellv = grid[r][c];
+          if (typeof cellv === 'string' && cellv.indexOf('dirt') === 0) {
+            Particles.spawnDirtBurst((c + 0.5) * UI.cellSize, (r - Board.HIDDEN_ROWS + 0.5) * UI.cellSize, UI.cellSize, cellv.indexOf('#') > 0);
+          }
+        }
+      });
+    } catch (_) {}
 
     // Jewels: collect gems in cleared rows
     let jewelGems = [];
@@ -13862,7 +13934,7 @@ const GameBg = (() => {
   function bindVisualLab() {
     let visuals = loadVisuals();
     applyVisuals(visuals);
-    document.querySelectorAll('[data-block-style]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-block-style]').forEach(btn => btn !== document.documentElement && btn.addEventListener('click', () => {
       visuals.blockStyle = btn.dataset.blockStyle;
         // Pair block textures with matching atmosphere themes
         const pair = {
@@ -13879,7 +13951,8 @@ const GameBg = (() => {
           ruby: 'ember', coral: 'ember',
           wood: 'forest', paper: 'forest', honeycomb: 'forest'
         };
-        if (pair[visuals.blockStyle]) visuals.theme = pair[visuals.blockStyle];
+        // (themes are chosen separately now; picking a texture no longer overrides the theme)
+        void pair;
         saveVisuals(visuals); applyVisuals(visuals);
         if (typeof ThemeFx !== 'undefined') ThemeFx.sync();
         Audio_.sfx.uiTap();
@@ -13927,7 +14000,7 @@ const GameBg = (() => {
       ev.stopPropagation();
       selectTheme(btn.getAttribute('data-theme-choice'));
     }, true);
-    document.querySelectorAll('[data-game-mode]').forEach(btn => btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-game-mode]').forEach(btn => btn !== document.documentElement && btn.addEventListener('click', () => {
       visuals.gameMode = btn.dataset.gameMode; saveVisuals(visuals); applyVisuals(visuals); Audio_.sfx.uiTap();
     }));
   }
@@ -16836,4 +16909,21 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 .award__tier { display: block !important; margin-top: calc(var(--u) * .2) !important; }
 .award__bar { margin-top: calc(var(--u) * .5) !important; }
 .award__prog { margin-top: calc(var(--u) * .45); font: 700 min(calc(var(--u) * 1.4), calc(var(--w) * 3)) var(--font-mono); color: rgba(255,255,255,.62); white-space: nowrap; }
+
+/* ---- Home background follows the chosen theme ---- */
+.hero-stage { transition: filter .6s ease; }
+html[data-theme="matrix"] .hero-stage { filter: hue-rotate(-95deg) saturate(1.1) brightness(.78); }
+html[data-theme="minecraft"] .hero-stage { filter: hue-rotate(-60deg) saturate(.8) sepia(.35) brightness(.85); }
+html[data-theme="lava"] .hero-stage { filter: hue-rotate(125deg) saturate(1.5) brightness(.9); }
+html[data-theme="plasma"] .hero-stage { filter: hue-rotate(35deg) saturate(1.35) brightness(.95); }
+html[data-theme="candy"] .hero-stage { filter: hue-rotate(75deg) saturate(1.25) brightness(1.12); }
+html[data-theme="frost"] .hero-stage { filter: hue-rotate(-18deg) saturate(.65) brightness(1.1); }
+html[data-theme="cyber"] .hero-stage { filter: hue-rotate(-40deg) saturate(1.3) brightness(.9); }
+html[data-theme="arcade"] .hero-stage { filter: hue-rotate(160deg) saturate(1.5) brightness(1); }
+html[data-theme="midnight"] .hero-stage { filter: hue-rotate(-12deg) saturate(.75) brightness(.55); }
+html[data-theme="ember"] .hero-stage { filter: hue-rotate(150deg) saturate(1.45) brightness(.85); }
+html[data-theme="forest"] .hero-stage { filter: hue-rotate(-105deg) saturate(1.0) brightness(.82); }
+
+/* ---- Main menu buttons lowered by 15% of their height ---- */
+.menu-art-grid { translate: 0 15%; }
 </style>
