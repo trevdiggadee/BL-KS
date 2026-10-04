@@ -17840,4 +17840,55 @@ body {
 })();
 </script>
 
+
+<style id="game-bottom-clearance-fix">
+/* BLØKS — gameplay bottom-bar fix.
+   The shell is forced to the tallest viewport (screen.height / 100lvh) so the
+   menu art can reach the physical bottom edge, but the game layout was also
+   stretched to that height with 0 bottom padding. The lowest rows of the
+   board then sat under the browser toolbar / Home Indicator (the black bar).
+   The background still fills the whole shell; only the play layout is
+   lifted above whatever part of the shell is not actually visible. */
+#screen-game.game-screen {
+  padding-bottom: calc(max(var(--game-hidden-bottom, 0px), env(safe-area-inset-bottom, 0px)) + 10px) !important;
+}
+#screen-game .controls {
+  padding-bottom: 2px !important;
+}
+</style>
+
+<script id="game-bottom-clearance-script">
+(function () {
+  'use strict';
+  var last = -1;
+  function update() {
+    var app = document.getElementById('app');
+    if (!app) return;
+    var shellH = app.getBoundingClientRect().height;
+    var visH = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    var hidden = Math.max(0, Math.round(shellH - visH));
+    if (hidden > 160) hidden = 0; /* implausible (keyboard/odd viewport) */
+    if (hidden === last) return;
+    last = hidden;
+    document.documentElement.style.setProperty('--game-hidden-bottom', hidden + 'px');
+    /* Re-fit the board to the new space. Second call is a no-op (last===hidden). */
+    window.dispatchEvent(new Event('resize'));
+  }
+  update();
+  window.addEventListener('resize', update, { passive: true });
+  window.addEventListener('orientationchange', function () {
+    setTimeout(update, 100); setTimeout(update, 400);
+  }, { passive: true });
+  window.addEventListener('pageshow', function () { setTimeout(update, 50); });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', update, { passive: true });
+  }
+  /* The overrides above are applied late; re-measure when the game opens. */
+  var g = document.getElementById('screen-game');
+  if (g && window.MutationObserver) {
+    new MutationObserver(function () { setTimeout(update, 30); })
+      .observe(g, { attributes: true, attributeFilter: ['class'] });
+  }
+})();
+</script>
 </html>
