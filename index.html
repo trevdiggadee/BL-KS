@@ -5489,9 +5489,13 @@ const Audio_ = (() => {
     if (ctx && ctx.state === 'suspended') ctx.resume();
   }
 
-  function setMusicOn(on) { musicOn = on; if (!on) stopMusic(); }
+  function setMusicOn(on) { musicOn = on; if (!on) pauseMusic(true); else resumeMusic(); }
   function setSfxOn(on) { sfxOn = on; }
-  function setMusicVolume(v) { musicVolume = v; if (musicGain) musicGain.gain.value = v; }
+  function setMusicVolume(v) {
+    musicVolume = v;
+    if (musicGain) musicGain.gain.value = v;
+    else if (typeof mCur !== 'undefined' && mCur && mCur.el && !mCur.gain) mCur.el.volume = Math.max(0, Math.min(1, (mCur.target == null ? 1 : mCur.target) * v));
+  }
   function setSfxVolume(v) { sfxVolume = v; if (sfxGain) sfxGain.gain.value = v; }
 
   function tone({ freq, duration = 0.12, type = 'square', gain = 0.22, slideTo = null, delay = 0 }) {
@@ -5613,7 +5617,7 @@ const Audio_ = (() => {
     musicTimer = setTimeout(scheduleMusicStep, 420);
   }
 
-  function startMusic() {
+  function startProc() {
     if (!musicOn) return;
     ensureContext();
     resume();
@@ -5622,16 +5626,217 @@ const Audio_ = (() => {
     scheduleMusicStep();
   }
 
-  function stopMusic() {
+  function stopProc() {
     if (musicTimer) {
       clearTimeout(musicTimer);
       musicTimer = null;
     }
   }
 
+  // ===================== File music: menu.mp3 + "Level 1.mp3" .. "Level 21.mp3" =====================
+  // Menu: menu.mp3 loops. Gameplay: the 21 level tracks play in order, each one in full; near the end of
+  // a song it fades out while the next fades in (crossfade), regardless of the game level. After
+  // Level 21 it wraps to Level 1. Files are looked up next to index.html (and a few common folders).
+  const MENU_FILE = 'menu.mp3';
+  const LEVEL_TRACKS = 21;
+  const MUSIC_FOLDERS = ['', 'music/', 'audio/', 'sounds/', 'sound/', 'assets/', 'assets/music/', 'assets/audio/'];
+  const XFADE_SEC = 3;
+  let musicFolder = null;            // folder where the files were found
+  let mMode = null;                  // 'menu' | 'game' | 'over'
+  let mCur = null;                   // track that is playing / fading in
+  let mIdx = 0;                      // 0-based gameplay track index
+  let mPaused = false;               // paused (game pause, music off, hidden tab)
+  let mHiddenPause = false;
+  let mFails = 0;
+  let filesMissing = false;
+  let mTick = null;
+
+  function trackVolume(tr, target, sec) {
+    if (!tr) return;
+    if (tr.gain && ctx) {
+      const g = tr.gain.gain, now = ctx.currentTime;
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(g.value, now);
+      g.linearRampToValueAtTime(target, now + Math.max(0.01, sec));
+    } else {
+      // no Web Audio: fade the element volume by hand
+      clearInterval(tr.fadeTimer);
+      const from = tr.el.volume, t0 = performance.now();
+      tr.target = target;
+      tr.fadeTimer = setInterval(() => {
+        const k = Math.min(1, (performance.now() - t0) / (Math.max(0.01, sec) * 1000));
+        tr.el.volume = Math.max(0, Math.min(1, (from + (target * musicVolume - from) * k)));
+        if (k >= 1) clearInterval(tr.fadeTimer);
+      }, 40);
+    }
+  }
+
+  function makeTrack(name, loop, onMissing) {
+    ensureContext();
+    const el = new Audio();
+    el.preload = 'auto';
+    el.loop = !!loop;
+    const tr = { el, name, loop: !!loop, gain: null, started: false, retired: false, loaded: false };
+    if (ctx) {
+      try {
+        const src = ctx.createMediaElementSource(el);
+        tr.gain = ctx.createGain();
+        tr.gain.gain.value = 0;
+        src.connect(tr.gain);
+        tr.gain.connect(musicGain);
+      } catch (_) { tr.gain = null; }
+    }
+    if (!tr.gain) el.volume = 0;
+    const folders = musicFolder !== null ? [musicFolder] : MUSIC_FOLDERS;
+    let fi = 0;
+    const tryNext = () => {
+      if (tr.retired) return;
+      if (fi >= folders.length) { onMissing && onMissing(tr); return; }
+      el.src = folders[fi] + encodeURI(name);
+      fi += 1;
+      el.load();
+    };
+    el.addEventListener('canplay', () => { if (!tr.loaded) { tr.loaded = true; musicFolder = folders[fi - 1]; mFails = 0; } });
+    el.addEventListener('error', () => { if (!tr.loaded) tryNext(); });
+    el.addEventListener('ended', () => {
+      if (!tr.loop && mMode === 'game' && mCur === tr && !tr.retired && !mPaused) nextGameTrack(0.4);
+    });
+    tryNext();
+    return tr;
+  }
+
+  function playTrack(tr, fadeIn) {
+    if (!tr) return;
+    tr.started = true;
+    const pr = tr.el.play();
+    if (pr && pr.catch) pr.catch(() => { /* needs a tap first; kickMusic() retries on the next gesture */ });
+    trackVolume(tr, 1, fadeIn);
+  }
+
+  function retireTrack(tr, fadeOut) {
+    if (!tr || tr.retired) return;
+    tr.retired = true;
+    trackVolume(tr, 0, fadeOut);
+    setTimeout(() => {
+      try { tr.el.pause(); tr.el.removeAttribute('src'); tr.el.load(); } catch (_) {}
+      try { if (tr.gain) tr.gain.disconnect(); } catch (_) {}
+    }, fadeOut * 1000 + 200);
+  }
+
+  function useFallback() {
+    filesMissing = true;
+    startProc();
+  }
+
+  function startGameTrack(fadeIn) {
+    mCur = makeTrack(`Level ${mIdx + 1}.mp3`, false, () => {
+      mFails += 1;
+      if (musicFolder === null || mFails >= LEVEL_TRACKS) { useFallback(); return; }
+      mIdx = (mIdx + 1) % LEVEL_TRACKS;           // a missing file is skipped
+      startGameTrack(0.5);
+    });
+    playTrack(mCur, fadeIn);
+  }
+
+  function nextGameTrack(xf) {
+    const old = mCur;
+    mIdx = (mIdx + 1) % LEVEL_TRACKS;
+    retireTrack(old, xf);
+    startGameTrack(xf);
+  }
+
+  function musicTick() {
+    if (mMode !== 'game' || mPaused || !musicOn || !mCur || mCur.retired || !mCur.started) return;
+    const el = mCur.el, dur = el.duration;
+    if (!isFinite(dur) || dur <= 0 || el.paused) return;
+    const xf = Math.min(XFADE_SEC, dur / 4);
+    if (dur - el.currentTime <= xf + 0.05) nextGameTrack(xf);
+  }
+
+  function playMenuMusic() {
+    mMode = 'menu'; mPaused = false; mHiddenPause = false;
+    if (!musicOn) return;
+    stopProc();
+    if (filesMissing) { startProc(); return; }
+    if (mCur && mCur.name === MENU_FILE && !mCur.retired) { kickMusic(); return; }
+    retireTrack(mCur, 1.2);
+    mCur = makeTrack(MENU_FILE, true, () => useFallback());
+    playTrack(mCur, 1.4);
+  }
+
+  function playGameMusic(fromStart = true) {
+    mMode = 'game'; mPaused = false; mHiddenPause = false;
+    if (fromStart) mIdx = 0;
+    if (!musicOn) return;
+    stopProc();
+    if (filesMissing) { startProc(); return; }
+    retireTrack(mCur, 1.0);
+    startGameTrack(1.2);
+  }
+
+  function fadeOutMusic(sec = 2) {
+    mMode = 'over';
+    stopProc();
+    retireTrack(mCur, sec);
+    mCur = null;
+  }
+
+  function pauseMusic(hard) {
+    mPaused = true;
+    stopProc();
+    const tr = mCur;
+    if (tr && !tr.retired) {
+      trackVolume(tr, 0, hard ? 0.02 : 0.25);
+      clearTimeout(tr.pauseTimer);
+      tr.pauseTimer = setTimeout(() => { if (mPaused) { try { tr.el.pause(); } catch (_) {} } }, hard ? 40 : 300);
+    }
+  }
+
+  function resumeMusic() {
+    if (!musicOn) return;
+    mPaused = false; mHiddenPause = false;
+    if (!mMode) return;
+    ensureContext(); resume();
+    if (filesMissing) { startProc(); return; }
+    if (mCur && !mCur.retired) { clearTimeout(mCur.pauseTimer); playTrack(mCur, 0.5); }
+    else if (mMode === 'game') startGameTrack(0.6);
+    else if (mMode === 'menu') playMenuMusic();
+  }
+
+  /** First tap / key press unlocks audio (browsers block autoplay) and starts anything that was waiting. */
+  function kickMusic() {
+    resume();
+    if (!musicOn || mPaused || !mMode || mMode === 'over' || filesMissing) return;
+    const tr = mCur;
+    if (tr && !tr.retired && tr.el.paused && !tr.el.ended) {
+      trackVolume(tr, 0, 0.01);
+      playTrack(tr, 1.2);
+    }
+  }
+
+  function musicState() {
+    return {
+      mode: mMode, idx: mIdx, track: mCur ? mCur.name : null, paused: mPaused, folder: musicFolder, missing: filesMissing,
+      gain: mCur && mCur.gain ? +mCur.gain.gain.value.toFixed(2) : null, time: mCur ? +mCur.el.currentTime.toFixed(1) : null, dur: mCur ? mCur.el.duration : null,
+      playing: !!(mCur && !mCur.el.paused),
+    };
+  }
+
+  function startMusic() { if (!mMode) playMenuMusic(); else resumeMusic(); }
+  function stopMusic() { pauseMusic(false); }
+
+  ['pointerdown', 'touchend', 'keydown', 'click'].forEach((ev) => document.addEventListener(ev, kickMusic, { passive: true, capture: true }));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { if (!mPaused && mMode && mMode !== 'over') { mHiddenPause = true; pauseMusic(true); } }
+    else if (mHiddenPause) { mHiddenPause = false; resumeMusic(); }
+  });
+  mTick = setInterval(musicTick, 250);
+  document.addEventListener('DOMContentLoaded', () => setTimeout(() => { if (!mMode) playMenuMusic(); }, 400));
+
   return {
     resume, setMusicOn, setSfxOn, setMusicVolume, setSfxVolume,
     startMusic, stopMusic, sfx: SFX,
+    playMenuMusic, playGameMusic, pauseMusic, resumeMusic, fadeOutMusic, musicState,
   };
 })();
 
@@ -11307,6 +11512,7 @@ const Game = (() => {
   function triggerGameOver(reason = 'GAME OVER') {
     state = 'gameover';
     stopLoop();
+    Audio_.fadeOutMusic(2.2);
     Audio_.sfx.gameOver();
     Effects.shake(10);
     vibrate(200);
@@ -12133,12 +12339,12 @@ const Game = (() => {
     if (state === 'playing') {
       state = 'paused';
       UI.setOverlay('overlay-pause', true);
-      Audio_.stopMusic();
+      Audio_.pauseMusic();
       accumulatePlayTime();
     } else if (state === 'paused') {
       state = 'playing';
       UI.setOverlay('overlay-pause', false);
-      if (saveData.settings.musicOn) Audio_.startMusic();
+      Audio_.resumeMusic();
       sessionStartTs = performance.now();
       lastTs = performance.now();
     }
@@ -12697,7 +12903,7 @@ const Game = (() => {
     state = 'playing';
     sessionStartTs = performance.now();
     lastTs = 0;
-    if (saveData.settings.musicOn) Audio_.startMusic();
+    Audio_.playGameMusic(true);
     rafId = requestAnimationFrame(loop);
   }
 
@@ -12709,7 +12915,7 @@ const Game = (() => {
 
   function quitToMenu() {
     stopLoop();
-    Audio_.stopMusic();
+    Audio_.playMenuMusic();
     Particles.clear();
     UI.setOverlay('overlay-pause', false);
     UI.setOverlay('overlay-gameover', false);
