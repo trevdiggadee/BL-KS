@@ -17759,4 +17759,85 @@ body {
 })();
 </script>
 
+
+<style id="pwa-bottom-fill-fix">
+/* FINAL: eliminate the fixed-aspect artwork cutoff at the bottom.
+   The supplied hero artwork is 768x1376 (portrait), so it must be allowed
+   to cover the entire PWA viewport instead of ending at its intrinsic ratio. */
+#screen-start.start-screen,
+#screen-start .start-scroll,
+#screen-start .hero-stage {
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: none !important;
+}
+
+#screen-start .hero-stage {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  border-radius: 0 !important;
+}
+
+@supports (height: 100dvh) {
+  #screen-start .hero-stage {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+  }
+}
+
+/* JS viewport value wins when available, and is intentionally applied to the
+   visual art independently of the flex/menu stack. */
+#screen-start .hero-stage {
+  height: var(--bloks-final-viewport-height, 100vh) !important;
+  min-height: var(--bloks-final-viewport-height, 100vh) !important;
+}
+
+/* The start screen itself must not expose a second black rectangle beneath
+   the art. */
+#screen-start,
+#screen-start .start-scroll {
+  overflow: hidden !important;
+  background: transparent !important;
+}
+</style>
+
+<script id="pwa-bottom-fill-script">
+(function(){
+  'use strict';
+  function setViewportHeight(){
+    var candidates = [
+      window.outerHeight,
+      window.screen && window.screen.availHeight,
+      window.screen && window.screen.height,
+      window.innerHeight
+    ].map(Number).filter(function(v){ return Number.isFinite(v) && v > 0; });
+    if (!candidates.length) return;
+    /* Prefer the largest trustworthy iOS standalone height. */
+    var h = Math.max.apply(Math, candidates);
+    document.documentElement.style.setProperty('--bloks-final-viewport-height', h + 'px');
+  }
+  setViewportHeight();
+  window.addEventListener('resize', setViewportHeight, {passive:true});
+  window.addEventListener('orientationchange', function(){
+    setTimeout(setViewportHeight, 50);
+    setTimeout(setViewportHeight, 300);
+  }, {passive:true});
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', setViewportHeight, {passive:true});
+  }
+})();
+</script>
+
 </html>
