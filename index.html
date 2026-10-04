@@ -17521,39 +17521,32 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 
 <style id="pwa-viewport-layout-fix">
 /* ======================================================================
-   BLØKS — iPhone Home Screen / PWA viewport normalization
-   One authoritative viewport rule set. This intentionally replaces the
-   older overlapping 100vh/safe-area layout passes without changing the
-   board, controls, graphics, animation, scoring, or gameplay.
+   BLØKS — iPhone Home Screen / PWA FULL-BLEED viewport fix v2
+   The outer app uses the largest viewport so the background reaches the
+   physical bottom edge. Safe-area insets are applied only to UI content.
    ====================================================================== */
-
-html {
+html, body {
   width: 100%;
   height: 100%;
   min-height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: hidden !important;
+  background: var(--bg, #05060a);
 }
 
 body {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
   position: fixed;
   inset: 0;
-  overscroll-behavior: none;
+  overscroll-behavior: none !important;
 }
 
-/* #app must be the viewport-sized coordinate system. Do not put the
-   iPhone safe-area inset on the app itself: that would shrink its content
-   box and make an absolutely positioned screen appear short/offset. */
 #app {
   position: fixed !important;
-  inset: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
   min-height: 100vh !important;
@@ -17561,101 +17554,85 @@ body {
   padding: 0 !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
+  background: var(--bg, #05060a);
 }
 
-/* Modern iOS/PWA viewport. The 100vh declaration above is the fallback;
-   100dvh is authoritative where supported. */
-@supports (height: 100dvh) {
-  html, body {
-    height: 100dvh;
-    min-height: 100dvh;
-  }
-
+/* iOS standalone/PWA: use the largest viewport for the actual full-bleed
+   shell. This is what prevents a persistent strip below the app. */
+@supports (height: 100lvh) {
   #app {
-    height: 100dvh !important;
-    min-height: 100dvh !important;
+    height: 100lvh !important;
+    min-height: 100lvh !important;
   }
 }
 
 .screen {
   position: absolute !important;
-  inset: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
   width: 100% !important;
-  height: 100vh !important;
-  min-height: 100vh !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
   margin: 0 !important;
   box-sizing: border-box !important;
-  overflow: hidden;
+  overflow: hidden !important;
 }
 
-@supports (height: 100dvh) {
-  .screen {
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-  }
-}
-
-/* The start screen owns its own safe-area content padding. This keeps the
-   background/art full bleed while keeping interactive UI above the Home
-   Indicator without creating a second viewport-sized bottom gap. */
+/* Never put safe-area padding on the viewport shell itself. */
 #screen-start.start-screen {
-  padding-top: env(safe-area-inset-top) !important;
-  padding-right: env(safe-area-inset-right) !important;
-  padding-bottom: env(safe-area-inset-bottom) !important;
-  padding-left: env(safe-area-inset-left) !important;
+  padding: 0 !important;
 }
 
 #screen-start .start-scroll {
   width: 100% !important;
   height: 100% !important;
   min-height: 0 !important;
-  max-height: 100% !important;
+  max-height: none !important;
   margin: 0 !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
 }
 
-/* Gameplay: safe areas are content insets, not extra viewport height. */
+/* Gameplay is a true full-bleed layer. The bottom safe-area is handled by
+   the actual controls/content, not by shortening the game background. */
 #screen-game.game-screen {
   width: 100% !important;
-  height: 100vh !important;
+  height: 100% !important;
   min-height: 0 !important;
-  max-height: 100vh !important;
-  box-sizing: border-box !important;
+  max-height: none !important;
   margin: 0 !important;
+  box-sizing: border-box !important;
   overflow: hidden !important;
   padding-top: max(8px, env(safe-area-inset-top)) !important;
   padding-right: max(8px, env(safe-area-inset-right)) !important;
-  padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  padding-bottom: 0 !important;
   padding-left: max(8px, env(safe-area-inset-left)) !important;
 }
 
-@supports (height: 100dvh) {
-  #screen-game.game-screen {
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-  }
-}
-
-/* Board sizing continues to use the available parent dimensions, so this
-   viewport fix cannot stretch or distort the board's cell proportions. */
+/* The play area is allowed to consume every remaining pixel. */
 #screen-game .board-wrap {
   min-height: 0 !important;
   min-width: 0 !important;
   flex: 1 1 auto !important;
+  margin: 0 !important;
 }
 
 #screen-game .board-frame {
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
 }
 
-/* Bottom controls remain above the Home Indicator only when they exist. */
+/* If on-screen controls are enabled, only the controls themselves receive
+   the Home Indicator clearance. No full-screen bottom padding is created. */
 #screen-game .controls {
-  padding-bottom: 0 !important;
+  padding-bottom: env(safe-area-inset-bottom) !important;
   margin-bottom: 0 !important;
+  flex: 0 0 auto !important;
 }
 
-/* Other full-screen pages/popups use the same viewport coordinate system. */
+/* Keep other screens full bleed as well. */
 #screen-stats,
 #screen-achievements,
 #screen-settings,
@@ -17664,17 +17641,6 @@ body {
   box-sizing: border-box;
 }
 
-@supports (height: 100dvh) {
-  #screen-stats,
-  #screen-achievements,
-  #screen-settings,
-  #screen-howto,
-  .selector-popups {
-    min-height: 100dvh;
-  }
-}
-
-/* No accidental page-level scrollbars in the standalone PWA. */
 html, body, #app, .screen {
   overscroll-behavior: none !important;
   -webkit-overflow-scrolling: auto !important;
