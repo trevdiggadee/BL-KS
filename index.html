@@ -17918,4 +17918,14 @@ body {
   window.addEventListener('pageshow', function(){ tries = 0; setTimeout(kick, 250); });
 })();
 </script>
+
+<style id="menu-scale-anchor-bottom">
+/* Menu: scale everything (art, logo, Play, dock) to 95% and anchor it to the
+   bottom edge. Change --menu-scale to tune (1 = original size). */
+:root { --menu-scale: 0.95; }
+#screen-start .start-scroll {
+  transform: scale(var(--menu-scale)) !important;
+  transform-origin: 50% 100% !important;
+}
+</style>
 </html>
