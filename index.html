@@ -17646,4 +17646,117 @@ html, body, #app, .screen {
   -webkit-overflow-scrolling: auto !important;
 }
 </style>
+
+<style id="pwa-physical-screen-fix">
+/* BLØKS — iOS Home Screen physical-screen fill
+   iOS can report a shorter layout/visual viewport than the actual
+   standalone Home Screen display. The menu screenshot shows the shell
+   ending above the physical bottom edge. Use the device screen height
+   only for standalone/PWA mode so the artwork reaches the real bottom. */
+html, body {
+  width: 100% !important;
+  min-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+body {
+  min-height: var(--bloks-screen-height, 100vh) !important;
+  height: var(--bloks-screen-height, 100vh) !important;
+}
+
+#app {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100vw !important;
+  height: var(--bloks-screen-height, 100vh) !important;
+  min-height: var(--bloks-screen-height, 100vh) !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+#app > .screen {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  height: var(--bloks-screen-height, 100vh) !important;
+  min-height: var(--bloks-screen-height, 100vh) !important;
+  max-height: none !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Menu background/art must occupy the newly recovered lower area. */
+#screen-start,
+#screen-start .start-scroll,
+#screen-start .hero-stage {
+  height: var(--bloks-screen-height, 100vh) !important;
+  min-height: var(--bloks-screen-height, 100vh) !important;
+  max-height: none !important;
+}
+
+/* Do not let an old safe-area rule create another black strip. */
+#screen-start .start-scroll {
+  padding-bottom: 0 !important;
+}
+
+@supports (height: 100dvh) {
+  body, #app, #app > .screen {
+    /* JS screen height wins; this is only a fallback before initialization. */
+    min-height: var(--bloks-screen-height, 100dvh) !important;
+  }
+}
+</style>
+
+<script id="pwa-physical-screen-script">
+(function () {
+  'use strict';
+
+  function isStandalonePWA() {
+    return !!(
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches
+    );
+  }
+
+  function applyPhysicalScreenHeight() {
+    if (!isStandalonePWA()) return;
+
+    /* screen.height is the full device display height in CSS pixels on iOS.
+       This bypasses the shorter visual/layout viewport responsible for the
+       visible strip below the BLØKS shell. */
+    var h = Number(window.screen && window.screen.height);
+    if (!Number.isFinite(h) || h <= 0) {
+      h = Number(window.innerHeight);
+    }
+    if (!Number.isFinite(h) || h <= 0) return;
+
+    document.documentElement.style.setProperty('--bloks-screen-height', h + 'px');
+  }
+
+  applyPhysicalScreenHeight();
+
+  window.addEventListener('orientationchange', function () {
+    setTimeout(applyPhysicalScreenHeight, 80);
+    setTimeout(applyPhysicalScreenHeight, 350);
+  }, { passive: true });
+
+  window.addEventListener('resize', applyPhysicalScreenHeight, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyPhysicalScreenHeight, { passive: true });
+  }
+})();
+</script>
+
 </html>
