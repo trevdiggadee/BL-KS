@@ -5450,11 +5450,8 @@ const Scoring = (() => {
 /* audio.js */
 /**
  * audio.js
- * Single responsibility: sound. Everything is synthesized at runtime with
- * the Web Audio API (oscillators/noise) rather than loaded from files, per
- * the project rule that audio assets shouldn't depend on external files
- * that could disappear. Swap in real samples later by replacing the play*
- * function bodies — the public API stays the same.
+ * Single responsibility: sound. SFX are synthesized with the Web Audio API;
+ * background music is loaded from MP3 files in the repository.
  */
 
 const Audio_ = (() => {
@@ -5588,44 +5585,8 @@ const Audio_ = (() => {
     highScore: () => [523, 659, 784, 1047, 1318].forEach((f, i) => tone({ freq: f, duration: 0.2, type: 'triangle', gain: 0.2, delay: i * 0.08 })),
   };
 
-  // --- Minimal generative background music: a slow arpeggio loop over a
-  // dark, moody chord progression, synthesized step by step. ---
-  const PROGRESSION = [
-    [130.81, 155.56, 196.00], // Cm
-    [116.54, 155.56, 174.61], // Ab
-    [103.83, 130.81, 155.56], // Gm-ish
-    [174.61, 220.00, 261.63], // F
-  ];
-
-  function scheduleMusicStep() {
-    if (!musicOn || !ctx) return;
-    const chord = PROGRESSION[Math.floor(musicStep / 4) % PROGRESSION.length];
-    const note = chord[musicStep % chord.length];
-    const t0 = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = note * 2;
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.linearRampToValueAtTime(0.12, t0 + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.5);
-    osc.connect(g);
-    g.connect(musicGain);
-    osc.start(t0);
-    osc.stop(t0 + 0.55);
-    musicStep += 1;
-    musicTimer = setTimeout(scheduleMusicStep, 420);
-  }
-
-  function startProc() {
-    if (!musicOn) return;
-    ensureContext();
-    resume();
-    if (musicTimer) return;
-    musicStep = 0;
-    scheduleMusicStep();
-  }
-
+  // Music is loaded from MP3 files in the repository. There is intentionally
+  // NO synthesized/generative music fallback.
   function stopProc() {
     if (musicTimer) {
       clearTimeout(musicTimer);
@@ -5633,10 +5594,9 @@ const Audio_ = (() => {
     }
   }
 
-  // ===================== File music: menu.mp3 + "Level 1.mp3" .. "Level 21.mp3" =====================
-  // Menu: menu.mp3 loops. Gameplay: the 21 level tracks play in order, each one in full; near the end of
-  // a song it fades out while the next fades in (crossfade), regardless of the game level. After
-  // Level 21 it wraps to Level 1. Files are looked up next to index.html (and a few common folders).
+  // ===================== File music: menu.mp3 + Level-1.mp3 .. Level-21.mp3 =====================
+  // Menu: menu.mp3 loops. Gameplay: Level-1.mp3 through Level-21.mp3 play in order with a crossfade.
+  // After Level-21.mp3 it wraps to Level-1.mp3. Files are searched next to index.html and common audio folders.
   const MENU_FILE = 'menu.mp3';
   const LEVEL_TRACKS = 21;
   const MUSIC_FOLDERS = ['', 'music/', 'audio/', 'sounds/', 'sound/', 'assets/', 'assets/music/', 'assets/audio/'];
@@ -5687,7 +5647,7 @@ const Audio_ = (() => {
       } catch (_) { tr.gain = null; }
     }
     if (!tr.gain) el.volume = 0;
-    const folders = musicFolder !== null ? [musicFolder] : MUSIC_FOLDERS;
+    const folders = MUSIC_FOLDERS;
     let fi = 0;
     const tryNext = () => {
       if (tr.retired) return;
@@ -5723,17 +5683,16 @@ const Audio_ = (() => {
     }, fadeOut * 1000 + 200);
   }
 
-  function useFallback() {
+  function markMusicMissing(trackName) {
     filesMissing = true;
-    startProc();
+    console.warn(`[BLØKS music] Could not find ${trackName}. No synthesized fallback will be used.`);
   }
 
   function startGameTrack(fadeIn) {
-    mCur = makeTrack(`Level ${mIdx + 1}.mp3`, false, () => {
-      mFails += 1;
-      if (musicFolder === null || mFails >= LEVEL_TRACKS) { useFallback(); return; }
-      mIdx = (mIdx + 1) % LEVEL_TRACKS;           // a missing file is skipped
-      startGameTrack(0.5);
+    // Repository naming: Level-1.mp3 ... Level-21.mp3
+    const trackName = `Level-${mIdx + 1}.mp3`;
+    mCur = makeTrack(trackName, false, () => {
+      markMusicMissing(trackName);
     });
     playTrack(mCur, fadeIn);
   }
@@ -5757,10 +5716,10 @@ const Audio_ = (() => {
     mMode = 'menu'; mPaused = false; mHiddenPause = false;
     if (!musicOn) return;
     stopProc();
-    if (filesMissing) { startProc(); return; }
+    if (filesMissing) filesMissing = false;
     if (mCur && mCur.name === MENU_FILE && !mCur.retired) { kickMusic(); return; }
     retireTrack(mCur, 1.2);
-    mCur = makeTrack(MENU_FILE, true, () => useFallback());
+    mCur = makeTrack(MENU_FILE, true, () => markMusicMissing(MENU_FILE));
     playTrack(mCur, 1.4);
   }
 
@@ -5769,7 +5728,7 @@ const Audio_ = (() => {
     if (fromStart) mIdx = 0;
     if (!musicOn) return;
     stopProc();
-    if (filesMissing) { startProc(); return; }
+    if (filesMissing) filesMissing = false;
     retireTrack(mCur, 1.0);
     startGameTrack(1.2);
   }
@@ -5797,7 +5756,7 @@ const Audio_ = (() => {
     mPaused = false; mHiddenPause = false;
     if (!mMode) return;
     ensureContext(); resume();
-    if (filesMissing) { startProc(); return; }
+    if (filesMissing) return;
     if (mCur && !mCur.retired) { clearTimeout(mCur.pauseTimer); playTrack(mCur, 0.5); }
     else if (mMode === 'game') startGameTrack(0.6);
     else if (mMode === 'menu') playMenuMusic();
@@ -5806,7 +5765,7 @@ const Audio_ = (() => {
   /** First tap / key press unlocks audio (browsers block autoplay) and starts anything that was waiting. */
   function kickMusic() {
     resume();
-    if (!musicOn || mPaused || !mMode || mMode === 'over' || filesMissing) return;
+    if (!musicOn || mPaused || !mMode || mMode === 'over') return;
     const tr = mCur;
     if (tr && !tr.retired && tr.el.paused && !tr.el.ended) {
       trackVolume(tr, 0, 0.01);
