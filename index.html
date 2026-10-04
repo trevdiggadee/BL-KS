@@ -15474,29 +15474,8 @@ body.is-playing #menu-float-canvas, #screen-game.screen--active ~ * #menu-float-
 })();
 </script>
 
-<script>
-/* menu-drop.js - lower the menu buttons by 25% of their height, as far as fits on screen */
-(function () {
-  function place() {
-    var g = document.querySelector('.menu-art-grid'); if (!g) return;
-    g.style.transition = 'none'; g.style.translate = '0 0px';
-    var r = g.getBoundingClientRect();
-    if (!r.height) { g.style.transition = ''; return; }
-    var room = document.documentElement.clientHeight - r.bottom - 2;
-    var shift = Math.max(0, Math.min(room, r.height * 0.6));
-    g.style.translate = '0 ' + shift.toFixed(1) + 'px';
-    void g.offsetHeight; g.style.transition = '';
-  }
-  window.addEventListener('load', function () { place(); setTimeout(place, 400); setTimeout(place, 1500); });
-  window.addEventListener('resize', place);
-  window.addEventListener('orientationchange', function () { setTimeout(place, 300); });
-  var st = document.getElementById('screen-start');
-  if (st && window.MutationObserver) new MutationObserver(function () { setTimeout(place, 60); }).observe(st, { attributes: true, attributeFilter: ['class'] });
-  place();
-})();
-</script>
 </body>
-</html>
+
 
 
 <style id="menu-ui-final-polish">
@@ -17533,9 +17512,172 @@ body.game-bg-live #theme-fx-canvas { display: none !important; }
 .award__prog { margin-top: calc(var(--u) * .45); font: 700 min(calc(var(--u) * 1.4), calc(var(--w) * 3)) var(--font-mono); color: rgba(255,255,255,.62); white-space: nowrap; }
 
 /* ---- Main menu buttons: lowered 25% of their height (clamped to the screen edge by menu-drop script) ---- */
-.menu-art-grid { gap: 4px 8px; transform-origin: 50% 100%; scale: .88; translate: 0 0; transition: translate .3s ease; }
+.menu-art-grid { gap: 4px 8px; transform-origin: 50% 100%; scale: .88; }
 
 /* ---- Studio: texture & effects squares ~10% bigger ---- */
 #popup-blocks .studio-section { padding: 15px 3px 8px !important; }
 #popup-blocks .studio-section .block-materials-grid, #popup-blocks .studio-section .block-fx-grid { gap: 4px !important; }
 </style>
+
+<style id="pwa-viewport-layout-fix">
+/* ======================================================================
+   BLØKS — iPhone Home Screen / PWA viewport normalization
+   One authoritative viewport rule set. This intentionally replaces the
+   older overlapping 100vh/safe-area layout passes without changing the
+   board, controls, graphics, animation, scoring, or gameplay.
+   ====================================================================== */
+
+html {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  overscroll-behavior: none;
+}
+
+/* #app must be the viewport-sized coordinate system. Do not put the
+   iPhone safe-area inset on the app itself: that would shrink its content
+   box and make an absolutely positioned screen appear short/offset. */
+#app {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Modern iOS/PWA viewport. The 100vh declaration above is the fallback;
+   100dvh is authoritative where supported. */
+@supports (height: 100dvh) {
+  html, body {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+
+  #app {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+  }
+}
+
+.screen {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden;
+}
+
+@supports (height: 100dvh) {
+  .screen {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+  }
+}
+
+/* The start screen owns its own safe-area content padding. This keeps the
+   background/art full bleed while keeping interactive UI above the Home
+   Indicator without creating a second viewport-sized bottom gap. */
+#screen-start.start-screen {
+  padding-top: env(safe-area-inset-top) !important;
+  padding-right: env(safe-area-inset-right) !important;
+  padding-bottom: env(safe-area-inset-bottom) !important;
+  padding-left: env(safe-area-inset-left) !important;
+}
+
+#screen-start .start-scroll {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Gameplay: safe areas are content insets, not extra viewport height. */
+#screen-game.game-screen {
+  width: 100% !important;
+  height: 100vh !important;
+  min-height: 0 !important;
+  max-height: 100vh !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  padding-top: max(8px, env(safe-area-inset-top)) !important;
+  padding-right: max(8px, env(safe-area-inset-right)) !important;
+  padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  padding-left: max(8px, env(safe-area-inset-left)) !important;
+}
+
+@supports (height: 100dvh) {
+  #screen-game.game-screen {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}
+
+/* Board sizing continues to use the available parent dimensions, so this
+   viewport fix cannot stretch or distort the board's cell proportions. */
+#screen-game .board-wrap {
+  min-height: 0 !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+#screen-game .board-frame {
+  flex: 0 0 auto;
+}
+
+/* Bottom controls remain above the Home Indicator only when they exist. */
+#screen-game .controls {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Other full-screen pages/popups use the same viewport coordinate system. */
+#screen-stats,
+#screen-achievements,
+#screen-settings,
+#screen-howto,
+.selector-popups {
+  box-sizing: border-box;
+}
+
+@supports (height: 100dvh) {
+  #screen-stats,
+  #screen-achievements,
+  #screen-settings,
+  #screen-howto,
+  .selector-popups {
+    min-height: 100dvh;
+  }
+}
+
+/* No accidental page-level scrollbars in the standalone PWA. */
+html, body, #app, .screen {
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+</style>
+</html>
