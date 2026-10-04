@@ -17889,4 +17889,33 @@ body {
   u(); setInterval(u,500);
 })();
 </script>
+
+<script id="viewport-recalc-kick">
+/* Experiment for the iOS Home Screen "short web view" bug: the OS reports a
+   viewport ~62px shorter than the screen (innerHeight 812 vs screen 874),
+   leaving a strip the page cannot draw into. Re-applying the viewport meta
+   makes WebKit recompute it; this runs at most twice and only when a gap
+   is detected. Harmless if it has no effect. */
+(function(){
+  'use strict';
+  if (!navigator.standalone) return;
+  var tries = 0;
+  function gap(){ return Math.max(screen.height, screen.width) - Math.max(innerHeight, innerWidth); }
+  function kick(){
+    if (tries >= 2 || gap() < 20) return;
+    tries++;
+    var m = document.querySelector('meta[name="viewport"]');
+    if (!m) return;
+    var orig = m.getAttribute('content');
+    m.setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover');
+    setTimeout(function(){
+      m.setAttribute('content', orig);
+      window.dispatchEvent(new Event('resize'));
+    }, 80);
+  }
+  setTimeout(kick, 400);
+  setTimeout(kick, 1500);
+  window.addEventListener('pageshow', function(){ tries = 0; setTimeout(kick, 250); });
+})();
+</script>
 </html>
