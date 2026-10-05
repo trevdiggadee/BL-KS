@@ -78,7 +78,9 @@ window.__airborneRingDebug = false;
     var afp = window.__airborneAirfieldPhase;
     if (window.__airborneAirfield &&
         (afp === "taxi" || afp === "accel" || afp === "skid" || afp === "score" ||
-         afp === "done" || afp === "rollout" || afp === "climb" || !afp)) {
+         afp === "rollout" || afp === "climb")) {
+      // NOTE: "done"/no-phase deliberately NOT blocked here: updatePlayer() applies gravity in
+      // those phases, so blocking taps made the blimp sink with dead controls.
       window.__airborneAirfield = true;
       if (afp === "climb") {
         // Scripted climb ignores taps, but remember one so the handoff to free flight feels responsive
